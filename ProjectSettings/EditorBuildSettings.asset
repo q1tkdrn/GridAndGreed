@@ -6,11 +6,14 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Sanggu/Scenes/VillageTemp.unity
-    guid: 528e9b6310c45ed449cdf70168d445af
+    path: Assets/Scenes/SampleScene.unity
+    guid: 8c9cfa26abfee488c85f1582747f6a02
   - enabled: 1
-    path: Assets/Sanggu/Scenes/BattleTemp.unity
-    guid: 47bdf52a4d0ca224796057769a496355
+    path: Assets/JDY/Main/Main.unity
+    guid: 1d2554c94bd5e2e4aa115344492b561c
+  - enabled: 1
+    path: Assets/JDY/Achievement/Achievement.unity
+    guid: c6dcb1fd135ed964695bc8eccb2d221f
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 2bcd2660ca9b64942af0de543d8d7100, type: 3}
   m_UseUCBPForAssetBundles: 0
