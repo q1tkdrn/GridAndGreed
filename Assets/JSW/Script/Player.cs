@@ -1,7 +1,10 @@
 using UnityEngine;
 
-public class ClickSelectAndMove2D : MonoBehaviour
+public class Player : MonoBehaviour
 {
+    public MovingPoint sc;
+    private float LastClickTime = 0f;
+    private bool IsDoubleClicked;
     private bool isSelected = false;
     private Vector3 originalScale;
     public float selectedScaleMultiplier = 1.2f;
@@ -13,36 +16,39 @@ public class ClickSelectAndMove2D : MonoBehaviour
     void Start()
     {
         originalScale = transform.localScale;
+        sc = FindAnyObjectByType<MovingPoint>();
     }
 
     void Update()
     {
+
         if (Input.GetMouseButtonDown(0))
         {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-
+            if(Time.time - LastClickTime < 0.3f)
+            {
+                Player_Attack();
+            }
+            LastClickTime = Time.time;
             if (hit.collider != null)
             {
-                // 오브젝트 클릭 시 선택 효과
                 if (hit.collider.gameObject == gameObject)
                 {
+                    sc.Create_MovingPlate(3, 3);
                     isSelected = true;
                     transform.localScale = originalScale * selectedScaleMultiplier;
                 }
-                // 선택된 상태에서 "Board" 태그를 가진 오브젝트 클릭 시 이동
                 else if (isSelected && hit.collider.CompareTag("Board"))
-                {
-                    // Board 오브젝트의 중심 좌표로 이동
-                    targetPosition = hit.collider.bounds.center;
+                {                    targetPosition = hit.collider.bounds.center;
                     isMoving = true;
                     isSelected = false;
                     transform.localScale = originalScale;
+                    sc.Remove_MovingPlate();
                 }
             }
         }
 
-        // 이동 처리
         if (isMoving)
         {
             transform.position = Vector3.MoveTowards(transform.position, targetPosition, moveSpeed * Time.deltaTime);
@@ -52,5 +58,10 @@ public class ClickSelectAndMove2D : MonoBehaviour
                 isMoving = false;
             }
         }
+    }
+
+    public void Player_Attack()
+    {
+        
     }
 }
