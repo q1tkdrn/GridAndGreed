@@ -16,14 +16,14 @@ public class AchievementManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-    public void AddProgress(string id, int amount)
+    public void AddProgress(string id, int amount)//ex)AchievementManager.Instance.AddProgress("ACH-1", money);
     {
         if (IsCompleted(id))
             return;
 
         int current = PlayerPrefs.GetInt(id + "_Current", 0);
         current += amount;
-        PlayerPrefs.SetInt(id + "_Current", current);
+        PlayerPrefs.SetInt(id + "_Current", current);//ex)ACH-1_Current = 100
 
         foreach (AchievementData data in achievements)
         {
@@ -31,17 +31,54 @@ public class AchievementManager : MonoBehaviour
             {
                 if (current >= data.targetValue)
                 {
-                    PlayerPrefs.SetInt(id + "_Completed", 1);
+                    PlayerPrefs.SetInt(id + "_Completed", 1);//ex)ACH-1_Completed = 1(달성)
                     Debug.Log("업적 달성 : " + id);
                 }
                 break;
             }
         }
-        PlayerPrefs.Save();
+        //PlayerPrefs.Save();
     }
-    public bool IsCompleted(string id)
+    private bool IsCompleted(string id)
     {
         return PlayerPrefs.GetInt(id + "_Completed", 0) == 1;
     }
-    //AchievementManager.Instance.AddProgress("SpendMoney", money);
+    public void GetReward(string id)//ex)AchievementManager.Instance.GetReward("ACH-1");
+    {
+        if (!IsCompleted(id) || IsRewarded(id))
+            return;
+
+        foreach (AchievementData data in achievements)
+        {
+            if (data.id != id)
+                continue;
+
+            switch (data.rewardType)
+            {
+                case RewardType.Soul:
+                    InventoryManager.Instance.AddSoul(data.rewardSoul);
+                    break;
+
+                case RewardType.Item:
+                    InventoryManager.Instance.AddItem(data.rewardItem);
+                    break;
+                    /*
+                 case RewardType.Character:
+                    InventoryManager.Instance.UnlockCharacter(data.rewardCharacter);
+                    break;
+                case RewardType.Memory:
+                    InventoryManager.Instance.UnlockMemory(data.rewardMemory);
+                    break;
+                    */
+            }
+            PlayerPrefs.SetInt(id + "_Rewarded", 1);//ex)ACH-1_Rewarded = 1(받음)
+            //PlayerPrefs.Save(); //Debug
+            Debug.Log("업적 보상 받음 : " + id);
+            break;
+        }
+    }
+    private bool IsRewarded(string id)
+    {
+        return PlayerPrefs.GetInt(id + "_Rewarded", 0) == 1;
+    }
 }
