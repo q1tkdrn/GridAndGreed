@@ -3,8 +3,8 @@ using UnityEngine.SceneManagement;
 
 public enum EScenes
 {
-    Village = 0,
-    Battle = 1
+    Village = 3,
+    Battle = 4
 }
 
 public class SceneChanger : MonoBehaviour

@@ -1,10 +1,10 @@
 fileFormatVersion: 2
-guid: 2010b3bb59bf3b548bd15a237bd3560b
+guid: 902e305db064af247aa968682d193b85
 TextureImporter:
   internalIDToNameTable:
   - first:
-      213: -2757877639728055405
-    second: "\uC2A4\uD06C\uB9B0\uC0F7 2026-07-29 214728_0"
+      213: -5985649082479903091
+    second: victory3_0
   externalObjects: {}
   serializedVersion: 13
   mipmaps:
@@ -100,13 +100,13 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "\uC2A4\uD06C\uB9B0\uC0F7 2026-07-29 214728_0"
+      name: victory3_0
       rect:
         serializedVersion: 2
         x: 0
         y: 0
-        width: 597
-        height: 335
+        width: 1920
+        height: 1080
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -115,8 +115,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: -1
       bones: []
-      spriteID: 39b340606ec0ab9d0800000000000000
-      internalID: -2757877639728055405
+      spriteID: d8e74a07fd3beeca0800000000000000
+      internalID: -5985649082479903091
       vertices: []
       indices: 
       edges: []
@@ -135,7 +135,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      "\uC2A4\uD06C\uB9B0\uC0F7 2026-07-29 214728_0": -2757877639728055405
+      victory3_0: -5985649082479903091
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 
