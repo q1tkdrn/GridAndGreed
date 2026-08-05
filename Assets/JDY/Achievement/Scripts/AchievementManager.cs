@@ -10,13 +10,14 @@ public class AchievementManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
+            PlayerPrefs.DeleteAll();//Debug
         }
         else
         {
             Destroy(gameObject);
         }
     }
-    public void AddProgress(string id, int amount)//ex)AchievementManager.Instance.AddProgress("ACH-1", money);
+    public void AddProgress(string id, int amount)//ex)AchievementManager.Instance.AddProgress("ACH-1", 10);
     {
         if (IsCompleted(id))
             return;
@@ -44,7 +45,7 @@ public class AchievementManager : MonoBehaviour
         return PlayerPrefs.GetInt(id + "_Completed", 0) == 1;
     }
     public void GetReward(string id)//ex)AchievementManager.Instance.GetReward("ACH-1");
-    {
+    {//Button
         if (!IsCompleted(id) || IsRewarded(id))
             return;
 

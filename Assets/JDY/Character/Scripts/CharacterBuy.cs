@@ -1,8 +1,8 @@
-using UnityEngine;
 using TMPro;
-public class ItemBuy : MonoBehaviour
+using UnityEngine;
+public class CharacterBuy : MonoBehaviour
 {
-    public ItemSlot itemSlot;
+    public CharacterSlot CharacterSlot;
     public TMP_Text soulText;
     void Update()
     {
@@ -10,14 +10,14 @@ public class ItemBuy : MonoBehaviour
     }
     public void BuyButton()
     {
-        try 
+        try
         {
-            if (InventoryManager.Instance.GetSoul() >= itemSlot.price)
+            if (InventoryManager.Instance.GetSoul() >= CharacterSlot.price)
             {
-                InventoryManager.Instance.RemoveSoul(itemSlot.price);
-                InventoryManager.Instance.AddItem(itemSlot.item);
+                InventoryManager.Instance.RemoveSoul(CharacterSlot.price);
+                //InventoryManager.Instance.AddCharacter(CharacterSlot.character);
 
-                Debug.Log(itemSlot.item.name+"을 구입");
+                Debug.Log(CharacterSlot.character.name + "을 구입");
             }
             else
             {

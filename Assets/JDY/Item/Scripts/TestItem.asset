@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f157416eccfe42d4fa2632a1f84b5d62, type: 3}
   m_Name: TestItem
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
-  itemName: 1
+  itemName: black
+  id: 1
   icon: {fileID: 10913, guid: 0000000000000000f000000000000000, type: 0}
   price: 0
   description: 
