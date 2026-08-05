@@ -1,5 +1,5 @@
 using UnityEngine;
-
+using UnityEngine.UI;
 [CreateAssetMenu(fileName = "AchievementData", menuName = "Scriptable Objects/AchievementData")]
 public class AchievementData : ScriptableObject
 {

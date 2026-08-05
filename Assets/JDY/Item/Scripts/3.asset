@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 3
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: 3
+  id: 3
   icon: {fileID: 10911, guid: 0000000000000000f000000000000000, type: 0}
   price: 3
   description: 

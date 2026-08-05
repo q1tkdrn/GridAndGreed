@@ -16,3 +16,6 @@ MonoBehaviour:
   title: "\uC11C\uB9C9"
   description: "\uB9C8\uC744\uC758 \uBB38\uC744 \uD074\uB9AD\uD558\uC138\uC694 "
   targetValue: 1
+  rewardType: 0
+  rewardSoul: 100
+  rewardItem: {fileID: 0}
