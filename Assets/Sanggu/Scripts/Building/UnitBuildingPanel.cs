@@ -75,7 +75,7 @@ public class UnitBuildingPanel : MonoBehaviour
         popupUnit.Init();
 
         nameText.text = popupUnit.unitTemp.unitName;
-        descriptionText.text = popupUnit.unitTemp.effectText;
+        descriptionText.text = popupUnit.unitTemp.abilityText;
     }
 
     public void OpenChangePanel()

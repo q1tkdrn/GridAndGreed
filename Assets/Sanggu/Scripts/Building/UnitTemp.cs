@@ -7,7 +7,7 @@ public class UnitTemp : ScriptableObject
     public int power;
     public int intelligence;
     public int reviveCool;
-    public string effectText;
+    public string abilityText;
     public Sprite skin1;
     public Sprite skin2;
     public Sprite skin3;

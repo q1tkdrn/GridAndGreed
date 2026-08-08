@@ -16,8 +16,8 @@ MonoBehaviour:
   power: 3
   intelligence: 2
   reviveCool: 1
-  effectText: "(\uD0C0 \uCE90\uB9AD\uD130\uBCF4\uB2E4 \uBD80\uD65C \uC18C\uBAA8 \uD134\uC774
-    1 \uC9E7\uC74C)"
+  abilityText: "(\uD0C0 \uCE90\uB9AD\uD130\uBCF4\uB2E4 \uBD80\uD65C \uC18C\uBAA8
+    \uD134\uC774 1 \uC9E7\uC74C)"
   skin1: {fileID: 0}
   skin2: {fileID: 0}
   skin3: {fileID: 0}

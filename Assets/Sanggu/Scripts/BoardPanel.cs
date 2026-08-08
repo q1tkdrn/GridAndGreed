@@ -29,7 +29,17 @@ public class BoardPanel : MonoBehaviour
     [SerializeField] private Sprite[] actionPointsList;
     private List<GameObject> _actionPointsList = new List<GameObject>();
 
-    [SerializeField] private Image[] units = new Image[3];
+    [Serializable]
+    private struct Unit
+    {
+        public Image image;
+        public GameObject popUp;
+        public TextMeshProUGUI nameText;
+        public TextMeshProUGUI descriptionText;
+    }
+    
+    [SerializeField] private Unit[] units = new Unit[3];
+    [SerializeField] private ItemUI[] items = new ItemUI[3];
     
     [Header("Boss")]
     public int bossMaxHp;
@@ -51,13 +61,18 @@ public class BoardPanel : MonoBehaviour
     {
         for(int i=0;i<3;i++)
         {
-            units[i].sprite = BattleDisplayManager.GetInstance().currentUnits[i].currentSkin switch
+            units[i].image.sprite = BattleDisplayManager.GetInstance().currentUnits[i].currentSkin switch
             {
                 0 => BattleDisplayManager.GetInstance().currentUnits[i].skin1,
                 1 => BattleDisplayManager.GetInstance().currentUnits[i].skin2,
                 2 => BattleDisplayManager.GetInstance().currentUnits[i].skin3,
-                _ => units[i].sprite
+                _ => units[i].image.sprite
             };
+            units[i].nameText.text = BattleDisplayManager.GetInstance().currentUnits[i].unitName;
+            units[i].descriptionText.text = BattleDisplayManager.GetInstance().currentUnits[i].abilityText;
+            
+            items[i].itemData = BattleDisplayManager.GetInstance().currentItems[i];
+            items[i].Init();
         }
     }
 
@@ -145,5 +160,15 @@ public class BoardPanel : MonoBehaviour
             var image = go.GetComponent<Image>();
             image.sprite = actionPointsList[i%actionPointsList.Length];
         }
+    }
+
+    public void OnMouseEnterUnit(int i)
+    {
+        units[i].popUp.SetActive(true);
+    }
+
+    public void OnMouseExitUnit(int i)
+    {
+        units[i].popUp.SetActive(false);
     }
 }

@@ -21,7 +21,7 @@ public class Card : MonoBehaviour
             $"힘: {unitTemp.power}\n" +
             $"지능: {unitTemp.intelligence}\n" +
             $"부활 대기 시간: {unitTemp.reviveCool}턴\n" +
-            $"능력: {unitTemp.effectText}" +
+            $"능력: {unitTemp.abilityText}" +
             $"</size>";
         text.gameObject.SetActive(isSelected);
     }

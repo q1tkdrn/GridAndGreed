@@ -16,7 +16,7 @@ MonoBehaviour:
   power: 2
   intelligence: 4
   reviveCool: 2
-  effectText: "\uC2EC\uD310 \uD6C4, \uC9C0\uB2A5 1 \uC99D\uAC00.(\uD574\uB2F9 \uD134
+  abilityText: "\uC2EC\uD310 \uD6C4, \uC9C0\uB2A5 1 \uC99D\uAC00.(\uD574\uB2F9 \uD134
     \uC720\uC9C0)"
   skin1: {fileID: 0}
   skin2: {fileID: 0}
