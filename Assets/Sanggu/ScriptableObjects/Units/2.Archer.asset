@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eceb1d28675e422f85521036b0cfaa51, type: 3}
+  m_Name: 2.Archer
+  m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
+  unitName: "\uAD81\uC218"
+  power: 4
+  intelligence: 3
+  reviveCool: 2
+  abilityText: "\uD134 \uC885\uB8CC \uC2DC, \uC774\uB3D9\uD558\uC9C0 \uC54A\uC558\uB2E4\uBA74,
+    \uBCF4\uC2A4\uC5D0\uAC8C \uD53C\uD574 5"
+  skin1: {fileID: 0}
+  skin2: {fileID: 0}
+  skin3: {fileID: 0}
+  isSkin2Unlocked: 0
+  isSkin3Unlocked: 0
+  currentSkin: 0
