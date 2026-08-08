@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eceb1d28675e422f85521036b0cfaa51, type: 3}
+  m_Name: 7.Wizard
+  m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
+  unitName: "\uB9C8\uBC95\uC0AC"
+  power: 2
+  intelligence: 4
+  reviveCool: 2
+  abilityText: "\uC2EC\uD310 \uD6C4, \uC9C0\uB2A5 1 \uC99D\uAC00.(\uD574\uB2F9 \uD134
+    \uC720\uC9C0)"
+  skin1: {fileID: 0}
+  skin2: {fileID: 0}
+  skin3: {fileID: 0}
+  isSkin2Unlocked: 0
+  isSkin3Unlocked: 0
+  currentSkin: 0
