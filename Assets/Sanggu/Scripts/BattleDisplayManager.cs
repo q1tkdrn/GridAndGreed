@@ -6,15 +6,17 @@ using UnityEngine;
 public class BattleDisplayManager : MonoBehaviour
 {
     [Header("Panel")]
-    [SerializeField] private GameObject entrancePanel;
+    public EntrancePanel entrancePanel;
     public BoardPanel boardPanel;
-    [SerializeField] private GameObject teamBuildingPanel;
+    [SerializeField] private GameObject unitBuildingPanel;
+    public ItemBuildingPanel itemBuildingPanel;
+    
     [Space]
     [SerializeField] private GameObject victoryPanel;
     [SerializeField] private GameObject defeatPanel;
     [SerializeField] private GameObject waysPanel;
     public UnitTemp[] currentUnits = new UnitTemp[3];
-
+    public ItemData[] currentItems = new ItemData[3];
     
     //싱글톤-------------------------------------------------------------------------------
     private static BattleDisplayManager _instance;
@@ -43,23 +45,36 @@ public class BattleDisplayManager : MonoBehaviour
     
     public void OpenGameBoard()
     {
-        entrancePanel.SetActive(false);
-        teamBuildingPanel.SetActive(false);
+        entrancePanel.gameObject.SetActive(false);
         boardPanel.gameObject.SetActive(true);
+        unitBuildingPanel.SetActive(false);
+        itemBuildingPanel.gameObject.SetActive(false);
     }
     
-    public void OpenTeamBuilding()
+    public void OpenUnitBuilding()
     {
-        entrancePanel.SetActive(false);
-        teamBuildingPanel.SetActive(true);
+        entrancePanel.gameObject.SetActive(false);
         boardPanel.gameObject.SetActive(false);
+        unitBuildingPanel.SetActive(true);
+        itemBuildingPanel.gameObject.SetActive(false);
     }
     
-    public void OpenEntrancePanel()
+    public void OpenItemBuilding()
     {
-        entrancePanel.SetActive(true);
-        teamBuildingPanel.SetActive(false);
+        entrancePanel.gameObject.SetActive(false);
         boardPanel.gameObject.SetActive(false);
+        unitBuildingPanel.SetActive(false);
+        itemBuildingPanel.gameObject.SetActive(true);
+    }
+    
+    public void OpenEntrancePanel(bool isBuilding)
+    {
+        entrancePanel.gameObject.SetActive(true);
+        boardPanel.gameObject.SetActive(false);
+        unitBuildingPanel.SetActive(false);
+        itemBuildingPanel.gameObject.SetActive(false);
+        entrancePanel.isBuilding = isBuilding;
+        entrancePanel.Init();
     }
     
     public void ShowVictoryPanel()
@@ -79,6 +94,6 @@ public class BattleDisplayManager : MonoBehaviour
 
     public void BackToVillage()
     {
-        SceneChanger.GetInstance().LoadScene(3);
+        SceneChanger.GetInstance().LoadScene(6);
     }
 }

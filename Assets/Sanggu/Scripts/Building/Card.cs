@@ -10,6 +10,7 @@ public class Card : MonoBehaviour
     public TextMeshProUGUI text;
     [SerializeField] private TextMeshProUGUI popupText;
     [SerializeField] private GameObject popUpPanel;
+    public GameObject border;
 
     public void Init()
     {

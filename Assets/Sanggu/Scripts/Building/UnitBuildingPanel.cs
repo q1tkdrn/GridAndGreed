@@ -5,7 +5,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
 
-public class BuildingPanel : MonoBehaviour
+public class UnitBuildingPanel : MonoBehaviour
 {
     [Header("Units")] public UnitTemp[] currentUnits = new UnitTemp[3];
     [SerializeField] private Unit[] unitObject = new Unit[3];
@@ -96,6 +96,7 @@ public class BuildingPanel : MonoBehaviour
             {
                 _currentCardIndex = cards.ToList().IndexOf(card);
                 _cardIndex = _currentCardIndex;
+                card.border.SetActive(true);
                 card.text.text = "장착됨\n눌러서 완료";
             }
         }
@@ -122,12 +123,14 @@ public class BuildingPanel : MonoBehaviour
         if (cards[i].isSelected && i != _cardIndex) return;
 
         cards[_currentCardIndex].Init();
+        cards[_currentCardIndex].border.SetActive(false);
         if (_currentCardIndex == _cardIndex)
         {
             cards[_currentCardIndex].text.text = "장착됨";
         }
 
         _currentCardIndex = i;
+        cards[_currentCardIndex].border.SetActive(true);
         cards[i].text.text = "한 번 더\n클릭하여\n교체";
         if (_currentCardIndex == _cardIndex)
         {

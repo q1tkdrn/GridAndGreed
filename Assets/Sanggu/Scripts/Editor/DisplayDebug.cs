@@ -8,11 +8,14 @@ public class DisplayDebug: Editor
     private static bool _debugFoldOut;
     private static bool _panelFoldOut;
     private static bool _boardFoldOut;
+    private static bool _inventoryFoldOut;
     
     private int _inputReaperHp;
     private int _inputBossHp;
     private int _inputActionPoint;
     private string _inputText;
+    private string _inputItemId;
+    private int _inputSoul;
     
     public override void OnInspectorGUI()
     {
@@ -33,15 +36,19 @@ public class DisplayDebug: Editor
                 EditorGUILayout.BeginVertical(EditorStyles.helpBox);
                 if (GUILayout.Button("Open Entrance Panel"))
                 {
-                    manager.OpenEntrancePanel();
+                    manager.OpenEntrancePanel(false);
                 }
                 if (GUILayout.Button("Open Board Panel"))
                 {
                     manager.OpenGameBoard();
                 }
-                if (GUILayout.Button("Open TeamBuilding Panel"))
+                if (GUILayout.Button("Open UnitBuilding Panel"))
                 {
-                    manager.OpenTeamBuilding();
+                    manager.OpenUnitBuilding();
+                }
+                if (GUILayout.Button("Open ItemBuilding Panel"))
+                {
+                    manager.OpenItemBuilding();
                 }
                 if (GUILayout.Button("Show Victory Panel"))
                 {
@@ -54,6 +61,42 @@ public class DisplayDebug: Editor
                 if (GUILayout.Button("Show Ways Panel"))
                 {
                     manager.ShowWaysPanel();
+                }
+                EditorGUILayout.EndVertical();
+            }
+            _inventoryFoldOut = EditorGUILayout.Foldout(_inventoryFoldOut, "Inventory");
+            if (_inventoryFoldOut)
+            {
+                EditorGUILayout.BeginVertical(EditorStyles.helpBox);
+                using (new  EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PrefixLabel("Soul");
+                    _inputSoul = EditorGUILayout.IntField(_inputSoul, GUILayout.Width(40));
+                    if (GUILayout.Button("Add"))
+                    {
+                        InventoryManager.Instance.AddSoul(_inputSoul);
+                    }
+
+                    if (GUILayout.Button("Remove"))
+                    {
+                        InventoryManager.Instance.RemoveSoul(_inputSoul);
+                    }
+                }
+                using (new  EditorGUILayout.HorizontalScope())
+                {
+                    EditorGUILayout.PrefixLabel("Item");
+                    _inputItemId = EditorGUILayout.TextField(_inputItemId, GUILayout.Width(40));
+                    if (GUILayout.Button("Add"))
+                    {
+                        InventoryManager.Instance.AddItem(_inputItemId);
+                        manager.itemBuildingPanel.Init();
+                    }
+
+                    if (GUILayout.Button("Remove"))
+                    {
+                        InventoryManager.Instance.RemoveItem(_inputItemId);
+                        manager.itemBuildingPanel.Init();
+                    }
                 }
                 EditorGUILayout.EndVertical();
             }

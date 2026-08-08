@@ -26,6 +26,7 @@ public class BoardPanel : MonoBehaviour
     public int actionPoint;
     [SerializeField] private GameObject actionPointPrefab;
     [SerializeField] private GameObject actionPoints;
+    [SerializeField] private Sprite[] actionPointsList;
     private List<GameObject> _actionPointsList = new List<GameObject>();
 
     [SerializeField] private Image[] units = new Image[3];
@@ -141,6 +142,8 @@ public class BoardPanel : MonoBehaviour
         {
             GameObject go = Instantiate(actionPointPrefab, actionPoints.transform);
             _actionPointsList.Add(go);
+            var image = go.GetComponent<Image>();
+            image.sprite = actionPointsList[i%actionPointsList.Length];
         }
     }
 }
