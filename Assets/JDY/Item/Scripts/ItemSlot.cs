@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 public class ItemSlot : MonoBehaviour
 {
-    public ItemShopManager shop;
+    public ItemManager manager;
     private int currentIndex = 0;
 
     public Image leftIcon;
@@ -21,13 +21,13 @@ public class ItemSlot : MonoBehaviour
     }
     public void SetItem()
     {
-        int leftIndex = (currentIndex - 1 + shop.items.Length) % shop.items.Length;
-        int rightIndex = (currentIndex + 1) % shop.items.Length;
+        int leftIndex = (currentIndex - 1 + manager.items.Length) % manager.items.Length;
+        int rightIndex = (currentIndex + 1) % manager.items.Length;
         
-        leftIcon.sprite = shop.items[leftIndex].icon;
-        rightIcon.sprite = shop.items[rightIndex].icon;
+        leftIcon.sprite = manager.items[leftIndex].icon;
+        rightIcon.sprite = manager.items[rightIndex].icon;
         
-        item = shop.items[currentIndex];
+        item = manager.items[currentIndex];
         centerIcon.sprite = item.icon;
         nameText.text = item.itemName;
 
@@ -38,13 +38,13 @@ public class ItemSlot : MonoBehaviour
     {
         currentIndex--;
         if (currentIndex < 0)
-            currentIndex = shop.items.Length - 1;
+            currentIndex = manager.items.Length - 1;
         SetItem();
     }
     public void RightButton()
     {
         currentIndex++;
-        if (currentIndex >= shop.items.Length)
+        if (currentIndex >= manager.items.Length)
             currentIndex = 0;
         SetItem();
     }
