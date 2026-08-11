@@ -12,6 +12,7 @@ public class ItemSlot : MonoBehaviour
 
     public TMP_Text nameText;
     public TMP_Text priceText;
+    public TMP_Text describeText;
 
     public ItemData item; //empty
     public int price;
@@ -28,11 +29,13 @@ public class ItemSlot : MonoBehaviour
         rightIcon.sprite = manager.items[rightIndex].icon;
         
         item = manager.items[currentIndex];
+
         centerIcon.sprite = item.icon;
         nameText.text = item.itemName;
-
         price = item.price;
         priceText.text = price.ToString();
+        describeText.text = item.description;
+
     }
     public void LeftButton()
     {
