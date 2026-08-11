@@ -10,7 +10,6 @@ public class AchievementManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            PlayerPrefs.DeleteAll();//Debug
         }
         else
         {
@@ -40,7 +39,7 @@ public class AchievementManager : MonoBehaviour
         }
         //PlayerPrefs.Save();
     }
-    private bool IsCompleted(string id)
+    public bool IsCompleted(string id)
     {
         return PlayerPrefs.GetInt(id + "_Completed", 0) == 1;
     }
@@ -78,7 +77,7 @@ public class AchievementManager : MonoBehaviour
             break;
         }
     }
-    private bool IsRewarded(string id)
+    public bool IsRewarded(string id)
     {
         return PlayerPrefs.GetInt(id + "_Rewarded", 0) == 1;
     }
