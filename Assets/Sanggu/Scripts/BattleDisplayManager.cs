@@ -1,7 +1,18 @@
+using System;
 using System.Collections;
+using System.Collections.Generic;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
+
+[Serializable]
+public struct Stage
+{
+    public BossTemp bossTemp;
+    public TextMeshProUGUI stageName;
+    public Image stageImage;
+}
 
 public class BattleDisplayManager : MonoBehaviour
 {
@@ -14,9 +25,16 @@ public class BattleDisplayManager : MonoBehaviour
     [Space]
     [SerializeField] private GameObject victoryPanel;
     [SerializeField] private GameObject defeatPanel;
-    [SerializeField] private GameObject waysPanel;
+    [SerializeField] private Image waysPanel;
     public UnitTemp[] currentUnits = new UnitTemp[3];
     public ItemData[] currentItems = new ItemData[3];
+    
+    public List<BossTemp> remainBoss = new List<BossTemp>();
+    public List<BossTemp> appearedBoss = new List<BossTemp>();
+    public Stage[] stages = new Stage[3];
+    [SerializeField] private GameObject arrow;
+    private int _decidedStage = -1;
+    
     
     //싱글톤-------------------------------------------------------------------------------
     private static BattleDisplayManager _instance;
@@ -49,6 +67,7 @@ public class BattleDisplayManager : MonoBehaviour
         boardPanel.gameObject.SetActive(true);
         unitBuildingPanel.SetActive(false);
         itemBuildingPanel.gameObject.SetActive(false);
+        ShowWaysPanel();
     }
     
     public void OpenUnitBuilding()
@@ -89,8 +108,44 @@ public class BattleDisplayManager : MonoBehaviour
 
     public void ShowWaysPanel()
     {
-        waysPanel.SetActive(true);
+        victoryPanel.SetActive(false);
+        waysPanel.gameObject.SetActive(true);
+        remainBoss.Shuffle();
+        for (int i = 0; i < 3; i++)
+        {
+            var temp = remainBoss[i];
+            if (remainBoss.Count < i + 1)
+            {
+                temp = remainBoss[0];
+            }
+            stages[i].bossTemp = temp;
+            stages[i].stageImage.sprite = temp.stageSprite;
+            stages[i].stageName.text = temp.stageName;
+        }
     }
+
+    public void OnClickStage(int i)
+    {
+        if (_decidedStage == i)
+        {
+            var boss = stages[i].bossTemp;
+            remainBoss.Remove(boss);
+            appearedBoss.Add(boss);
+            arrow.SetActive(false);
+            waysPanel.color = new Color(255, 255, 255, 250);
+            waysPanel.gameObject.SetActive(false);
+            _decidedStage = -1;
+            boardPanel.ShowCutScene();
+            return;
+        }
+        
+        _decidedStage = i;
+        arrow.SetActive(true);
+        var vector3 = arrow.transform.position;
+        vector3.x = stages[i].stageImage.transform.position.x;
+        arrow.transform.position = vector3;
+    }
+    
 
     public void BackToVillage()
     {
