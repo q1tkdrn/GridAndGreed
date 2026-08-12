@@ -3,13 +3,40 @@ using UnityEngine.SceneManagement;
 
 public class MainManager : MonoBehaviour
 {
-    public GameObject doorMain;
-    public GameObject backMain;
-    private bool whatMain;
+    public GameObject[] main;
+    private int currentIndex = 1;
+    public GameObject leftButton;
+    public GameObject rightButton;
     void Start()
     {
-        whatMain = false;//Test
-        backMain.SetActive(whatMain);
+        currentIndex = 1;
+        SetMain();
+    }
+    private void SetMain()
+    {
+        for (int i = 0; i < main.Length; i++)
+        {
+            main[i].SetActive(false);
+        }
+
+        main[currentIndex].SetActive(true);
+
+        leftButton.SetActive(currentIndex > 0);
+        rightButton.SetActive(currentIndex < main.Length - 1);
+    }
+    public void LeftButton()
+    {
+        if (currentIndex <= 0) return;
+
+        currentIndex--;
+        SetMain();
+    }
+    public void RightButton()
+    {
+        if (currentIndex >= main.Length - 1) return;
+
+        currentIndex++;
+        SetMain();
     }
     public void ItemShopButton()
     {
@@ -23,9 +50,12 @@ public class MainManager : MonoBehaviour
     {
         SceneManager.LoadScene("Achievement");
     }
-    public void LeftButton()
+    public void MemorialButton()
     {
-        whatMain = !whatMain;//Test
-        backMain.SetActive(whatMain);
+        SceneManager.LoadScene("Memorial");
+    }
+    public void MusicButton()
+    {
+        SceneManager.LoadScene("Music");
     }
 }
