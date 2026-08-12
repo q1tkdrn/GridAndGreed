@@ -9,6 +9,11 @@ using UnityEngine.UI;
 
 public class BoardPanel : MonoBehaviour
 {
+    [Header("CutScene")]
+    [SerializeField] private GameObject cutScene;
+    [SerializeField] private TextMeshProUGUI bossNameText;
+    [SerializeField] private Image bossCutSceneImage;
+    
     [Header("Turn")]
     public ETurn turn = ETurn.Start;
     public int turnCount = 1;
@@ -45,6 +50,7 @@ public class BoardPanel : MonoBehaviour
     public int bossMaxHp;
     public int bossCurrentHp;
     [SerializeField] private TextMeshProUGUI bossHp;
+    [SerializeField] private Image bossImage;
 
     public enum ETurn
     {
@@ -74,6 +80,21 @@ public class BoardPanel : MonoBehaviour
             items[i].itemData = BattleDisplayManager.GetInstance().currentItems[i];
             items[i].Init();
         }
+    }
+
+    public void ShowCutScene()
+    {
+        bossCutSceneImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
+        bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
+        bossNameText.text = BattleDisplayManager.GetInstance().appearedBoss[^1].bossName;
+        cutScene.SetActive(true);
+        StartCoroutine(HideCutScene());
+    }
+
+    private IEnumerator HideCutScene()
+    {
+        yield return new WaitForSeconds(1.5f); 
+        cutScene.SetActive(false);
     }
 
     public void NextTurn()

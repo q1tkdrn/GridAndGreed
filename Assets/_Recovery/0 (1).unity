@@ -1202,7 +1202,6 @@ GameObject:
   - component: {fileID: 128691940}
   - component: {fileID: 128691942}
   - component: {fileID: 128691941}
-  - component: {fileID: 128691943}
   m_Layer: 5
   m_Name: GameObject (2)
   m_TagString: Untagged
@@ -1268,35 +1267,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 128691939}
   m_CullTransparentMesh: 1
---- !u!114 &128691943
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 128691939}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventTrigger
-  m_Delegates:
-  - eventID: 4
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1338539439}
-          m_TargetAssemblyTypeName: BattleDisplayManager, Assembly-CSharp
-          m_MethodName: OnClickStage
-          m_Mode: 3
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 2
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
 --- !u!1001 &149329887
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -1448,6 +1418,7 @@ RectTransform:
   - {fileID: 378034737}
   - {fileID: 610994242}
   - {fileID: 2086784882}
+  - {fileID: 1929339505}
   m_Father: {fileID: 1739381323}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -1507,7 +1478,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BoardPanel
   cutScene: {fileID: 2086784881}
   bossNameText: {fileID: 562250249}
-  bossCutSceneImage: {fileID: 577612896}
   turn: 0
   turnCount: 1
   turnTextUI: {fileID: 1976519600}
@@ -1547,7 +1517,6 @@ MonoBehaviour:
   bossMaxHp: 60
   bossCurrentHp: 60
   bossHp: {fileID: 95767894}
-  bossImage: {fileID: 696940868}
 --- !u!1 &183434416
 GameObject:
   m_ObjectHideFlags: 0
@@ -3316,7 +3285,6 @@ GameObject:
   - component: {fileID: 448422200}
   - component: {fileID: 448422201}
   - component: {fileID: 448422202}
-  - component: {fileID: 448422203}
   m_Layer: 5
   m_Name: GameObject
   m_TagString: Untagged
@@ -3382,35 +3350,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &448422203
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 448422199}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventTrigger
-  m_Delegates:
-  - eventID: 4
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1338539439}
-          m_TargetAssemblyTypeName: BattleDisplayManager, Assembly-CSharp
-          m_MethodName: OnClickStage
-          m_Mode: 3
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 0
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
 --- !u!1 &449520946 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 5804546333493301114, guid: 466e7a21f1569d140ac26411be05e96e, type: 3}
@@ -5201,7 +5140,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: -60, y: 400}
-  m_SizeDelta: {x: 600, y: 100}
+  m_SizeDelta: {x: 200, y: 100}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &562250249
 MonoBehaviour:
@@ -5623,7 +5562,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.Image
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.98039216}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -6856,7 +6795,6 @@ GameObject:
   - component: {fileID: 790974765}
   - component: {fileID: 790974766}
   - component: {fileID: 790974767}
-  - component: {fileID: 790974768}
   m_Layer: 5
   m_Name: GameObject (1)
   m_TagString: Untagged
@@ -6922,35 +6860,6 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &790974768
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 790974764}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: d0b148fe25e99eb48b9724523833bab1, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.EventSystems.EventTrigger
-  m_Delegates:
-  - eventID: 4
-    callback:
-      m_PersistentCalls:
-        m_Calls:
-        - m_Target: {fileID: 1338539439}
-          m_TargetAssemblyTypeName: BattleDisplayManager, Assembly-CSharp
-          m_MethodName: OnClickStage
-          m_Mode: 3
-          m_Arguments:
-            m_ObjectArgument: {fileID: 0}
-            m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
-            m_IntArgument: 1
-            m_FloatArgument: 0
-            m_StringArgument: 
-            m_BoolArgument: 0
-          m_CallState: 2
 --- !u!1001 &803542300
 PrefabInstance:
   m_ObjectHideFlags: 0
@@ -11442,7 +11351,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!224 &1257074567
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12260,7 +12169,7 @@ MonoBehaviour:
   itemBuildingPanel: {fileID: 1856491099}
   victoryPanel: {fileID: 509130612}
   defeatPanel: {fileID: 378034736}
-  waysPanel: {fileID: 610994243}
+  waysPanel: {fileID: 610994241}
   currentUnits:
   - {fileID: 11400000, guid: cd48a30d2c06fc540adbba267e04b924, type: 2}
   - {fileID: 11400000, guid: e8630c17108801f47b763b676365806c, type: 2}
@@ -12288,7 +12197,6 @@ MonoBehaviour:
   - bossTemp: {fileID: 0}
     stageName: {fileID: 1031422350}
     stageImage: {fileID: 128691941}
-  arrow: {fileID: 1257074566}
 --- !u!4 &1338539440
 Transform:
   m_ObjectHideFlags: 0
@@ -17989,7 +17897,7 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
-  m_Father: {fileID: 2086784882}
+  m_Father: {fileID: 153195646}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
@@ -19270,7 +19178,6 @@ RectTransform:
   m_Children:
   - {fileID: 1167977514}
   - {fileID: 574764901}
-  - {fileID: 1929339505}
   m_Father: {fileID: 153195646}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
