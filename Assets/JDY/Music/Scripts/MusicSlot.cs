@@ -10,19 +10,20 @@ public class MusicSlot : MonoBehaviour
     public TMP_Text[] nameText;
     void Start()
     {
-        SetMusic();
+        SetSlot();
     }
     private int GetIndex(int offset)
     {
         return (currentIndex + offset + manager.musics.Length) % manager.musics.Length;
     }
-    public void SetMusic()
+    public void SetSlot()
     {
         for (int i = 0; i < nameText.Length; i++)
         {
             int index = GetIndex(i - 2);
             nameText[i].text = manager.musics[index].name;
         }
+        SetMusic();
     }
     void Update()
     {
@@ -41,18 +42,22 @@ public class MusicSlot : MonoBehaviour
         currentIndex--;
         if (currentIndex < 0)
             currentIndex = manager.musics.Length - 1;
-        SetMusic();
+        SetSlot();
     }
     private void NextMusic()
     {
         currentIndex++;
         if (currentIndex >= manager.musics.Length)
             currentIndex = 0;
-        SetMusic();
+        SetSlot();
     }
     public void PlayButton()
     {
         audioSource.clip = manager.musics[currentIndex];
         audioSource.Play();
     }
+    private void SetMusic()
+    {
+        PlayerPrefs.SetInt("MainMusic", currentIndex);
+    } 
 }
