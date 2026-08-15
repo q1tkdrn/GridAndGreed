@@ -97,6 +97,7 @@ public class BoardPanel : MonoBehaviour
         cutScene.SetActive(false);
     }
 
+    [DebugButton("다음 턴")]
     public void NextTurn()
     {
         turn++;
@@ -136,6 +137,7 @@ public class BoardPanel : MonoBehaviour
         turnTextUI.text = turnCount + " - " + turnText;
     }
     
+    [DebugButton("텍스트 출력")]
     public void PrintText(string text)
     {
         StartCoroutine(TypeEffect(text));
@@ -152,19 +154,22 @@ public class BoardPanel : MonoBehaviour
             yield return new WaitForSeconds(delay);
         }
     }
-
+    
+    [DebugButton("플레이어 HP 업데이트")]
     public void UpdateReaperHp(int hp)
     {
         reaperCurrentHp = hp;
         reaperHp.text = $"{reaperCurrentHp} / {reaperMaxHp}";
     }
     
+    [DebugButton("보스 HP 업데이트")]
     public void UpdateBossHp(int hp)
     {
         bossCurrentHp = hp;
         bossHp.text = $"{bossCurrentHp} / {bossMaxHp}";
     }
     
+    [DebugButton("행동력 변경")]
     public void UpdateActionPoint(int point)
     {
         actionPoint = point;
