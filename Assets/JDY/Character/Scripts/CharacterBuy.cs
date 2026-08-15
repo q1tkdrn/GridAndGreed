@@ -15,7 +15,7 @@ public class CharacterBuy : MonoBehaviour
             if (InventoryManager.Instance.GetSoul() >= CharacterSlot.price)
             {
                 InventoryManager.Instance.RemoveSoul(CharacterSlot.price);
-                //InventoryManager.Instance.AddCharacter(CharacterSlot.character);
+                InventoryManager.Instance.UnlockCharacter(CharacterSlot.character.id);
 
                 Debug.Log(CharacterSlot.character.name + "¿ª ±∏¿‘");
             }

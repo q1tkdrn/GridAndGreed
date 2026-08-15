@@ -43,8 +43,8 @@ public class AchievementManager : MonoBehaviour
     {
         return PlayerPrefs.GetInt(id + "_Completed", 0) == 1;
     }
-    public void GetReward(string id)//ex)AchievementManager.Instance.GetReward("ACH-1");
-    {//Button
+    public void GetReward(string id)
+    {
         if (!IsCompleted(id) || IsRewarded(id))
             return;
 
@@ -53,27 +53,29 @@ public class AchievementManager : MonoBehaviour
             if (data.id != id)
                 continue;
 
-            switch (data.rewardType)
+            foreach (AchievementReward reward in data.rewards)
             {
-                case RewardType.Soul:
-                    InventoryManager.Instance.AddSoul(data.rewardSoul);
-                    break;
+                switch (reward.type)
+                {
+                    case RewardType.Soul:
+                        InventoryManager.Instance.AddSoul(reward.amount);
+                        break;
 
-                case RewardType.Item:
-                    InventoryManager.Instance.AddItem(data.rewardItem);
-                    break;
-                    /*
-                 case RewardType.Character:
-                    InventoryManager.Instance.UnlockCharacter(data.rewardCharacter);
-                    break;
-                case RewardType.Memory:
-                    InventoryManager.Instance.UnlockMemory(data.rewardMemory);
-                    break;
-                    */
+                    case RewardType.Item:
+                        InventoryManager.Instance.AddItem(reward.rewardID, reward.amount);
+                        break;
+                    case RewardType.Memorial:
+                        InventoryManager.Instance.UnlockMemorial(reward.rewardID);
+                        break;
+                    case RewardType.Character:
+                        InventoryManager.Instance.UnlockCharacter(reward.rewardID);
+                        break;
+                }
             }
-            PlayerPrefs.SetInt(id + "_Rewarded", 1);//ex)ACH-1_Rewarded = 1(받음)
-            //PlayerPrefs.Save(); //Debug
-            Debug.Log("업적 보상 받음 : " + id);
+
+            PlayerPrefs.SetInt(id + "_Rewarded", 1);
+
+            Debug.Log("보상 지급: " + id);
             break;
         }
     }

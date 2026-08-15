@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 public class CharacterSlot : MonoBehaviour
 {
-    public CharacterShopManager shop;
+    public CharacterManager manager;
     private int currentIndex = 0;
 
     public Image leftIcon;
@@ -14,6 +14,7 @@ public class CharacterSlot : MonoBehaviour
     public TMP_Text priceText;
     public TMP_Text STRText;
     public TMP_Text INTText;
+    public TMP_Text describeText;
 
     public CharacterData character; //empty
     public int price;
@@ -23,30 +24,33 @@ public class CharacterSlot : MonoBehaviour
     }
     public void SetCharacter()
     {
-        int leftIndex = (currentIndex - 1 + shop.characters.Length) % shop.characters.Length;
-        int rightIndex = (currentIndex + 1) % shop.characters.Length;
+        int leftIndex = (currentIndex - 1 + manager.characters.Length) % manager.characters.Length;
+        int rightIndex = (currentIndex + 1) % manager.characters.Length;
 
-        leftIcon.sprite = shop.characters[leftIndex].icon;
-        rightIcon.sprite = shop.characters[rightIndex].icon;
+        leftIcon.sprite = manager.characters[leftIndex].icon;
+        rightIcon.sprite = manager.characters[rightIndex].icon;
 
-        character = shop.characters[currentIndex];
+        character = manager.characters[currentIndex];
+
         centerIcon.sprite = character.icon;
         nameText.text = character.characterName;
-
         price = character.price;
         priceText.text = price.ToString();
+        STRText.text = character.STR.ToString();
+        INTText.text = character.INT.ToString();
+        describeText.text = character.description;
     }
     public void LeftButton()
     {
         currentIndex--;
         if (currentIndex < 0)
-            currentIndex = shop.characters.Length - 1;
+            currentIndex = manager.characters.Length - 1;
         SetCharacter();
     }
     public void RightButton()
     {
         currentIndex++;
-        if (currentIndex >= shop.characters.Length)
+        if (currentIndex >= manager.characters.Length)
             currentIndex = 0;
         SetCharacter();
     }
