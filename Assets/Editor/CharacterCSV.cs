@@ -6,7 +6,7 @@ using System.Collections.Generic;
 public class CharacterCSVImporter
 {
     [MenuItem("Tools/Import Characters From CSV")]
-    public static void ImportItems()
+    public static void ImportCharacters()
     {
         string csvPath = "Assets/JDY/Data/CSV/Data - Characters.csv";
         string savePath = "Assets/JDY/Data/Characters/";
