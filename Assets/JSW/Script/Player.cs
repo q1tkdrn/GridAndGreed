@@ -27,7 +27,10 @@ public class Player : MonoBehaviour
     public int HHh;
 
     public static float[] player_x = new float[3];
+    public static int[] player_board_x = new int[3];
     public static float[] player_y = new float[3];
+    public static int[] player_board_y = new int[3];
+
 
     public static int ClickedCharacterIndex;
 
@@ -60,14 +63,22 @@ public class Player : MonoBehaviour
                 if (hit.collider.gameObject.name == "Player1")
                 {
                     ClickedCharacterIndex = 1;
+                    player_x[0] = transform.position.x;
+                    player_x[0] = transform.position.y;
                 }
                 if (hit.collider.gameObject.name == "Player2")
                 {
                     ClickedCharacterIndex = 2;
+                    player_x[1] = transform.position.x;
+                    player_x[1] = transform.position.y;
+
                 }
                 if (hit.collider.gameObject.name == "Player3")
                 {
                     ClickedCharacterIndex = 3;
+                    player_x[2] = transform.position.x;
+                    player_x[2] = transform.position.y;
+
                 }
                 if (hit.collider.gameObject == gameObject)
                 {
@@ -93,7 +104,7 @@ public class Player : MonoBehaviour
                 }
                 else if (isSelected && hit.collider.CompareTag("MovePoint"))
                 {
-                    targetPosition = hit.collider.bounds.center;
+                    targetPosition = hit.collider.transform.position;
                     isMoving = true;
                     isSelected = false;
                     transform.localScale = originalScale;
@@ -108,9 +119,13 @@ public class Player : MonoBehaviour
 
             if (Vector3.Distance(transform.position, targetPosition) < 0.01f)
             {
+                transform.position = targetPosition;
                 isMoving = false;
                 player_x[ClickedCharacterIndex - 1] = targetPosition.x;
                 player_y[ClickedCharacterIndex - 1] = targetPosition.y;
+                player_board_x[ClickedCharacterIndex -1] = gm.Change_Coordinate_X_To_Board_X();
+                player_board_y[ClickedCharacterIndex - 1] = gm.Change_Coordinate_Y_To_Board_Y();
+
                 Debug.Log(gm.Change_Coordinate_X_To_Board_X() + " , " + gm.Change_Coordinate_Y_To_Board_Y());
 
 

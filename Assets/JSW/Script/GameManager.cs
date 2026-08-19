@@ -33,6 +33,7 @@ public class GameManager : MonoBehaviour
 
     void Start()
     {
+
         players[0] = GameObject.Find("Player1").GetComponent<Player>();
         players[1] = GameObject.Find("Player2").GetComponent<Player>();
         players[2] = GameObject.Find("Player3").GetComponent<Player>();
@@ -42,6 +43,7 @@ public class GameManager : MonoBehaviour
         PositionSetting();
         PositionMove(0, 3, 3);
         PositionMove(1, 4, 4);
+        PositionMove(2, 5, 5);
         Activate_Player(0, 0);
         Activate_Player(1, 1);
         Activate_Boss(0);
@@ -54,6 +56,9 @@ public class GameManager : MonoBehaviour
     private void PositionMove(int CharacterIndex, int x, int y)
     {
         players[CharacterIndex].transform.position = position[x, y];
+        Player.player_board_x[CharacterIndex] = x;
+        Player.player_board_y[CharacterIndex] = y;
+
     }
 
     private void PositionSetting()
@@ -108,12 +113,10 @@ public class GameManager : MonoBehaviour
         {
             if(Mathf.Approximately(MainX + i, Player.player_x[Player.ClickedCharacterIndex - 1]))
             {
-                Debug.Log("성공!" + MainX + i + "       " + Player.player_x[Player.ClickedCharacterIndex - 1]);
                 return i;
             }
 
         }
-        Debug.Log(MainX + i + "       " + Player.player_x[Player.ClickedCharacterIndex - 1]);
         return -1;
     }
     public int Change_Coordinate_Y_To_Board_Y()
@@ -125,15 +128,9 @@ public class GameManager : MonoBehaviour
         {
             if (Mathf.Approximately(MainY + i, Player.player_y[Player.ClickedCharacterIndex -1]))
             {
-                Debug.Log("성공!" + MainY + i + "       " + Player.player_y[Player.ClickedCharacterIndex - 1]);
                 return i;
-
             }
-
         }
-        Debug.Log(MainY + i + "       " + Player.player_y[Player.ClickedCharacterIndex - 1]);
-
         return -1;
-
     }
 }

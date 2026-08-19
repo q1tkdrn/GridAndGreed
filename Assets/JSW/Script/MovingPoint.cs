@@ -38,12 +38,33 @@ public class MovingPoint : MonoBehaviour
                 float targetX = Player_x + dx;
                 float targetY = Player_y + dy;
 
+                int boardX = Mathf.RoundToInt(targetX - GameManager.BoardMinX);
+                int boardY = Mathf.RoundToInt(targetY - GameManager.BoardMinY);
+
+                bool isOccupied = false;
+
                 // 보드 범위를 벗어나면 생성하지 않음
                 if (targetX < GameManager.BoardMinX || targetX > GameManager.BoardMaxX ||
                     targetY < GameManager.BoardMinY || targetY > GameManager.BoardMaxY)
                 {
                     continue;
                 }
+                for (int h = 0; h < 3; h++)
+                {
+                    if (Player.player_board_x[h] == boardX &&
+                        Player.player_board_y[h] == boardY)
+                    {
+                        isOccupied = true;
+                        break;
+                    }
+                }
+
+                if (isOccupied)
+                {
+                    continue;
+                }
+
+
 
                 GameObject obj = Instantiate(
                     MovingPoint1,
