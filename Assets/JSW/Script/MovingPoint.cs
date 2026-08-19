@@ -8,22 +8,23 @@ using UnityEngine.UIElements.Experimental;
 public class MovingPoint : MonoBehaviour
 {
     public GameObject MovingPoint1;
-    public GameObject PlayerMan;
     private List<GameObject> spawnedList = new List<GameObject>();
     float Player_x;
     float Player_y;
 
 
-
-    void Update()
+    public void Check_Character(Player player)
     {
-        Player_x = PlayerMan.transform.position.x;
-        Player_y = PlayerMan.transform.position.y;
+        if (player != null)
+        { 
+            Player_x = player.transform.position.x;
+            Player_y = player.transform.position.y;
+        }
     }
 
     public void Create_MovingPlate(int n)
     {
-        int start = -(n / 2); // n=1→0, n=2→-1, n=3→-1, n=4→-2 ...
+        int start = -(n / 2);
 
         for (int i = 0; i < n; i++)
         {
