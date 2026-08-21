@@ -15,5 +15,5 @@ MonoBehaviour:
   itemName: "\uAD11\uAE30"
   id: 8
   icon: {fileID: 0}
-  price: 800
+  price: 1
   description: "\uC2EC\uD310 \uD6C4, \uD589\uB3D9\uB825 1 \uD68C\uBCF5(33%)"

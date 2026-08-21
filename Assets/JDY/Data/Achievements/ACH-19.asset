@@ -17,6 +17,9 @@ MonoBehaviour:
   description: "\uC655\uACFC\uC758 \uC804\uD22C\uC5D0\uC11C \uC2B9\uB9AC\uD558\uC138\uC694"
   targetValue: 1
   rewards:
-  - type: 1
+  - type: 2
     rewardID: 23
+    amount: 1
+  - type: 5
+    rewardID: 1
     amount: 1

@@ -15,5 +15,5 @@ MonoBehaviour:
   itemName: "\uBD80\uCC44"
   id: 5
   icon: {fileID: 0}
-  price: 500
+  price: 1
   description: "\uC0AC\uB9DD \uC2DC, \uBCF4\uC2A4\uC5D0\uAC8C \uD53C\uD574 5"

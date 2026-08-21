@@ -17,6 +17,6 @@ MonoBehaviour:
   icon: {fileID: 0}
   STR: 4
   INT: 2
-  price: 3
+  price: 1
   description: "\uC544\uAD70 \uCE90\uB9AD\uD130\uAC00 \uC0AC\uB9DD\uD560 \uB54C \uB9C8\uB2E4
     \uD798 1 \uC99D\uAC00 (\uC804\uD22C \uB0B4 \uC9C0\uC18D)"

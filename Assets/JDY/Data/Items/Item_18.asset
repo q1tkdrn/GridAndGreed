@@ -15,5 +15,5 @@ MonoBehaviour:
   itemName: Miss. GHOST
   id: 18
   icon: {fileID: 0}
-  price: 8
+  price: 1
   description: "\uD765\uC5BC\uAC70\uB9B0\uB2E4."
