@@ -16,4 +16,7 @@ MonoBehaviour:
   title: "\uC544 \uB204\uB974\uC9C0 \uB9D0 \uAC78"
   description: "\uD06C\uB808\uB527 \uD654\uBA74\uC744 \uBCF4\uC138\uC694"
   targetValue: 1
-  rewards: []
+  rewards:
+  - type: 2
+    rewardID: 10
+    amount: 1

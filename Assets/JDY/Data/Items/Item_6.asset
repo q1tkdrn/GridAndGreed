@@ -15,5 +15,5 @@ MonoBehaviour:
   itemName: "\uC0DD\uC874 \uBC95\uCE59"
   id: 6
   icon: {fileID: 0}
-  price: 600
+  price: 1
   description: "\uC0AC\uB9DD \uC2DC, \uD50C\uB808\uC774\uC5B4 HP 3 \uD68C\uBCF5"

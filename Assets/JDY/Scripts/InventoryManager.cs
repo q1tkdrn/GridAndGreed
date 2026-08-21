@@ -5,8 +5,7 @@ public class InventoryManager : MonoBehaviour
     public static InventoryManager Instance;
 
     [SerializeField] private int soul = 0;
-
-    private int itemIdMax = 24;
+    [SerializeField] private ItemManager manager;
     [SerializeField] private Dictionary<string, int> ownedItems = new Dictionary<string, int>();
 
     [SerializeField] private List<string> ownedCharacters = new List<string>();
@@ -18,7 +17,7 @@ public class InventoryManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             soul = PlayerPrefs.GetInt("Soul", 0);
-            for(int i = 0; i < itemIdMax; i++)
+            for(int i = 0; i < 24; i++)//manager
             {
                 int count = PlayerPrefs.GetInt("Item_" + i, 0);
 

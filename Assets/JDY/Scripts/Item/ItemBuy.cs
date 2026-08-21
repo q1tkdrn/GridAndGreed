@@ -13,9 +13,9 @@ public class ItemBuy : MonoBehaviour
     {
         try 
         {
-            if (InventoryManager.Instance.GetSoul() >= itemSlot.price)
+            if (InventoryManager.Instance.GetSoul() >= itemSlot.item.price)
             {
-                InventoryManager.Instance.RemoveSoul(itemSlot.price);
+                InventoryManager.Instance.RemoveSoul(itemSlot.item.price);
                 InventoryManager.Instance.AddItem(itemSlot.item);
 
                 Debug.Log(itemSlot.item.name+"¿ª ±∏¿‘");

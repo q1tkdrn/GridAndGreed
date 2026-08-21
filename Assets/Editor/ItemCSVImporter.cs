@@ -26,7 +26,7 @@ public class ItemCSVImporter
 
         if (rows.Count <= 1)
         {
-            Debug.LogError("데이터가 없음");
+            Debug.LogError("데이터 없음");
             return;
         }
 

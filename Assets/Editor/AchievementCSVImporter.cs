@@ -39,36 +39,28 @@ public class AchievementCSVImporter
 
             string[] columns = ParseCSVLine(lines[i]);
 
-            if (columns.Length < 7)
-            {
-                Debug.LogWarning(
-                    $"{i + 1}: 데이터 누락"
-                );
-                continue;
-            }
             string achievementID = columns[0].Trim();
             string title = columns[1].Trim();
             string description = columns[2].Trim();
-
             if (!int.TryParse(columns[3].Trim(), out int targetValue))
             {
-                Debug.LogError(
-                    $"{i + 1}: TargetValue 오류"
-                );
+                Debug.LogError($"{i + 1}: TargetValue 오류");
                 continue;
             }
-
             string rewardTypeText = columns[4].Trim();
             string rewardID = columns[5].Trim();
-
             if (!int.TryParse(columns[6].Trim(), out int amount))
             {
-                Debug.LogError(
-                    $"{i + 1}: Amount 오류"
-                );
+                Debug.LogError($"{i + 1}: Amount 오류");
                 continue;
             }
-
+            /*
+            if (!int.TryParse(columns[7].Trim(), out int fromPhase))
+            {
+                Debug.LogError($"{i + 1}: FromPhase 오류");
+                continue;
+            }
+            */
             if (!achievementDict.ContainsKey(achievementID))
             {
                 AchievementData data = ScriptableObject.CreateInstance<AchievementData>();
@@ -87,9 +79,7 @@ public class AchievementCSVImporter
 
             if (!Enum.TryParse(rewardTypeText, true, out RewardType rewardType))
             {
-                Debug.LogError(
-                    $"{i + 1}: RewardType 오류"
-                );
+                Debug.LogError($"{i + 1}: RewardType 오류");
                 continue;
             }
             AchievementReward reward = new AchievementReward();

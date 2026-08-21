@@ -42,8 +42,8 @@ public class CharacterCSVImporter
             string characterName = values[1].Trim();
             string STRText = values[2].Trim();
             string INTText = values[3].Trim();
-            string priceText = values[4].Trim();
-            string description = values[5];
+            string priceText = values[5].Trim();
+            string description = values[6];
 
             if (string.IsNullOrEmpty(id))
             {

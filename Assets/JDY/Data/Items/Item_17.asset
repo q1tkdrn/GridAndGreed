@@ -15,5 +15,5 @@ MonoBehaviour:
   itemName: Mr. FLOWER
   id: 17
   icon: {fileID: 0}
-  price: 7
+  price: 1
   description: "\uD754\uB4E4\uAC70\uB9B0\uB2E4."
