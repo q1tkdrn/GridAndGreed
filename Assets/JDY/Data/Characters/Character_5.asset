@@ -17,5 +17,5 @@ MonoBehaviour:
   icon: {fileID: 0}
   STR: 2
   INT: 5
-  price: 2
+  price: 1
   description: "\uC774\uB3D9 \uC2DC, \uD50C\uB808\uC774\uC5B4\uC758 HP 1 \uD68C\uBCF5"

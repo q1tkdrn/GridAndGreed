@@ -15,6 +15,6 @@ MonoBehaviour:
   itemName: "\uD654\uC0B4"
   id: 2
   icon: {fileID: 0}
-  price: 200
+  price: -1
   description: "\uD134 \uC2DC\uC791 \uC2DC, \uBCF4\uC2A4\uC5D0\uAC8C \uD53C\uD574
     3"

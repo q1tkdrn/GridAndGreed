@@ -60,4 +60,13 @@ public class MainManager : MonoBehaviour
     {
         SceneManager.LoadScene("Music");
     }
+    public void SkinButton()
+    {
+        SceneManager.LoadScene("Skin");
+    }
+    public void DoorButton()
+    {
+        //SceneManager.LoadScene("--");
+        AchievementManager.Instance.AddProgress("ACH-1", 1);
+    }
 }

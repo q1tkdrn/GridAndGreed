@@ -17,6 +17,6 @@ MonoBehaviour:
   description: "1000 \uC18C\uC6B8\uC744 \uC18C\uBAA8\uD558\uC138\uC694"
   targetValue: 1000
   rewards:
-  - type: 0
+  - type: 1
     rewardID: 
     amount: 1000

@@ -15,5 +15,5 @@ MonoBehaviour:
   itemName: "\uC19C\uBB49\uCE58"
   id: 20
   icon: {fileID: 0}
-  price: 20
+  price: 1
   description: "\uD134 \uC2DC\uC791 \uC2DC, \uD50C\uB808\uC774\uC5B4 HP 1 \uD68C\uBCF5"

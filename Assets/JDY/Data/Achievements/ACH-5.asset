@@ -1,0 +1,23 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3e20834c803e8d469c82c7af40e1e16, type: 3}
+  m_Name: ACH-5
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementData
+  id: ACH-5
+  title: "\uBC18\uAC00\uC6B4 \uC5BC\uAD74"
+  description: "\uCE90\uB9AD\uD130 \uC0C1\uC810\uC5D0\uC11C \uCE90\uB9AD\uD130\uB97C
+    \uAD6C\uB9E4\uD558\uC138\uC694"
+  targetValue: 1
+  rewards:
+  - type: 4
+    rewardID: "\uB9B4\uB9AC"
+    amount: 1
