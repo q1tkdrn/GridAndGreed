@@ -56,7 +56,7 @@ public class ItemBuildingPanel : MonoBehaviour
             {
                 var slot = slots[i];
                 if(slot.name.text != "") continue;
-                slot.name.text = item.itemData.name;
+                slot.name.text = item.itemData.itemName;
                 slot.description.text = item.itemData.description;
                 slot.image.sprite = item.itemData.icon;
                 slots[i].itemId = id;

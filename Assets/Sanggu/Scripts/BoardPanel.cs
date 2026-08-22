@@ -110,6 +110,10 @@ public class BoardPanel : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f); 
         cutScene.SetActive(false);
+        foreach (var item in items)
+        {
+            item.OnTurnStart();
+        }
     }
 
     [DebugButton("다음 턴")]
@@ -120,6 +124,10 @@ public class BoardPanel : MonoBehaviour
         {
             turn = ETurn.Start;
             turnCount++;
+            foreach (var item in items)
+            {
+                item.OnTurnStart();
+            }
         }
 
         var turnText = "";

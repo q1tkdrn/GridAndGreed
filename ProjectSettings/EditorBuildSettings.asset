@@ -18,7 +18,7 @@ EditorBuildSettings:
     path: Assets/JDY/Scenes/Main.unity
     guid: 1d2554c94bd5e2e4aa115344492b561c
   - enabled: 1
-    path: Assets/JDY/Achievement/Achievement.unity
+    path: Assets/JDY/Scenes/Achievement.unity
     guid: c6dcb1fd135ed964695bc8eccb2d221f
   - enabled: 1
     path: Assets/JDY/Scenes/Item.unity

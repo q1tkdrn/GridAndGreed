@@ -20,7 +20,7 @@ public class InventoryDebug : MonoBehaviour
     public void AddItem(string itemId)
     {
         InventoryManager.Instance.AddItem(itemId);
-        DebugLog.GetInstance().Log($"AddItem({itemId})");
+        DebugLog.GetInstance().Log($"AddItem({itemId}), {InventoryManager.Instance.HasItem(itemId)}");
     }
     
     [DebugButton("아이템 제거")]
