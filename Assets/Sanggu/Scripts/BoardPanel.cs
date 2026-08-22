@@ -13,6 +13,10 @@ public class BoardPanel : MonoBehaviour
     [SerializeField] private GameObject cutScene;
     [SerializeField] private TextMeshProUGUI bossNameText;
     [SerializeField] private Image bossCutSceneImage;
+    [SerializeField] private RectTransform reaperCutScene;
+    [SerializeField] private RectTransform bossCutScene;
+    [SerializeField] private float speed;
+    [SerializeField] private Animator animator;
     
     [Header("Turn")]
     public ETurn turn = ETurn.Start;
@@ -88,6 +92,17 @@ public class BoardPanel : MonoBehaviour
         bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
         bossNameText.text = BattleDisplayManager.GetInstance().appearedBoss[^1].bossName;
         cutScene.SetActive(true);
+        reaperCutScene.anchoredPosition = new Vector2(-1440, 0);
+        bossCutScene.anchoredPosition = new Vector2(1440, 0);
+        StartCoroutine(PlayCutSceneAnim());
+    }
+
+    public IEnumerator PlayCutSceneAnim()
+    {
+        animator.Play("CutScene");
+        float length = animator.GetCurrentAnimatorStateInfo(0).length;
+        yield return new WaitForSeconds(length);
+        
         StartCoroutine(HideCutScene());
     }
 

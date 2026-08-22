@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class DebugMainPanel: MonoBehaviour
 {
     [SerializeField] private GameObject panel;
+    [SerializeField] private GameObject logPanel;
 
     [SerializeField] private GameObject categoryPrefab;
     [SerializeField] private GameObject inputPanelPrefab;
@@ -25,6 +26,7 @@ public class DebugMainPanel: MonoBehaviour
         if (Input.GetKeyDown(KeyCode.F12))
         {
             panel.SetActive(!panel.activeSelf);
+            logPanel.SetActive(!logPanel.activeSelf);
         }
     }
 

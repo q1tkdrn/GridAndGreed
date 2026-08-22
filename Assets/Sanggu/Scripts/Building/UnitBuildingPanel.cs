@@ -83,15 +83,24 @@ public class UnitBuildingPanel : MonoBehaviour
         formPanel.SetActive(false);
         changePanel.SetActive(true);
 
+        var id = 0;
         foreach (var card in cards)
         {
+            id++;
             card.isSelected = currentUnits.Contains(card.unitTemp);
             if (card.isSelected)
             {
                 card.text.text = "<size=45>장착됨</size>";
             }
-
+            
             card.Init();
+            
+            if (!InventoryManager.Instance.HasCharacter(id.ToString()))
+            {
+                card.text.text = "잠김";
+                card.text.gameObject.SetActive(true);
+            }
+            
             if (card.unitTemp == currentUnits[_currentUnitIndex])
             {
                 _currentCardIndex = cards.ToList().IndexOf(card);
@@ -106,6 +115,7 @@ public class UnitBuildingPanel : MonoBehaviour
 
     public void OnCardClick(int i)
     {
+        if (!InventoryManager.Instance.HasCharacter((i + 1).ToString())) return; 
         if (_currentCardIndex == i)
         {
             popup1.SetActive(false);
