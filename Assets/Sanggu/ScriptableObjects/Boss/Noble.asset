@@ -10,11 +10,11 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5c2e1a687b6b43e586ded7e13e879765, type: 3}
-  m_Name: Epicure
+  m_Name: Noble
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
-  bossName: "\uBBF8\uC2DD\uAC00"
-  bossSprite: {fileID: 0}
+  bossName: "\uC601\uC0DD\uADC0\uC871"
+  bossSprite: {fileID: 21300000, guid: b1c07aa1975401a4ab924c2267b261fe, type: 3}
   size: {x: 0, y: 0}
   sizeOnCutScene: {x: 0, y: 0}
-  stageName: "\uC5F0\uD68C\uC7A5"
+  stageName: "\uB300\uC800\uD0DD"
   stageSprite: {fileID: 0}

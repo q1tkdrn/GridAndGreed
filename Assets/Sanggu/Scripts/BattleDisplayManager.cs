@@ -21,6 +21,7 @@ public class BattleDisplayManager : MonoBehaviour
     public BoardPanel boardPanel;
     [SerializeField] private GameObject unitBuildingPanel;
     public ItemBuildingPanel itemBuildingPanel;
+    public CutScenePanel cutScenePanel;
     
     [Space]
     [SerializeField] private GameObject victoryPanel;
@@ -61,6 +62,7 @@ public class BattleDisplayManager : MonoBehaviour
     }
     //-------------------------------------------------------------------------------싱글톤
     
+    [DebugButton]
     public void OpenGameBoard()
     {
         entrancePanel.gameObject.SetActive(false);
@@ -70,6 +72,7 @@ public class BattleDisplayManager : MonoBehaviour
         ShowWaysPanel();
     }
     
+    [DebugButton]
     public void OpenUnitBuilding()
     {
         entrancePanel.gameObject.SetActive(false);
@@ -78,6 +81,7 @@ public class BattleDisplayManager : MonoBehaviour
         itemBuildingPanel.gameObject.SetActive(false);
     }
     
+    [DebugButton]
     public void OpenItemBuilding()
     {
         entrancePanel.gameObject.SetActive(false);
@@ -86,6 +90,7 @@ public class BattleDisplayManager : MonoBehaviour
         itemBuildingPanel.gameObject.SetActive(true);
     }
     
+    [DebugButton]
     public void OpenEntrancePanel(bool isBuilding)
     {
         entrancePanel.gameObject.SetActive(true);
@@ -96,16 +101,19 @@ public class BattleDisplayManager : MonoBehaviour
         entrancePanel.Init();
     }
     
+    [DebugButton]
     public void ShowVictoryPanel()
     {
         victoryPanel.SetActive(true);
     }
 
+    [DebugButton]
     public void ShowDefeatPanel()
     {
         defeatPanel.SetActive(true);
     }
 
+    [DebugButton]
     public void ShowWaysPanel()
     {
         victoryPanel.SetActive(false);
@@ -122,6 +130,13 @@ public class BattleDisplayManager : MonoBehaviour
             stages[i].stageImage.sprite = temp.stageSprite;
             stages[i].stageName.text = temp.stageName;
         }
+    }
+
+    [DebugButton]
+    public void ShowCutScene(string cutsceneName)
+    {
+        cutScenePanel.gameObject.SetActive(true);
+        cutScenePanel.SetCutScene(cutsceneName);
     }
 
     public void OnClickStage(int i)
@@ -147,6 +162,7 @@ public class BattleDisplayManager : MonoBehaviour
     }
     
 
+    [DebugButton]
     public void BackToVillage()
     {
         SceneChanger.GetInstance().LoadScene(6);
