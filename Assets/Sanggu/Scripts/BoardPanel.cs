@@ -32,6 +32,7 @@ public class BoardPanel : MonoBehaviour
     public int reaperMaxHp;
     public int reaperCurrentHp;
     [SerializeField] private TextMeshProUGUI reaperHp;
+    [SerializeField] private Slider reaperSlider;
     public int actionPoint;
     [SerializeField] private GameObject actionPointPrefab;
     [SerializeField] private GameObject actionPoints;
@@ -53,7 +54,10 @@ public class BoardPanel : MonoBehaviour
     [Header("Boss")]
     public int bossMaxHp;
     public int bossCurrentHp;
+    public int willPower;
     [SerializeField] private TextMeshProUGUI bossHp;
+    [SerializeField] private TextMeshProUGUI willPowerText;
+    [SerializeField] private Slider bossSlider;
     [SerializeField] private Image bossImage;
 
     public enum ETurn
@@ -114,6 +118,7 @@ public class BoardPanel : MonoBehaviour
         {
             item.OnTurnStart();
         }
+        UpdateActionPoint(7);
     }
 
     [DebugButton("다음 턴")]
@@ -183,6 +188,7 @@ public class BoardPanel : MonoBehaviour
     {
         reaperCurrentHp = hp;
         reaperHp.text = $"{reaperCurrentHp} / {reaperMaxHp}";
+        reaperSlider.value = (float) reaperCurrentHp / reaperMaxHp;
     }
     
     [DebugButton("보스 HP 업데이트")]
@@ -190,6 +196,14 @@ public class BoardPanel : MonoBehaviour
     {
         bossCurrentHp = hp;
         bossHp.text = $"{bossCurrentHp} / {bossMaxHp}";
+        bossSlider.value = (float) bossCurrentHp / bossMaxHp;
+    }
+
+    [DebugButton("보스 의지력 업데이트")]
+    public void UpdateBossWillPower(int value)
+    {
+        willPower = value;
+        willPowerText.text = $"의지력: {willPower}";
     }
     
     [DebugButton("행동력 변경")]

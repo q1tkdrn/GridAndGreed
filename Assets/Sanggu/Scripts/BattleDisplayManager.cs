@@ -21,6 +21,7 @@ public class BattleDisplayManager : MonoBehaviour
     public BoardPanel boardPanel;
     [SerializeField] private GameObject unitBuildingPanel;
     public ItemBuildingPanel itemBuildingPanel;
+    public CutScenePanel cutScenePanel;
     
     [Space]
     [SerializeField] private GameObject victoryPanel;
@@ -129,6 +130,13 @@ public class BattleDisplayManager : MonoBehaviour
             stages[i].stageImage.sprite = temp.stageSprite;
             stages[i].stageName.text = temp.stageName;
         }
+    }
+
+    [DebugButton]
+    public void ShowCutScene(string cutsceneName)
+    {
+        cutScenePanel.gameObject.SetActive(true);
+        cutScenePanel.SetCutScene(cutsceneName);
     }
 
     public void OnClickStage(int i)
