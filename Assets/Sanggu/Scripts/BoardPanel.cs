@@ -26,6 +26,9 @@ public class BoardPanel : MonoBehaviour
     [Header("Text")]
     [SerializeField] private TextMeshProUGUI textBox;
     [SerializeField] private float delay = 0.1f;
+    private Queue<string> _textQueue = new Queue<string>();
+    private bool _isPrinting = false; 
+    
     [Space(1)]
     
     [Header("Reaper")]
@@ -55,6 +58,8 @@ public class BoardPanel : MonoBehaviour
     public int bossMaxHp;
     public int bossCurrentHp;
     public int willPower;
+    public BossTemp boss;
+    public int phase;
     [SerializeField] private TextMeshProUGUI bossHp;
     [SerializeField] private TextMeshProUGUI willPowerText;
     [SerializeField] private Slider bossSlider;
@@ -119,6 +124,8 @@ public class BoardPanel : MonoBehaviour
             item.OnTurnStart();
         }
         UpdateActionPoint(7);
+        PrintText(boss.battleStart);
+        PrintText(boss.turnStart[0]);
     }
 
     [DebugButton("다음 턴")]
@@ -133,6 +140,7 @@ public class BoardPanel : MonoBehaviour
             {
                 item.OnTurnStart();
             }
+            PrintText(boss.turnStart[turnCount/5]);
         }
 
         var turnText = "";
@@ -168,7 +176,26 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("텍스트 출력")]
     public void PrintText(string text)
     {
-        StartCoroutine(TypeEffect(text));
+        _textQueue.Enqueue(text);
+
+        if (!_isPrinting)
+        {
+            StartCoroutine(ProcessTextQueue());
+        }
+    }
+
+    IEnumerator ProcessTextQueue()
+    {
+        _isPrinting = true;
+
+        while (_textQueue.Count > 0)
+        {
+            string text = _textQueue.Dequeue();
+
+            yield return StartCoroutine(TypeEffect(text));
+        }
+
+        _isPrinting = false;
     }
 
     IEnumerator TypeEffect(string text)
@@ -182,6 +209,11 @@ public class BoardPanel : MonoBehaviour
             yield return new WaitForSeconds(delay);
         }
     }
+
+    public void PrintDistinctText(int i = 0)
+    {
+        PrintText(boss.distinctText[i]);
+    }
     
     [DebugButton("플레이어 HP 업데이트")]
     public void UpdateReaperHp(int hp)
@@ -189,19 +221,54 @@ public class BoardPanel : MonoBehaviour
         reaperCurrentHp = hp;
         reaperHp.text = $"{reaperCurrentHp} / {reaperMaxHp}";
         reaperSlider.value = (float) reaperCurrentHp / reaperMaxHp;
+        if (reaperCurrentHp <= 0)
+        {
+            PrintText(boss.lose);
+        }
     }
     
-    [DebugButton("보스 HP 업데이트")]
     public void UpdateBossHp(int hp)
     {
         bossCurrentHp = hp;
         bossHp.text = $"{bossCurrentHp} / {bossMaxHp}";
         bossSlider.value = (float) bossCurrentHp / bossMaxHp;
+        if (reaperCurrentHp <= 0)
+        {
+            PrintText(boss.win);
+        }
+    }
+
+    [DebugButton("보스 심판")]
+    public void JudgeBoss(int dmg)
+    {
+        UpdateBossHp(bossCurrentHp-dmg);
+        PrintText(boss.attackedAP[turnCount/5]);
+    }
+    
+    [DebugButton("보스 공격")]
+    public void AttackBoss(int dmg)
+    {
+        UpdateBossHp(bossCurrentHp-dmg);
+        PrintText(boss.attackedAD[turnCount/5]);
+    }
+
+    public void OnBossAttack(int dmg)
+    {
+        UpdateReaperHp(reaperCurrentHp-dmg);
+        PrintText(boss.attack[turnCount/5]);
     }
 
     [DebugButton("보스 의지력 업데이트")]
     public void UpdateBossWillPower(int value)
     {
+        if (value == 0)
+        {
+            PrintText(boss.willZero[turnCount/5]);
+        }
+        else if (value < willPower)
+        {
+            PrintText(boss.willDecline[turnCount/5]);
+        }
         willPower = value;
         willPowerText.text = $"의지력: {willPower}";
     }
@@ -233,5 +300,19 @@ public class BoardPanel : MonoBehaviour
     public void OnMouseExitUnit(int i)
     {
         units[i].popUp.SetActive(false);
+    }
+
+    public void OnPhaseChange(int i)
+    {
+        phase = i;
+        var t = "";
+        if (phase == 1)
+        {
+            t = boss.phaseTwo[turnCount/5];
+        } else if (phase == 2)
+        {
+            t = boss.phaseThree[turnCount/5];
+        }
+        PrintText(t);
     }
 }

@@ -1511,12 +1511,14 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CutScenePanel
   cutscenes:
   - {fileID: 11400000, guid: 8cdc46d5d15809e478ce275180c62f20, type: 2}
+  - {fileID: 11400000, guid: 7762289a1d16a56439c242f05227838c, type: 2}
   currentCutScene: {fileID: 0}
   image: {fileID: 881506526}
   text: {fileID: 1913693755}
   slider: {fileID: 437170327}
   wordDelay: 0.1
   textDelay: 1
+  cutDelay: 0.5
   timeForSkip: 1
 --- !u!114 &151313977
 MonoBehaviour:
@@ -1698,6 +1700,8 @@ MonoBehaviour:
   bossMaxHp: 60
   bossCurrentHp: 60
   willPower: 0
+  boss: {fileID: 0}
+  phase: 0
   bossHp: {fileID: 95767894}
   willPowerText: {fileID: 533984817}
   bossSlider: {fileID: 270194266}
@@ -2559,7 +2563,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1366729999}
   m_FillRect: {fileID: 664689895}
   m_HandleRect: {fileID: 0}
@@ -13961,7 +13965,7 @@ MonoBehaviour:
     m_PressedTrigger: Pressed
     m_SelectedTrigger: Selected
     m_DisabledTrigger: Disabled
-  m_Interactable: 1
+  m_Interactable: 0
   m_TargetGraphic: {fileID: 1366729999}
   m_FillRect: {fileID: 1583485610}
   m_HandleRect: {fileID: 0}
@@ -18000,11 +18004,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.ScrollRect
   m_Content: {fileID: 1292081559}
-  m_Horizontal: 1
+  m_Horizontal: 0
   m_Vertical: 1
-  m_MovementType: 1
+  m_MovementType: 2
   m_Elasticity: 0.1
-  m_Inertia: 1
+  m_Inertia: 0
   m_DecelerationRate: 0.135
   m_ScrollSensitivity: 1
   m_Viewport: {fileID: 2076102847}
@@ -20485,7 +20489,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0

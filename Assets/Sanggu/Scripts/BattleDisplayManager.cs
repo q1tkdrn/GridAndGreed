@@ -146,6 +146,7 @@ public class BattleDisplayManager : MonoBehaviour
             var boss = stages[i].bossTemp;
             remainBoss.Remove(boss);
             appearedBoss.Add(boss);
+            boardPanel.boss = boss;
             arrow.SetActive(false);
             waysPanel.color = new Color(255, 255, 255, 250);
             waysPanel.gameObject.SetActive(false);
