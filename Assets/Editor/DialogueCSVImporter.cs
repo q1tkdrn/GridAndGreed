@@ -14,7 +14,7 @@ public static class DialogueCSVImporter
     {
         if (!File.Exists(csvPath))
         {
-            Debug.LogError($"Dialog.csv를 찾을 수 없습니다.");
+            Debug.LogError("Dialog.csv를 찾을 수 없습니다.");
             return;
         }
 
@@ -42,11 +42,12 @@ public static class DialogueCSVImporter
 
             AssetDatabase.CreateAsset(database, savePath);
         }
-        database.dialogues.Clear();
-        string previousType = "";
 
-        string previousNpc = "";
+        database.dialogues.Clear();
+
+        string previousType = "";
         string previousTarget = "";
+        string previousNpc = "";
 
         int previousFromPhase = -1;
         int previousToPhase = -1;
@@ -57,13 +58,6 @@ public static class DialogueCSVImporter
         {
             string[] row = rows[i];
 
-            if (row.Length < 7)
-            {
-                Debug.LogWarning(
-                    $"{i + 1}번째 줄 데이터 누락"
-                );
-                continue;
-            }
             string id = row[0].Trim();
             string npcName = row[1].Trim();
 
@@ -75,7 +69,6 @@ public static class DialogueCSVImporter
 
             string text = row[6].Trim();
 
-
             if (string.IsNullOrWhiteSpace(id))
                 continue;
 
@@ -83,18 +76,14 @@ public static class DialogueCSVImporter
             {
                 typeText = previousType;
             }
-            else
-            {
-                previousType = typeText;
-            }
+
             if (string.IsNullOrWhiteSpace(typeText))
             {
-                Debug.LogWarning($"{id}: Type 없음");
+                Debug.LogWarning($"{id}: Type 누락");
                 continue;
             }
 
-            if (!Enum.TryParse(
-                typeText, true, out DialogType dialogueType))
+            if (!Enum.TryParse(typeText, true, out DialogType dialogueType))
             {
                 Debug.LogWarning($"{id}: Type 오류");
                 continue;
@@ -105,23 +94,27 @@ public static class DialogueCSVImporter
                 Debug.LogWarning($"{id}: FromPhase 오류");
                 continue;
             }
+
             if (!int.TryParse(toPhaseText, out int toPhase))
             {
                 Debug.LogWarning($"{id}: ToPhase 오류");
                 continue;
             }
 
-            bool sameGroup = npcName == previousNpc && 
-                typeText.Equals(previousType,StringComparison.OrdinalIgnoreCase) &&
-                target == previousTarget &&
-                fromPhase == previousFromPhase &&
-                toPhase == previousToPhase;
+            string groupTarget = target;
+            if (string.IsNullOrWhiteSpace(groupTarget))
+            {
+                groupTarget = previousTarget;
+            }
+
+            bool sameGroup = npcName == previousNpc && typeText.Equals(previousType, StringComparison.OrdinalIgnoreCase) &&
+                groupTarget == previousTarget && fromPhase == previousFromPhase && toPhase == previousToPhase;
 
             if (!sameGroup)
             {
                 currentGroupId++;
             }
-
+ 
             DialogData data = new DialogData();
 
             data.groupId = currentGroupId;
@@ -129,17 +122,28 @@ public static class DialogueCSVImporter
             data.id = id;
             data.npcName = npcName;
             data.type = dialogueType;
+
             data.target = target;
+
             data.fromPhase = fromPhase;
             data.toPhase = toPhase;
             data.text = text;
+
             database.dialogues.Add(data);
 
+
             previousNpc = npcName;
-            previousTarget = target;
+            previousType = typeText;
+
+            if (!string.IsNullOrWhiteSpace(target))
+            {
+                previousTarget = target;
+            }
+
             previousFromPhase = fromPhase;
             previousToPhase = toPhase;
         }
+
         EditorUtility.SetDirty(database);
 
         AssetDatabase.SaveAssets();

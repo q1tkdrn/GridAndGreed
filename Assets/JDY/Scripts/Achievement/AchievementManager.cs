@@ -70,6 +70,8 @@ public class AchievementManager : MonoBehaviour
                     case RewardType.Character:
                         InventoryManager.Instance.UnlockCharacter(reward.rewardID);
                         break;
+                    case RewardType.None:
+                        break;
                 }
             }
 

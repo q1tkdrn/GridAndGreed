@@ -1,3 +1,4 @@
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -5,6 +6,7 @@ public class MusicSlot : MonoBehaviour
 {
     [Header("Script")]
     [SerializeField] private MusicManager manager;
+    [SerializeField] private MusicDialog dialog;
     [Header("Audio")]
     [SerializeField] private AudioSource audioSource;
     private int currentIndex;
@@ -26,7 +28,8 @@ public class MusicSlot : MonoBehaviour
             int index = GetIndex(i - 2);
             nameText[i].text = manager.musics[index].name;
         }
-        SetMusic();
+        PlayerPrefs.SetInt("MainMusic", currentIndex);
+        dialog.StartMusicDialog(manager.musics[currentIndex].name);
     }
     void Update()
     {
@@ -59,8 +62,4 @@ public class MusicSlot : MonoBehaviour
         audioSource.clip = manager.musics[currentIndex];
         audioSource.Play();
     }
-    private void SetMusic()
-    {
-        PlayerPrefs.SetInt("MainMusic", currentIndex);
-    } 
 }
