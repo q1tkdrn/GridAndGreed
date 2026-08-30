@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: Death
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
   bossName: "\uC8FD\uC74C"
-  bossSprite: {fileID: 0}
+  bossSprite: {fileID: 21300000, guid: 05c8556d12989d04baed29c2e3de7632, type: 3}
   size: {x: 0, y: 0}
   sizeOnCutScene: {x: 0, y: 0}
-  stageName: "\uACF5\uD5C8"
+  stageName: "\uC800\uC2B9"
   stageSprite: {fileID: 0}

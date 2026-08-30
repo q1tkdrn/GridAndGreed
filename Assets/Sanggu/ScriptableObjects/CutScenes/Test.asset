@@ -1,0 +1,26 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1b058eefa0fe4b15a59224ef25a21b17, type: 3}
+  m_Name: Test
+  m_EditorClassIdentifier: Assembly-CSharp::CutScene
+  cutSceneName: test
+  cuts:
+  - image: {fileID: -5815895538354918589, guid: 25cd540d1077d5840a6604a865e61760, type: 3}
+    texts:
+    - "cut A \uCCAB \uBC88\uC9F8 \uD14D\uC2A4\uD2B8 \uC785\uB2C8\uB2E4."
+    - "cut A \uB450 \uBC88\uC9F8 \uD14D\uC2A4\uD2B8 \uC785\uB2C8\uB2E4."
+  - image: {fileID: 7603853865328026976, guid: 6eea7d15e0b6675489d54cbab8592297, type: 3}
+    texts:
+    - "cut B \uCCAB \uBC88\uC9F8 \uD14D\uC2A4\uD2B8 \uC785\uB2C8\uB2E4."
+    - "cut B \uB450 \uBC88\uC9F8 \uD14D\uC2A4\uD2B8 \uC785\uB2C8\uB2E4."
+    - "cut B \uC138 \uBC88\uC9F8 \uD14D\uC2A4\uD2B8 \uC785\uB2C8\uB2E4."
+  skippable: 1

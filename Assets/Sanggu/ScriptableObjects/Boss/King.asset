@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: King
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
   bossName: "\uC655"
-  bossSprite: {fileID: 0}
+  bossSprite: {fileID: 21300000, guid: 3aea029a354038f41a8c4ea49f0577c6, type: 3}
   size: {x: 0, y: 0}
   sizeOnCutScene: {x: 0, y: 0}
   stageName: "\uC54C\uD604\uC2E4"
