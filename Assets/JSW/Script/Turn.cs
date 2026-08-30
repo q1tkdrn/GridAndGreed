@@ -8,29 +8,37 @@ using TMPro;
 public class Turn : MonoBehaviour
 {
     private GameObject GameController;
+    private Plate pt;
     public static int TurnCount = 5;
-
-    public TMP_Text TurnCountText; // 인스펙터에서 UI 텍스트 오브젝트 연결
+    private GameManager gm;
+    public TMP_Text TurnCountText;
+    public TMP_Text BossHP;
+    public TMP_Text PlayerHP;
 
     void Start()
     {
         UpdateTurnUI();
-    }
+        gm = gameObject.AddComponent<GameManager>();
+        pt = gameObject.AddComponent<Plate>();
 
+    }
+    private void Call_Boss_PlateCreate()
+    {
+        pt.Boss_PlateCreate6();
+    }
     public void TurnCount_Subtract(int x)
     {
         TurnCount -= x;
-
-        if (TurnCount < 0)
-        {
-            TurnCount = 0;
-        }
 
         UpdateTurnUI();
 
         if (TurnCount == 0)
         {
-            OnTurnEnd();
+            gm.Player_All_Attck();
+            Debug.Log("턴이 모두 소진되었습니다.");
+            Debug.Log("보스의 HP : " + GameManager.BossHP);
+            Invoke(nameof(Call_Boss_PlateCreate), 0.5f);
+            UpdateTurnUI();
         }
     }
 
@@ -45,12 +53,7 @@ public class Turn : MonoBehaviour
         if (TurnCountText != null)
         {
             TurnCountText.text = "Turn : " + TurnCount;
+            BossHP.text = "BossHP : " + GameManager.BossHP;
         }
-    }
-
-    private void OnTurnEnd()
-    {
-        // 턴이 0이 됐을 때 처리 (예: 다음 라운드 시작, 게임 오버 등)
-        Debug.Log("턴이 모두 소진되었습니다.");
     }
 }

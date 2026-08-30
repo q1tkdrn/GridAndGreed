@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 public class Player : MonoBehaviour
 {
 
-    public MovingPoint mp;
+    public Plate mp;
     private float SceneTime;
     private float LastClickTime = 0f;
     private bool IsDoubleClicked;
@@ -35,6 +35,7 @@ public class Player : MonoBehaviour
     public static int ClickedCharacterIndex;
 
     public int CharacterIndex;
+    private SpriteRenderer sr;
 
 
 
@@ -46,15 +47,16 @@ public class Player : MonoBehaviour
     void Start()
     {
         originalScale = transform.localScale;
-        mp = FindAnyObjectByType<MovingPoint>();
+        mp = FindAnyObjectByType<Plate>();
         tn = FindAnyObjectByType<Turn>();
         gm = FindAnyObjectByType<GameManager>();
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void Update()
     {
         SceneTime = Time.time;
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && Turn.TurnCount > 0)
         {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
@@ -109,6 +111,7 @@ public class Player : MonoBehaviour
                     isSelected = false;
                     transform.localScale = originalScale;
                     mp.Remove_MovingPlate();
+                    FlipX();
                 }
             }
         }
@@ -127,7 +130,7 @@ public class Player : MonoBehaviour
                 player_board_y[ClickedCharacterIndex - 1] = gm.Change_Coordinate_Y_To_Board_Y();
 
                 Debug.Log(gm.Change_Coordinate_X_To_Board_X() + " , " + gm.Change_Coordinate_Y_To_Board_Y());
-
+                tn.TurnCount_Subtract(1);
 
             }
         }
@@ -135,9 +138,22 @@ public class Player : MonoBehaviour
 
     private void DoubleClick()
     {
-        GameManager.BossHP = GameManager.BossHP - Attck;
+        GameManager.BossHP = GameManager.BossHP - HHh;
         Debug.Log("현제 보스 HP : " + GameManager.BossHP);
+        tn.TurnCount_Subtract(1);
     }
 
+    private void FlipX()
+    {
+        int RandomNumber = UnityEngine.Random.Range(0, 2);
+        if(RandomNumber == 1)
+        {
+            sr.flipX = true;
+        }
+        if(RandomNumber == 0)
+        {
+            sr.flipX = false;
+        }
 
+    }
 }

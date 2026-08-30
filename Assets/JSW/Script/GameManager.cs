@@ -12,25 +12,39 @@ public class GameManager : MonoBehaviour
     private float MainX;
     private float MainY;
 
-    private string[] Player_Names = { "Kight", "Archer" };
-    private int[] Player_Atk = { 10, 5 };
-    private int[] Player_HH = { 7, 7 };
+    private string[] Player_Names = { "Kight", "Archer" , "Thief"};
+    private int[] Player_Atk = { 6, 4, 3 };
+    private int[] Player_HH = { 1, 3, 4 }; 
     private string[] Boss_Names = { "BigHouse" };
     private int[] Boss_Hp = { 100 };
-    private int[] Boss_Atk = { 5 };
+    private int[] Boss_Atk = { 5 }; // 의지수치
+    private int bossindex;
     private Player[] players = new Player[3];
+    private Turn tn;
     private Player pl;
+    private Plate pt;
+
+    static public int PlayerHP;
     static public int BossHP;
-
-
-
-
     // 보드의 좌표 범위 (외부에서 이동 가능 범위 체크용)
     public static float BoardMinX;
     public static float BoardMaxX;
     public static float BoardMinY;
     public static float BoardMaxY;
 
+    public int BossIndex
+    {
+        get { return bossindex; }
+        set 
+        { 
+            switch (bossindex)
+            {
+                case 0:
+
+                break;
+            }
+        }
+    }
     void Start()
     {
 
@@ -46,12 +60,9 @@ public class GameManager : MonoBehaviour
         PositionMove(2, 5, 5);
         Activate_Player(0, 0);
         Activate_Player(1, 1);
+        Activate_Player(2, 2);
         Activate_Boss(0);
-    }
-
-    private void Position_AfterClick()
-    {
-
+        PlayerHP = 15;
     }
     private void PositionMove(int CharacterIndex, int x, int y)
     {
@@ -93,15 +104,22 @@ public class GameManager : MonoBehaviour
     }
     private void Activate_Boss(int BossIndex)
     {
-
         string name = Boss_Names[BossIndex];
         int hp = Boss_Hp[BossIndex];
         int atk = Boss_Atk[BossIndex];
         BossHP = hp;
         Debug.Log("보스 체력 : " + hp);
-
-
+        bossindex = BossIndex;
     }
+    
+    //private void BigHouse_Passive()
+    //{
+     //   if(/*턴 종료를 알리는 것*/ && Turn.TurnCount <=3)
+      //  {
+           // Boss_Atk[0]++;
+       // }
+    //}
+
 
     public int Change_Coordinate_X_To_Board_X()
     {
@@ -133,4 +151,14 @@ public class GameManager : MonoBehaviour
         }
         return -1;
     }
+
+    public void Player_All_Attck()
+    {
+        for (int i = 0; i < 3; i++)
+        {
+            BossHP -= players[i].Attck;
+        }
+    }
+
+
 }
