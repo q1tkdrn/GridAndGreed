@@ -1,10 +1,11 @@
+using System;
 using UnityEngine;
 using UnityEngine.UIElements;
 
 public class Player : MonoBehaviour
 {
 
-    public MovingPoint sc;
+    public Plate mp;
     private float SceneTime;
     private float LastClickTime = 0f;
     private bool IsDoubleClicked;
@@ -13,39 +14,84 @@ public class Player : MonoBehaviour
     public float selectedScaleMultiplier = 1.2f;
     public float moveSpeed = 10f;
     private Turn tn;
+    private GameManager gm;
+    
 
     public float doubleClickThreshold = 0.3f; // 더블클릭으로 인정할 시간 간격(초)
 
     private Vector3 targetPosition;
     private bool isMoving = false;
 
+    public string CharacterName;
+    public int Attck;
+    public int HHh;
+
+    public static float[] player_x = new float[3];
+    public static int[] player_board_x = new int[3];
+    public static float[] player_y = new float[3];
+    public static int[] player_board_y = new int[3];
+
+
+    public static int ClickedCharacterIndex;
+
+    public int CharacterIndex;
+    private SpriteRenderer sr;
+
+
+
+
+
+
+
+
     void Start()
     {
         originalScale = transform.localScale;
-        sc = FindAnyObjectByType<MovingPoint>();
+        mp = FindAnyObjectByType<Plate>();
         tn = FindAnyObjectByType<Turn>();
+        gm = FindAnyObjectByType<GameManager>();
+        sr = GetComponent<SpriteRenderer>();
     }
 
     void Update()
     {
         SceneTime = Time.time;
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && Turn.TurnCount > 0)
         {
             Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
             RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-
             if (hit.collider != null)
             {
+                if (hit.collider.gameObject.name == "Player1")
+                {
+                    ClickedCharacterIndex = 1;
+                    player_x[0] = transform.position.x;
+                    player_x[0] = transform.position.y;
+                }
+                if (hit.collider.gameObject.name == "Player2")
+                {
+                    ClickedCharacterIndex = 2;
+                    player_x[1] = transform.position.x;
+                    player_x[1] = transform.position.y;
 
+                }
+                if (hit.collider.gameObject.name == "Player3")
+                {
+                    ClickedCharacterIndex = 3;
+                    player_x[2] = transform.position.x;
+                    player_x[2] = transform.position.y;
+
+                }
                 if (hit.collider.gameObject == gameObject)
                 {
+                    mp.Check_Character(this);
                     // 더블클릭 판정
                     if (SceneTime - LastClickTime <= doubleClickThreshold)
                     {
                         IsDoubleClicked = true;
                         LastClickTime = 0f; // 연속 트리플클릭 등으로 오작동하지 않도록 초기화
                         DoubleClick();
-                        sc.Remove_MovingPlate();
+                        mp.Remove_MovingPlate();
                     }
                     else
                     {
@@ -54,20 +100,18 @@ public class Player : MonoBehaviour
 
                         isSelected = true;
                         transform.localScale = originalScale * selectedScaleMultiplier;
-                        sc.Remove_MovingPlate();
-                        sc.Create_MovingPlate(7);
+                        mp.Remove_MovingPlate();
+                        mp.Create_MovingPlate(7);
                     }
                 }
                 else if (isSelected && hit.collider.CompareTag("MovePoint"))
                 {
-                    Debug.Log("MovingPoint 클릭됨!");
-                    targetPosition = hit.collider.bounds.center;
+                    targetPosition = hit.collider.transform.position;
                     isMoving = true;
                     isSelected = false;
                     transform.localScale = originalScale;
-                    sc.Remove_MovingPlate();
-
-                    tn.TurnCount_Subtract(1);
+                    mp.Remove_MovingPlate();
+                    FlipX();
                 }
             }
         }
@@ -78,20 +122,38 @@ public class Player : MonoBehaviour
 
             if (Vector3.Distance(transform.position, targetPosition) < 0.01f)
             {
+                transform.position = targetPosition;
                 isMoving = false;
+                player_x[ClickedCharacterIndex - 1] = targetPosition.x;
+                player_y[ClickedCharacterIndex - 1] = targetPosition.y;
+                player_board_x[ClickedCharacterIndex -1] = gm.Change_Coordinate_X_To_Board_X();
+                player_board_y[ClickedCharacterIndex - 1] = gm.Change_Coordinate_Y_To_Board_Y();
+
+                Debug.Log(gm.Change_Coordinate_X_To_Board_X() + " , " + gm.Change_Coordinate_Y_To_Board_Y());
+                tn.TurnCount_Subtract(1);
+
             }
         }
     }
 
-    public void DoubleClick()
+    private void DoubleClick()
     {
-        Debug.Log("더블클릭됨!");
+        GameManager.BossHP = GameManager.BossHP - HHh;
+        Debug.Log("현제 보스 HP : " + GameManager.BossHP);
+        tn.TurnCount_Subtract(1);
     }
 
-    public void Player_Attack()
+    private void FlipX()
     {
+        int RandomNumber = UnityEngine.Random.Range(0, 2);
+        if(RandomNumber == 1)
+        {
+            sr.flipX = true;
+        }
+        if(RandomNumber == 0)
+        {
+            sr.flipX = false;
+        }
 
     }
-
-
 }
