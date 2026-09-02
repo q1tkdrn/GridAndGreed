@@ -1,11 +1,13 @@
 ﻿using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class Card : MonoBehaviour
 {
     public UnitTemp unitTemp;
     public bool isSelected = false;
+    [SerializeField] private Image image;
     
     public TextMeshProUGUI text;
     [SerializeField] private TextMeshProUGUI popupText;
@@ -23,6 +25,7 @@ public class Card : MonoBehaviour
             $"부활 대기 시간: {unitTemp.reviveCool}턴\n" +
             $"능력: {unitTemp.abilityText}" +
             $"</size>";
+        image.sprite = unitTemp.illustration;
         text.gameObject.SetActive(isSelected);
     }
 

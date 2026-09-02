@@ -18,9 +18,10 @@ MonoBehaviour:
   reviveCool: 2
   abilityText: "\uD134 \uC885\uB8CC \uC2DC, \uC774\uB3D9\uD558\uC9C0 \uC54A\uC558\uB2E4\uBA74,
     \uBCF4\uC2A4\uC5D0\uAC8C \uD53C\uD574 5"
-  skin1: {fileID: 0}
-  skin2: {fileID: 0}
-  skin3: {fileID: 0}
+  illustration: {fileID: 21300000, guid: 8833500dc6aab1342b601bf0bd2ef212, type: 3}
+  skin1: {fileID: 21300000, guid: 8882d04e0d7ff05458d494b3a104f94f, type: 3}
+  skin2: {fileID: 21300000, guid: eba45bcd12c8e9845bcbc7a975d8f7d8, type: 3}
+  skin3: {fileID: 21300000, guid: 11e44196ddfdd0944a9a65c004d1c9ff, type: 3}
   isSkin2Unlocked: 0
   isSkin3Unlocked: 0
   currentSkin: 0

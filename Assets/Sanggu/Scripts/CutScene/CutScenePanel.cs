@@ -17,6 +17,7 @@ public class CutScenePanel: MonoBehaviour
     [SerializeField] private float wordDelay = 0.1f;
     private float _wordDelay;
     [SerializeField] private float textDelay = 0.5f;
+    [SerializeField] private float cutDelay = 0.5f;
     [SerializeField] private float timeForSkip = 2f;
     private float _holdTime = 0f;
     private bool _isSkip = false;
@@ -54,6 +55,7 @@ public class CutScenePanel: MonoBehaviour
                 }
                 yield return new WaitForSeconds(textDelay);
             }
+            yield return new WaitForSeconds(cutDelay);
         }
         gameObject.SetActive(false);
     }
