@@ -88,7 +88,6 @@ public class GameManager : MonoBehaviour
                 );
             }
         }
-
         BoardMinX = MainX;
         BoardMaxX = MainX + 8;
         BoardMinY = MainY;

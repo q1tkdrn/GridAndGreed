@@ -56,4 +56,11 @@ public class Turn : MonoBehaviour
             BossHP.text = "BossHP : " + GameManager.BossHP;
         }
     }
+
+    public void Turn_On()
+    {
+        Debug.Log("턴이 시작되었습니다!");
+        TurnCount = 5;
+        UpdateTurnUI();
+    }
 }

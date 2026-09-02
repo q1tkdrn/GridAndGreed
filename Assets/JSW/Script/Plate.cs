@@ -14,12 +14,14 @@ public class Plate : MonoBehaviour
     float Player_x;
     float Player_y;
     SpriteRenderer sr;
+    private Turn tn;
 
     void Start()
     {
         MovingPoint = GameObject.Find("MovePoint");
         BossPlate = GameObject.Find("BossPlate");
         sr = GetComponent<SpriteRenderer>();
+        tn = GetComponent<Turn>();
     }
     public void Check_Character(Player player)
     {
@@ -106,6 +108,7 @@ public class Plate : MonoBehaviour
             }
         }
         Boss_spawnedList.Clear();
+        tn.Turn_On();
     }
 
  //대저택 보스       
@@ -178,6 +181,7 @@ public class Plate : MonoBehaviour
         }
         Invoke("Boss_RemovePlate", 1f);
     }
+
     public void Boss_PlateCreate2()
     {
         for (int a = 3; a < 6; a++)
@@ -220,6 +224,8 @@ public class Plate : MonoBehaviour
                 Player_hit(a, b);
             }
         }
+        Invoke("Boss_RemovePlate", 1f);
+
     }
 
     public void Boss_PlateCreate3()
@@ -244,6 +250,8 @@ public class Plate : MonoBehaviour
                 Player_hit(a, b);
             }
         }
+        Invoke("Boss_RemovePlate", 1f);
+
     }
 
     public void Boss_PlateCreate4()
@@ -258,8 +266,10 @@ public class Plate : MonoBehaviour
                 Player_hit(a, b);
             }
         }
+        Invoke("Boss_RemovePlate", 1f);
+
     }
-    
+
     public void Boss_PlateCreate5()
     {
         for (int a = 2; a < 7; a++)
@@ -272,6 +282,8 @@ public class Plate : MonoBehaviour
                 Player_hit(a, b);
             }
         }
+        Invoke("Boss_RemovePlate", 1f);
+
     }
 
     public void Boss_PlateCreate6()
@@ -316,6 +328,8 @@ public class Plate : MonoBehaviour
                 Player_hit(a, b);
             }
         }
+        Invoke("Boss_RemovePlate", 1f);
+
     }
     //대저택 보스
     public void Player_hit(int x, int y)
