@@ -11,7 +11,7 @@ public class MainManager : MonoBehaviour
     private int currentIndex = 1;
     void Start()
     {
-        currentIndex = 1;
+        currentIndex = PlayerPrefs.GetInt("mainCurrentIndex", 1);
         SetMain();
     }
     private void SetMain()
@@ -22,6 +22,7 @@ public class MainManager : MonoBehaviour
         }
 
         main[currentIndex].SetActive(true);
+        PlayerPrefs.SetInt("mainCurrentIndex", currentIndex);
 
         leftButton.SetActive(currentIndex > 0);
         rightButton.SetActive(currentIndex < main.Length - 1);

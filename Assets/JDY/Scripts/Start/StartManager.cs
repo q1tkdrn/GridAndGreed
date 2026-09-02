@@ -15,7 +15,7 @@ public class StartManager : MonoBehaviour
     }
     public void ContinueButton()
     {
-        //SceneManager.LoadScene("Opening");
+        SceneManager.LoadScene("Main");
     }
     public void SettingButton()
     {
