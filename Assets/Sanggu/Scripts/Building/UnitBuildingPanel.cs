@@ -45,6 +45,9 @@ public class UnitBuildingPanel : MonoBehaviour
         unitObject[0].Init();
         unitObject[1].Init();
         unitObject[2].Init();
+        if(!InventoryManager.Instance.HasCharacter("1")) InventoryManager.Instance.UnlockCharacter("1");
+        if(!InventoryManager.Instance.HasCharacter("2")) InventoryManager.Instance.UnlockCharacter("2");
+        if(!InventoryManager.Instance.HasCharacter("3")) InventoryManager.Instance.UnlockCharacter("3");
         BattleDisplayManager.GetInstance().currentUnits = currentUnits;
     }
 
