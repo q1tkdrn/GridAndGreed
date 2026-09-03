@@ -1,26 +1,32 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using TMPro;
 public class OpeningUI : MonoBehaviour
 {
-    [SerializeField] private Image background;
+    [Header("UI-image")]
+    [SerializeField] private Image frame;
     [SerializeField] private Sprite[] Images;
+    [Header("UI-text")]
+    [SerializeField] private TMP_Text text;
+    [SerializeField] private string[] content;
     private int currentIndex;
     void Start()
     {
         currentIndex = 0;
-        SetImage();
+        SetUI();
     }
-    public void NextImage()
+    public void NextUIButton()
     {
         currentIndex++;
-        SetImage();
+        SetUI();
     }
-    private void SetImage()
+    private void SetUI()
     {
         if (currentIndex < Images.Length)
         {
-            background.sprite = Images[currentIndex];
+            frame.sprite = Images[currentIndex];
+            text.text = content[currentIndex];
         }
         else
         {

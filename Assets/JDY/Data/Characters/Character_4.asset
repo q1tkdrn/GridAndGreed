@@ -12,10 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c10ca5e459163e548af96c8cb483fa71, type: 3}
   m_Name: Character_4
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
-  characterName: "\uBE44\uC20D"
+  characterName: "\uC0AC\uC81C"
   id: 4
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: c9e7ad8e5a8e8514697efab9df7abc26, type: 3}
+  npcSkin: {fileID: 21300000, guid: 6af681df74405314ea9e9f546e05611c, type: 3}
+  insectSkin: {fileID: 21300000, guid: 30c849d6956771b489a6afa59076d448, type: 3}
+  bossSkin: {fileID: 21300000, guid: 05acc49a2801ebd42a0a0f499c8e93cf, type: 3}
   STR: 1
   INT: 6
   price: 1
+  npcSkinName: "\uC720(\uC0AC\uC81C)"
+  insectSkinName: "\uAFC0\uBC8C (\uC0AC\uC81C)"
+  bossSkinName: "\uAD50\uD669(\uC0AC\uC81C)"
   description: "\uC2EC\uD310 \uD6C4, \uD50C\uB808\uC774\uC5B4\uC758 HP 3 \uD68C\uBCF5"

@@ -119,6 +119,82 @@ NavMeshSettings:
     debug:
       m_Flags: 0
   m_NavMeshData: {fileID: 0}
+--- !u!1 &6498375
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 6498377}
+  - component: {fileID: 6498376}
+  m_Layer: 0
+  m_Name: Achievement Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &6498376
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6498375}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4a0df2b1f97766440961f6d24a092ff9, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementManager
+  achievements:
+  - {fileID: 11400000, guid: f3ed596fc09c9824b85e4bb3757ae9a6, type: 2}
+  - {fileID: 11400000, guid: 385841ea521dd94418f843ab00bc8669, type: 2}
+  - {fileID: 11400000, guid: d5167c7c6bce6be4c83d39f68a7581b7, type: 2}
+  - {fileID: 11400000, guid: 22efdd601af6d304f96cfb863c8795ac, type: 2}
+  - {fileID: 11400000, guid: 146b6dc64a198d3469f93676df30aa65, type: 2}
+  - {fileID: 11400000, guid: 7e59f83921f07f44295d3f594695b93d, type: 2}
+  - {fileID: 11400000, guid: d4667e8e991a52043895c3ba893df29c, type: 2}
+  - {fileID: 11400000, guid: 0767cf9dd87c6bd4b98915dbe1e9d4a7, type: 2}
+  - {fileID: 11400000, guid: a41bd97f395ad86498101706e99c020e, type: 2}
+  - {fileID: 11400000, guid: ae68bbe06b986d7468d37534deeeaa93, type: 2}
+  - {fileID: 11400000, guid: 22dfc9cfac4706741b672fd704a340c4, type: 2}
+  - {fileID: 11400000, guid: 1f5f4ca0ac86c754cab1f706fdede86b, type: 2}
+  - {fileID: 11400000, guid: 397c7871cd3f73a4d84f1a5c6a6f1a7b, type: 2}
+  - {fileID: 11400000, guid: c86ee1c38b50a184394194982aff608e, type: 2}
+  - {fileID: 11400000, guid: a46ae9dd68f7de14b971623c1fc91296, type: 2}
+  - {fileID: 11400000, guid: 35a668eacd9a6e142b52cf99d7e69f3a, type: 2}
+  - {fileID: 11400000, guid: 5fe8dfe63889c8a4cb53ef5bbde84f4e, type: 2}
+  - {fileID: 11400000, guid: e0dfd3b1e1825ad43930711d13d48bbd, type: 2}
+  - {fileID: 11400000, guid: 9ecaa983eef32d34b962c0b3a4fff5e7, type: 2}
+  - {fileID: 11400000, guid: f2cd0d8a26ff0984bb2b5a2f15fa22ac, type: 2}
+  - {fileID: 11400000, guid: e8d794fdfbb371740ba496e9a00c6845, type: 2}
+  - {fileID: 11400000, guid: 6fc3fd6c6ffd56842b99f185902e5716, type: 2}
+  - {fileID: 11400000, guid: 0e6eee9ff7aec514bac33543889663f3, type: 2}
+  - {fileID: 11400000, guid: 3aebb8827c732b34a9f8a2c837dbcbd0, type: 2}
+  - {fileID: 11400000, guid: e94a1bc4094f6bb4797e03e228767221, type: 2}
+  - {fileID: 11400000, guid: c6d3fa2343653e34581cea6f35e96a13, type: 2}
+  - {fileID: 11400000, guid: ef71dad7a583cfe46af44638293fe43e, type: 2}
+  - {fileID: 11400000, guid: 0767bb38808e1a743b76076c6aa9b3ee, type: 2}
+  - {fileID: 11400000, guid: 9c0541a2dd699774cad6eb7353467260, type: 2}
+  - {fileID: 11400000, guid: 94d0293e31800a04387ee2cb789d5bff, type: 2}
+  - {fileID: 11400000, guid: 23a23a2f44e25a543a95d223aff22b50, type: 2}
+--- !u!4 &6498377
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6498375}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &8957192
 GameObject:
   m_ObjectHideFlags: 0
@@ -1307,37 +1383,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 483890007}
   m_CullTransparentMesh: 1
---- !u!1 &492386180
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 492386181}
-  m_Layer: 0
-  m_Name: Save Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &492386181
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 492386180}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &561218435
 GameObject:
   m_ObjectHideFlags: 0
@@ -1743,9 +1788,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 561218436}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -531, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: -531, y: 540}
   m_SizeDelta: {x: 1748.5938, y: 2480}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1070840446
@@ -2013,7 +2058,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3fcd90845665cfe4fba838dfec592be5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AchievementUI
-  manager: {fileID: 2106771070}
   achievementSlotPrefab: {fileID: 2914971152022170177, guid: 632d170aee60a234fbf47843d12373fa, type: 3}
   content: {fileID: 254647948}
 --- !u!1 &1534947894
@@ -2625,55 +2669,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fa428e427481b094aae619bd99d0afb9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::QuestionButton
---- !u!1 &2106771069
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 2106771071}
-  - component: {fileID: 2106771070}
-  m_Layer: 0
-  m_Name: Achievement Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &2106771070
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2106771069}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 4a0df2b1f97766440961f6d24a092ff9, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::AchievementManager
-  achievements:
-  - {fileID: 11400000, guid: eb8b38eda6cd552458ff5fb503214029, type: 2}
-  - {fileID: 11400000, guid: 385841ea521dd94418f843ab00bc8669, type: 2}
-  - {fileID: 11400000, guid: d5167c7c6bce6be4c83d39f68a7581b7, type: 2}
-  - {fileID: 11400000, guid: d4667e8e991a52043895c3ba893df29c, type: 2}
---- !u!4 &2106771071
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2106771069}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 261.5, y: 147.16669, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0
@@ -2682,6 +2677,5 @@ SceneRoots:
   - {fileID: 351140563}
   - {fileID: 970963419}
   - {fileID: 112835325}
-  - {fileID: 2106771071}
-  - {fileID: 492386181}
   - {fileID: 1170836422}
+  - {fileID: 6498377}

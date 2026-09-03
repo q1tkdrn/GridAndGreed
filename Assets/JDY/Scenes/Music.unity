@@ -602,9 +602,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1150320042}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -530.77496, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: -530.77496, y: 540}
   m_SizeDelta: {x: 1748.5938, y: 2480}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &175296330
@@ -1597,7 +1597,7 @@ GameObject:
   - component: {fileID: 834378321}
   - component: {fileID: 834378323}
   m_Layer: 0
-  m_Name: Music Manager
+  m_Name: Music Setting Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -1635,6 +1635,12 @@ MonoBehaviour:
   - {fileID: 8300000, guid: a70ee1b59f9c1d44fb4bd67351343a14, type: 3}
   - {fileID: 8300000, guid: d7327d856976ebc40bf8036f393112e5, type: 3}
   - {fileID: 8300000, guid: 7828f2e16527fd04d91cc5d9291263ed, type: 3}
+  - {fileID: 8300000, guid: 077ba8e8ef567404bb1f31212eb3dbed, type: 3}
+  - {fileID: 8300000, guid: 53e4cc88f357cf14e8b09066aa670d4f, type: 3}
+  - {fileID: 8300000, guid: 7cc6a81db7158644e8aa530517172890, type: 3}
+  - {fileID: 8300000, guid: d48e1b2b3fb53fa4e9729a27fc9035e6, type: 3}
+  - {fileID: 8300000, guid: 8cb3bffd55faa8748a20a0d45497fe18, type: 3}
+  - {fileID: 8300000, guid: c7fb88a2588916c4e9110e6ca32d7333, type: 3}
 --- !u!1001 &973804598
 PrefabInstance:
   m_ObjectHideFlags: 0

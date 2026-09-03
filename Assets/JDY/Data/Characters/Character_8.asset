@@ -14,9 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::CharacterData
   characterName: "\uAD11\uC2E0\uB3C4"
   id: 8
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 8239c60425beee3478196bc474838e84, type: 3}
+  npcSkin: {fileID: 21300000, guid: 682e5282c6a0d2548a522c3cf856fbc1, type: 3}
+  insectSkin: {fileID: 21300000, guid: 619566c4ad2a2e548ab5d3e884bfbd54, type: 3}
+  bossSkin: {fileID: 21300000, guid: 1c9324b5ce5b98d4ca0759d7b1b5b684, type: 3}
   STR: 3
   INT: 2
   price: 1
+  npcSkinName: "\uD788\uC544\uC2E0\uC2A4(\uAD11\uC2E0\uB3C4)"
+  insectSkinName: "\uB9E4\uBBF8 (\uAD11\uC2E0\uB3C4)"
+  bossSkinName: "\uC655 (\uAD11\uC2E0\uB3C4)"
   description: "(\uD0C0 \uCE90\uB9AD\uD130\uBCF4\uB2E4 \uBD80\uD65C \uC18C\uBAA8
     \uD134\uC774 1 \uC9E7\uC74C)"

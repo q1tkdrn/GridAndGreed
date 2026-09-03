@@ -1,15 +1,18 @@
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEditor.Progress;
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
 
     [SerializeField] private int soul = 0;
-    [SerializeField] private ItemManager manager;
     [SerializeField] private Dictionary<string, int> ownedItems = new Dictionary<string, int>();
 
     [SerializeField] private List<string> ownedCharacters = new List<string>();
     [SerializeField] private List<string> ownedMemorials = new List<string>();
+
+    private int memorialCount = 8;
+    private int characterCount = 8;
     void Awake()//Obj
     {
         if (Instance == null)
@@ -17,12 +20,26 @@ public class InventoryManager : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
             soul = PlayerPrefs.GetInt("Soul", 0);
-            for(int i = 0; i < 24; i++)//manager
+            for(int i = 0; i < ItemManager.Instance.items.Length; i++)
             {
                 int count = PlayerPrefs.GetInt("Item_" + i, 0);
 
                 if (count > 0)
                     ownedItems.Add(i.ToString(), count);
+            }
+            for (int i = 0; i < characterCount; i++)
+            {
+                string id = i.ToString();
+
+                if (PlayerPrefs.GetInt("Character_" + id, 0) == 1)
+                    ownedCharacters.Add(id);
+            }
+            for (int i = 0; i < memorialCount; i++)
+            {
+                string id = i.ToString();
+
+                if (PlayerPrefs.GetInt("Memorial_" + id, 0) == 1)
+                    ownedMemorials.Add(id);
             }
         }
         else
@@ -56,7 +73,7 @@ public class InventoryManager : MonoBehaviour
             ownedItems.Add(itemId, amount);
 
         PlayerPrefs.SetInt("Item_" + itemId, ownedItems[itemId]);
-        //PlayerPrefs.Save();
+        PlayerPrefs.Save();
     }
     public void AddItem(ItemData item, int amount = 1)
     {
@@ -79,7 +96,7 @@ public class InventoryManager : MonoBehaviour
             PlayerPrefs.SetInt("Item_" + itemId, ownedItems[itemId]);
         }
 
-        //PlayerPrefs.Save();
+        PlayerPrefs.Save();
     }
     public void RemoveItem(ItemData item, int amount = 1)
     {
@@ -104,19 +121,35 @@ public class InventoryManager : MonoBehaviour
     //Character
     public void UnlockCharacter(string characterId)
     {
-        ownedCharacters.Add(characterId);
+        if (!ownedCharacters.Contains(characterId))
+            ownedCharacters.Add(characterId);
+        PlayerPrefs.SetInt("Character_" + characterId, 1);
+        PlayerPrefs.Save();
     }
     public bool HasCharacter(string characterId)
     {
         return ownedCharacters.Contains(characterId);
     }
+    //Skin
+    public void UnlockSkin(string characterId, Skin skin)
+    {
+        PlayerPrefs.SetInt($"Skin_{characterId}_{skin}", 1);
+        PlayerPrefs.Save();
+    }
+    public bool HasSkin(string characterId, Skin skin)
+    {
+        return PlayerPrefs.GetInt($"Skin_{characterId}_{skin}", 0) == 1;
+    }
     //Memory
     public void UnlockMemorial(string memorialId)
     {
-        ownedMemorials.Add(memorialId);
-     }
+        if (!ownedMemorials.Contains(memorialId))
+            ownedMemorials.Add(memorialId);
+        PlayerPrefs.SetInt("Memorial_" + memorialId, 1);
+        PlayerPrefs.Save();
+    }
     public bool HasMemorial(string memorialId)
     {
-        return ownedCharacters.Contains(memorialId);
+        return ownedMemorials.Contains(memorialId);
     }
 }

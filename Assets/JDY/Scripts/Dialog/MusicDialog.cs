@@ -26,6 +26,6 @@ public class MusicDialog : MonoBehaviour
     public void ExitDialog()
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("¸¶¸®°ñµå", DialogType.Exit, "", currentPhase);
-        dialogUI.StartDialog(dialogs, exitButton.exitButton);
+        dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

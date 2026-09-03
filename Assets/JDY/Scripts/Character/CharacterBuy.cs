@@ -1,25 +1,33 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 public class CharacterBuy : MonoBehaviour
 {
     [Header("Script")]
-    [SerializeField] private CharacterSlot CharacterSlot;
+    [SerializeField] private CharacterSlot characterSlot;
     [Header("UI")]
     [SerializeField] private TMP_Text soulText;
-    void Update()
+    [SerializeField] private Button button;
+    void Start()
     {
-        soulText.text = InventoryManager.Instance.GetSoul().ToString();
+        SetBuy();
+        IsBuy();
+    }
+    public void IsBuy()
+    {
+        button.interactable = !InventoryManager.Instance.HasCharacter(characterSlot.character.id);
     }
     public void BuyButton()
     {
         try
         {
-            if (InventoryManager.Instance.GetSoul() >= CharacterSlot.character.price)
+            if (InventoryManager.Instance.GetSoul() >= characterSlot.character.price)
             {
-                InventoryManager.Instance.RemoveSoul(CharacterSlot.character.price);
-                InventoryManager.Instance.UnlockCharacter(CharacterSlot.character.id);
-
-                Debug.Log(CharacterSlot.character.name + "을 구입");
+                InventoryManager.Instance.RemoveSoul(characterSlot.character.price);
+                InventoryManager.Instance.UnlockCharacter(characterSlot.character.id);
+                SetBuy();
+                IsBuy();
+                Debug.Log(characterSlot.character.name + "을 구입");
             }
             else
             {
@@ -30,5 +38,9 @@ public class CharacterBuy : MonoBehaviour
         {
             Debug.Log("Inventory Manager를 찾을 수 없는 오류");
         }
+    }
+    public void SetBuy()
+    {
+        soulText.text = InventoryManager.Instance.GetSoul().ToString();
     }
 }

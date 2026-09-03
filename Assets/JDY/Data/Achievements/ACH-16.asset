@@ -13,10 +13,11 @@ MonoBehaviour:
   m_Name: ACH-16
   m_EditorClassIdentifier: Assembly-CSharp::AchievementData
   id: ACH-16
-  title: "\uC774\uAC83\uB3C4 \uC694\uB9AC\uD574 \uBCF4\uC2DC\uC9C0!"
-  description: "\uC694\uB9AC\uC0AC\uC640\uC758 \uC804\uD22C\uC5D0\uC11C \uC2B9\uB9AC\uD558\uC138\uC694"
+  title: "\uD63C\uC790\uAC00 \uC544\uB2C8\uC57C"
+  icon: {fileID: 21300000, guid: d77a81e1c735b384fb9ea43d20c8b4e5, type: 3}
+  description: "\uC735\uD569\uCCB4\uC640\uC758 \uC804\uD22C\uC5D0\uC11C \uC2B9\uB9AC\uD558\uC138\uC694"
   targetValue: 1
   rewards:
-  - type: 4
-    rewardID: "\uC694\uB9AC\uC0AC"
-    amount: 1
+  - type: 1
+    rewardID: 
+    amount: 1000

@@ -4,9 +4,6 @@ using UnityEngine;
 using UnityEngine.UI;
 public class ItemSlot : MonoBehaviour
 {
-    [Header("Script")]
-    [SerializeField] private ItemManager itemManager;
-
     [Header("Slot Image")]
     [SerializeField] private Image leftIcon;
     [SerializeField] private Image centerIcon;
@@ -23,7 +20,7 @@ public class ItemSlot : MonoBehaviour
     public ItemData item;//empty(ItemBuy)
     void Start()
     {
-        foreach (ItemData itemData in itemManager.items)
+        foreach (ItemData itemData in ItemManager.Instance.items)
         {
             if (itemData == null) continue;
             if (itemData.price >= 0)

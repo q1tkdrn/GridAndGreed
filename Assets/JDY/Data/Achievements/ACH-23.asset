@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: d3e20834c803e8d469c82c7af40e1e16, type: 3}
+  m_Name: ACH-23
+  m_EditorClassIdentifier: Assembly-CSharp::AchievementData
+  id: ACH-23
+  title: "\uD765\uC5BC\uD765\uC5BC"
+  icon: {fileID: 21300000, guid: 86818c7723a9a1d408c9823023a73f19, type: 3}
+  description: "Mr. COCKROACH, Mr. FLOWER, Miss. GHOST\uB97C \uC804\uBD80 \uC7A5\uCC29\uD558\uC5EC
+    \uC804\uD22C\uB97C 1\uD68C \uC2B9\uB9AC\uD558\uC138\uC694"
+  targetValue: 1
+  rewards:
+  - type: 4
+    rewardID: 2
+    amount: 1

@@ -2,8 +2,6 @@ using UnityEngine;
 
 public class AchievementUI : MonoBehaviour
 {
-    [Header("Script")]
-    [SerializeField] private AchievementManager manager;
     [Header("Prefab")]
     [SerializeField] private GameObject achievementSlotPrefab;
     [Header("UI")]
@@ -14,12 +12,16 @@ public class AchievementUI : MonoBehaviour
     }
     public void CreateAchievementSlots()
     {
-        foreach (AchievementData data in manager.achievements)
+        foreach (AchievementData data in AchievementManager.Instance.achievements)
         {
-            GameObject obj = Instantiate(achievementSlotPrefab, content);
+            GameObject obj;
 
-            AchievementSlot slot = obj.GetComponent<AchievementSlot>();
-            slot.SetData(data);
+            if (data.id != "ACH-28" || data.id != "ACH-29" || data.id != "ACH-30" || data.id != "ACH-31")
+            {
+                obj = Instantiate(achievementSlotPrefab, content);
+                AchievementSlot slot = obj.GetComponent<AchievementSlot>();
+                slot.SetData(data);
+            }
         }
     }
 }
