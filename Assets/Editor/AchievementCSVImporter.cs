@@ -70,6 +70,16 @@ public class AchievementCSVImporter
                 data.description = description;
                 data.targetValue = targetValue;
 
+                string iconNumber = achievementID.Replace("ACH-", "");
+                string iconPath = $"Assets/JDY/Data/Achievements/Icons/업적{iconNumber}.png";
+
+                data.icon = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+
+                if (data.icon == null)
+                {
+                    Debug.LogWarning($"{achievementID}: 아이콘 없음");
+                }
+
                 data.rewards = new AchievementReward[0];
 
                 achievementDict.Add(achievementID, data);
@@ -104,10 +114,19 @@ public class AchievementCSVImporter
 
             if (oldData != null)
             {
-                AssetDatabase.DeleteAsset(assetPath);
-            }
+                oldData.id = data.id;
+                oldData.title = data.title;
+                oldData.description = data.description;
+                oldData.targetValue = data.targetValue;
+                oldData.icon = data.icon;
+                oldData.rewards = data.rewards;
 
-            AssetDatabase.CreateAsset(data, assetPath);
+                EditorUtility.SetDirty(oldData);
+            }
+            else
+            {
+                AssetDatabase.CreateAsset(data, assetPath);
+            }
         }
 
         AssetDatabase.SaveAssets();

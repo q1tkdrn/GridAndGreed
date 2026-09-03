@@ -182,6 +182,8 @@ MonoBehaviour:
   INTText: {fileID: 1720944325}
   describeText: {fileID: 1652377425}
   character: {fileID: 0}
+  skinName: 
+  currentSkin: 0
 --- !u!1 &13833360
 GameObject:
   m_ObjectHideFlags: 0
@@ -408,6 +410,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 407389363}
+        m_TargetAssemblyTypeName: CharacterBuy, Assembly-CSharp
+        m_MethodName: IsBuy
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &57558709
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -446,6 +460,53 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 57558706}
   m_CullTransparentMesh: 1
+--- !u!1 &97324603
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 97324605}
+  - component: {fileID: 97324604}
+  m_Layer: 0
+  m_Name: Inventory Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &97324604
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97324603}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c59b0af679030284caf2b1ba62b28e30, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
+  soul: 0
+  ownedCharacters: []
+  ownedMemorials: []
+--- !u!4 &97324605
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 97324603}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &150015332
 GameObject:
   m_ObjectHideFlags: 0
@@ -943,8 +1004,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3f6214ea5666e004f9862b886dc699e6, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::CharacterBuy
-  CharacterSlot: {fileID: 9637313}
+  characterSlot: {fileID: 9637313}
   soulText: {fileID: 477660615}
+  button: {fileID: 812987520}
 --- !u!1 &475026413
 GameObject:
   m_ObjectHideFlags: 0
@@ -1698,8 +1760,8 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls:
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: ItemBuy, Assembly-CSharp
+      - m_Target: {fileID: 407389363}
+        m_TargetAssemblyTypeName: CharacterBuy, Assembly-CSharp
         m_MethodName: BuyButton
         m_Mode: 1
         m_Arguments:
@@ -1748,6 +1810,74 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 812987518}
   m_CullTransparentMesh: 1
+--- !u!1 &941118921
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 941118923}
+  - component: {fileID: 941118922}
+  m_Layer: 0
+  m_Name: Item Manager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &941118922
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941118921}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 19a1b491f55305241943d5c4d9c26481, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::ItemShopManager
+  items:
+  - {fileID: 11400000, guid: e99133cb53f7e994da7513aa57ae9eb0, type: 2}
+  - {fileID: 11400000, guid: 574997dc723b07744b52d70c3b863cff, type: 2}
+  - {fileID: 11400000, guid: c7a3f568437dd1a428dbbd0328462ab3, type: 2}
+  - {fileID: 11400000, guid: 734d023517247354094c8b3f3afb992f, type: 2}
+  - {fileID: 11400000, guid: dc6e8fb8cbe71004ead1b46ce5c192da, type: 2}
+  - {fileID: 11400000, guid: 2609699125add894b9bacf079e850013, type: 2}
+  - {fileID: 11400000, guid: 05a0d23f36b502744931521b160ccce9, type: 2}
+  - {fileID: 11400000, guid: 82cc119b1c5edb8428084de418ada7c8, type: 2}
+  - {fileID: 11400000, guid: 85a7164ba149c2843ae4cb0e888b8984, type: 2}
+  - {fileID: 11400000, guid: 979ddc53182c904418b0dee807dacfdd, type: 2}
+  - {fileID: 11400000, guid: 717e56e55c246c948b47bb6a375a4062, type: 2}
+  - {fileID: 11400000, guid: beea0925fb6d9934aa6f01fc3cbdb97a, type: 2}
+  - {fileID: 11400000, guid: 0f44337640d48904bab343b8187feb20, type: 2}
+  - {fileID: 11400000, guid: 073226e28f1f6274c9dbaaa5e39f83de, type: 2}
+  - {fileID: 11400000, guid: e0773ce18027bfe4da022ae1d3682292, type: 2}
+  - {fileID: 11400000, guid: e5ec236284f774747b7aa538a7c35602, type: 2}
+  - {fileID: 11400000, guid: 156829eb9be788e458054917d6a1f127, type: 2}
+  - {fileID: 11400000, guid: 3cfc9a85dcca28946aa62f13046bb664, type: 2}
+  - {fileID: 11400000, guid: e7d29e37b2e5a414cb1a763d838bf6ad, type: 2}
+  - {fileID: 11400000, guid: 61559680b0d1a6749a9b6b98f075e8ff, type: 2}
+  - {fileID: 11400000, guid: 3bb581b5b73f2b64eaaa6a9ba10cbc32, type: 2}
+  - {fileID: 11400000, guid: f91b5002dbf384040b6f692989377f3c, type: 2}
+  - {fileID: 11400000, guid: e2f9505629fcd7b42811c15c150a6d09, type: 2}
+--- !u!4 &941118923
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 941118921}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1002904830
 GameObject:
   m_ObjectHideFlags: 0
@@ -1780,9 +1910,9 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 407389360}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -531.00006, y: -0.000045776367}
+  m_AnchorMin: {x: 0.5, y: 0}
+  m_AnchorMax: {x: 0.5, y: 0}
+  m_AnchoredPosition: {x: -531.00006, y: 539.99994}
   m_SizeDelta: {x: 1748.5938, y: 2480}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1002904832
@@ -2390,54 +2520,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &1361802566
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1361802567}
-  - component: {fileID: 1361802568}
-  m_Layer: 0
-  m_Name: Inventory Manager
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!4 &1361802567
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1361802566}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1361802568
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1361802566}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c59b0af679030284caf2b1ba62b28e30, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
-  soul: 0
-  manager: {fileID: 0}
-  ownedCharacters: []
-  ownedMemorials: []
 --- !u!1 &1463362684
 GameObject:
   m_ObjectHideFlags: 0
@@ -2528,7 +2610,7 @@ GameObject:
   - component: {fileID: 1500414942}
   - component: {fileID: 1500414941}
   m_Layer: 0
-  m_Name: Character Manager
+  m_Name: Character Shop Manager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -4259,6 +4341,18 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
+      - m_Target: {fileID: 407389363}
+        m_TargetAssemblyTypeName: CharacterBuy, Assembly-CSharp
+        m_MethodName: IsBuy
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &2105026238
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -4305,6 +4399,7 @@ SceneRoots:
   - {fileID: 1251730320}
   - {fileID: 1463362687}
   - {fileID: 1981601264}
-  - {fileID: 1361802567}
   - {fileID: 1500414942}
   - {fileID: 13833362}
+  - {fileID: 97324605}
+  - {fileID: 941118923}

@@ -6,15 +6,18 @@ public class AchievementSlot : MonoBehaviour
     private AchievementData data;
     [Header("UI")]
     [SerializeField] private TMP_Text nameText;
+    [SerializeField] private TMP_Text descriptionText;
     [SerializeField] private Image stamp;
+    [SerializeField] private Button button;
     [Header("Stamp Image")]
     [SerializeField] private Sprite completedStamp;
     [SerializeField] private Sprite rewardedStamp;
     public void SetData(AchievementData data)
     {
         this.data = data;
-
+        button.image.sprite = data.icon;
         nameText.text = data.title;
+        descriptionText.text = data.description;
         UpdateUI();
     }
     public void UpdateUI()

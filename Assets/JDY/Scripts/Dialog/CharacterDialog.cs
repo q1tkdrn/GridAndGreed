@@ -27,6 +27,6 @@ public class CharacterDialog : MonoBehaviour
     public void ExitDialog()
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("¸±¸®", DialogType.Exit, "", currentPhase);
-        dialogUI.StartDialog(dialogs, exitButton.exitButton);
+        dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

@@ -14,12 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::AchievementData
   id: ACH-18
   title: "\uC6B4\uBA85"
+  icon: {fileID: 21300000, guid: 40d05484a4c8696479179621e122c3cd, type: 3}
   description: "\uC54C\uD604\uC2E4 \uC2A4\uD14C\uC774\uC9C0\uC5D0 \uC785\uC7A5\uD558\uC138\uC694"
   targetValue: 1
   rewards:
   - type: 2
     rewardID: 22
-    amount: 1
-  - type: 4
-    rewardID: "\uC655"
     amount: 1

@@ -44,7 +44,9 @@ public class CharacterCSVImporter
             string INTText = values[3].Trim();
             string priceText = values[5].Trim();
             string description = values[6];
-
+            string npcSkinName = values[7];
+            string insectSkinName = values[8];
+            string bossSkinName = values[9];
             if (string.IsNullOrEmpty(id))
             {
                 Debug.LogError($"{i + 1}번째 줄 ID 누락");
@@ -87,7 +89,25 @@ public class CharacterCSVImporter
             characterData.INT = INT;
             characterData.price = price;
             characterData.description = description;
-
+            characterData.npcSkinName = npcSkinName;
+            characterData.insectSkinName = insectSkinName;
+            characterData.bossSkinName = bossSkinName;
+            string iconPath = $"Assets/JDY/Data/Characters/Icons/{characterName}.png";
+            string npcSkinPath = $"Assets/JDY/Data/Characters/NpcSkins/{characterName}.png";
+            string insectSkinPath = $"Assets/JDY/Data/Characters/InsectSkins/{characterName}_스킨3.png";
+            string bossSkinPath = $"Assets/JDY/Data/Characters/BossSkins/{characterName}_스킨4.png";
+            Sprite icon = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+            Sprite npcSkin = AssetDatabase.LoadAssetAtPath<Sprite>(npcSkinPath);
+            Sprite insectSkin = AssetDatabase.LoadAssetAtPath<Sprite>(insectSkinPath);
+            Sprite bossSkin = AssetDatabase.LoadAssetAtPath<Sprite>(bossSkinPath);
+            if (icon != null){ characterData.icon = icon;}
+            else { Debug.LogWarning($"{id}: 아이콘 없음");}
+            if (icon != null){ characterData.npcSkin = npcSkin;} 
+            else { Debug.LogWarning($"{id}: NPC 스킨 없음");}
+            if (insectSkin != null){ characterData.insectSkin = insectSkin;}
+            else { Debug.LogWarning($"{id}: 곤충 스킨 없음");}
+            if (bossSkin != null){ characterData.bossSkin = bossSkin;}
+            else { Debug.LogWarning($"{id}: 보스 스킨 없음");}
             EditorUtility.SetDirty(characterData);
         }
 

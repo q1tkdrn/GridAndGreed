@@ -5,8 +5,7 @@ public class DialogManager : MonoBehaviour
 {
     public static DialogManager Instance;
 
-    [SerializeField]
-    private DialogDatabase database;
+    [SerializeField] private DialogDatabase database;
 
     private void Awake()
     {

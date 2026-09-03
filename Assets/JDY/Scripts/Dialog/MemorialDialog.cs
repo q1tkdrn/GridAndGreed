@@ -6,6 +6,7 @@ public class MemorialDialog : MonoBehaviour
     [SerializeField] private DialogUI dialogUI;
     [SerializeField] private QuestionUI questionUI;
     [SerializeField] private ExitButton exitButton;
+    [SerializeField] private MemorialUI memorialUI;
     [Header("Test")]
     [SerializeField] private int currentPhase = 0;
     private List<DialogData> dialogs;
@@ -18,14 +19,15 @@ public class MemorialDialog : MonoBehaviour
     {
         questionUI.ShowQuestions("히아신스", currentPhase);
     }
-    public void StartMemorialDialog()
+    public void StartMemorialDialog(int index)
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("히아신스", DialogType.Memory, "공통", currentPhase);
-        dialogUI.StartDialog(dialogs, ShowQuestions);
+
+        dialogUI.StartDialog(dialogs, () =>{memorialUI.ShowMemorial(index, ShowQuestions);});
     }
     public void ExitDialog()
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("히아신스", DialogType.Exit, "", currentPhase);
-        dialogUI.StartDialog(dialogs, exitButton.exitButton);
+        dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

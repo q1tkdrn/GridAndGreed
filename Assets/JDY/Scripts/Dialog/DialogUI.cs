@@ -1,8 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using System;
 public class DialogUI : MonoBehaviour
 {
     [Header("UI")]
@@ -10,6 +10,7 @@ public class DialogUI : MonoBehaviour
     [SerializeField] private TMP_Text dialogText;
     [SerializeField] private GameObject nextButton;
     [SerializeField] private GameObject questionPanel;
+
     [Header("Setting")]
     [SerializeField] private float typingSpeed = 0.05f;
 
@@ -17,14 +18,16 @@ public class DialogUI : MonoBehaviour
     private int currentIndex;
 
     private Coroutine typingCoroutine;
-    //private bool isTyping;
     private string currentText;
     private Action completeCallback;
-    void Start()
+
+    private bool showQuestionOnComplete;
+
+    private void Start()
     {
         questionPanel.SetActive(false);
     }
-    public void StartDialog(List<DialogData> dialogs, Action onComplete = null)
+    public void StartDialog(List<DialogData> dialogs, Action onComplete = null, bool showQuestion = true)
     {
         questionPanel.SetActive(false);
         if (dialogs == null || dialogs.Count == 0)
@@ -32,29 +35,16 @@ public class DialogUI : MonoBehaviour
             Debug.LogWarning("¾øÀ½");
             return;
         }
-
         currentDialogs = dialogs;
         currentIndex = 0;
 
         completeCallback = onComplete;
+        showQuestionOnComplete = showQuestion;
 
         SetDialog();
     }
     public void NextDialogButton()
     {
-        /*
-        if (isTyping)
-        {
-            StopCoroutine(typingCoroutine);
-
-            dialogText.text = currentText;
-
-            isTyping = false;
-            typingCoroutine = null;
-            
-            return;
-        }
-        */
         currentIndex++;
 
         if (currentIndex >= currentDialogs.Count)
@@ -62,6 +52,7 @@ public class DialogUI : MonoBehaviour
             EndDialog();
             return;
         }
+
         SetDialog();
     }
 
@@ -82,13 +73,13 @@ public class DialogUI : MonoBehaviour
         {
             StopCoroutine(typingCoroutine);
         }
+
         currentText = text;
         typingCoroutine = StartCoroutine(TypeText());
     }
 
     private IEnumerator TypeText()
     {
-        //isTyping = true;
         dialogText.text = "";
 
         foreach (char c in currentText)
@@ -98,8 +89,13 @@ public class DialogUI : MonoBehaviour
             yield return new WaitForSeconds(typingSpeed);
         }
 
-        //isTyping = false;
         typingCoroutine = null;
+
+        if (!showQuestionOnComplete)
+        {
+            EndDialog();
+            yield break;
+        }
         nextButton.SetActive(true);
     }
     private void EndDialog()
@@ -111,13 +107,17 @@ public class DialogUI : MonoBehaviour
         }
 
         nextButton.SetActive(false);
+
         currentDialogs = null;
         currentIndex = 0;
-        nameText.text = "";
-        dialogText.text = "";
         completeCallback?.Invoke();
         completeCallback = null;
-        questionPanel.SetActive(true);
-        //isTyping = false;
+
+        if (showQuestionOnComplete)
+        {
+            questionPanel.SetActive(true);
+            nameText.text = "";
+            dialogText.text = "";
+        }
     }
 }

@@ -73,6 +73,17 @@ public class ItemCSVImporter
             itemData.itemName = itemName;
             itemData.price = price;
             itemData.description = description;
+            string iconPath = $"Assets/JDY/Data/Items/Icons/{itemName}.png";
+            Sprite icon = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
+
+            if (icon != null)
+            {
+                itemData.icon = icon;
+            }
+            else
+            {
+                Debug.LogWarning($"{id}: 아이콘 없음");
+            }
 
             EditorUtility.SetDirty(itemData);
         }

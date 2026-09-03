@@ -41,6 +41,6 @@ public class AchievementDialog : MonoBehaviour
     public void ExitDialog()
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("¾Æ½ºÆ÷µ¨", DialogType.Exit, "", currentPhase);
-        dialogUI.StartDialog(dialogs, exitButton.exitButton);
+        dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

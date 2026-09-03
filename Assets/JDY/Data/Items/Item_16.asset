@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemData
   itemName: "\uB2F4\uBC30"
   id: 16
-  icon: {fileID: 0}
+  icon: {fileID: 21300000, guid: 5d7e091cd5b310a4fa69b854716d8237, type: 3}
   price: 1
   description: "\uD134 \uC2DC\uC791 \uC2DC, \uD50C\uB808\uC774\uC5B4 HP 2 \uAC10\uC18C,
     \uD589\uB3D9\uB825 \uCD5C\uB300\uCE58 1 \uC99D\uAC00"

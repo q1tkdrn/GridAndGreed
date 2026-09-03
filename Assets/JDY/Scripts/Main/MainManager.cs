@@ -67,7 +67,7 @@ public class MainManager : MonoBehaviour
     }
     public void DoorButton()
     {
-        //SceneManager.LoadScene("--");
+        SceneManager.LoadScene("BattleTemp");
         AchievementManager.Instance.AddProgress("ACH-1", 1);
     }
 }

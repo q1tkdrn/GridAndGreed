@@ -27,6 +27,6 @@ public class ItemDialog : MonoBehaviour
     public void ExitDialog()
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("╬ф╫╨ем", DialogType.Exit, "", currentPhase);
-        dialogUI.StartDialog(dialogs, exitButton.exitButton);
+        dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }
