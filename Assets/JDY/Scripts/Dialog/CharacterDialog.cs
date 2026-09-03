@@ -14,6 +14,7 @@ public class CharacterDialog : MonoBehaviour
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("¸±¸®", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
+        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
     }
     public void ShowQuestions()
     {

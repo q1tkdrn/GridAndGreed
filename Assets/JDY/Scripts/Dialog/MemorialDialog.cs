@@ -14,6 +14,7 @@ public class MemorialDialog : MonoBehaviour
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("히아신스", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
+        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
     }
     public void ShowQuestions()
     {
