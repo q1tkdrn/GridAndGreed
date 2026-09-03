@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 1.Knight
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uAE30\uC0AC"
+  id: 1
   power: 6
   intelligence: 1
   reviveCool: 2

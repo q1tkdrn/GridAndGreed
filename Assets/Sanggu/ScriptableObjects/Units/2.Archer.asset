@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 2.Archer
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uAD81\uC218"
+  id: 2
   power: 4
   intelligence: 3
   reviveCool: 2

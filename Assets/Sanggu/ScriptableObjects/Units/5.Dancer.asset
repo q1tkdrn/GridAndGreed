@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 5.Dancer
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uBB34\uD76C"
+  id: 5
   power: 2
   intelligence: 5
   reviveCool: 2

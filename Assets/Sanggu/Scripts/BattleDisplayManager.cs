@@ -105,6 +105,7 @@ public class BattleDisplayManager : MonoBehaviour
     public void ShowVictoryPanel()
     {
         victoryPanel.SetActive(true);
+        ClearBoss(appearedBoss[^1]);
     }
 
     [DebugButton]
@@ -146,6 +147,8 @@ public class BattleDisplayManager : MonoBehaviour
             var boss = stages[i].bossTemp;
             remainBoss.Remove(boss);
             appearedBoss.Add(boss);
+            PlayerPrefs.SetInt("currentPhase", appearedBoss.Count);
+            PlayerPrefs.Save();
             boardPanel.boss = boss;
             arrow.SetActive(false);
             waysPanel.color = new Color(255, 255, 255, 250);
@@ -161,8 +164,23 @@ public class BattleDisplayManager : MonoBehaviour
         vector3.x = stages[i].stageImage.transform.position.x;
         arrow.transform.position = vector3;
     }
-    
 
+    public void ClearBoss(BossTemp boss)
+    {
+        if(boss.bossId == "king")
+        {
+            PlayerPrefs.SetInt("IsEnding", 1);
+            ShowCutScene("Ending1");
+            if(PlayerPrefs.GetInt("IsEnding") == 0) PlayerPrefs.SetInt("IsEnding", 1);
+        }
+        else if (boss.bossId == "death2")
+        {
+            PlayerPrefs.SetInt("IsEnding", 2);
+            ShowCutScene("Ending2");
+        }
+        PlayerPrefs.Save();
+    }
+    
     [DebugButton]
     public void BackToVillage()
     {

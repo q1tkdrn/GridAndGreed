@@ -4,6 +4,7 @@
 public class UnitTemp : ScriptableObject
 {
     public string unitName;
+    public int id;
     public int power;
     public int intelligence;
     public int reviveCool;

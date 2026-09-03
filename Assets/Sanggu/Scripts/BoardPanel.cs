@@ -9,6 +9,8 @@ using UnityEngine.UI;
 
 public class BoardPanel : MonoBehaviour
 {
+    [SerializeField] private BattleManagerTemp battleManagerTemp;
+    
     [Header("CutScene")]
     [SerializeField] private GameObject cutScene;
     [SerializeField] private TextMeshProUGUI bossNameText;
@@ -64,6 +66,9 @@ public class BoardPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI willPowerText;
     [SerializeField] private Slider bossSlider;
     [SerializeField] private Image bossImage;
+
+    private bool _isWin = false;
+    private bool _isLose = false; 
 
     public enum ETurn
     {
@@ -126,12 +131,13 @@ public class BoardPanel : MonoBehaviour
         UpdateActionPoint(7);
         PrintText(boss.battleStart);
         PrintText(boss.turnStart[0]);
+        battleManagerTemp.Init();
     }
 
     [DebugButton("다음 턴")]
-    public void NextTurn()
+    public void NextTurn(int i = 1)
     {
-        turn++;
+        turn += i;
         if(turn > ETurn.End) 
         {
             turn = ETurn.Start;
@@ -161,6 +167,7 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.Attack:
                 turnText = "공격";
+                battleManagerTemp.Attack();
                 break;
             case ETurn.BossPattern:
                 turnText = "보스 공격";
@@ -194,8 +201,16 @@ public class BoardPanel : MonoBehaviour
 
             yield return StartCoroutine(TypeEffect(text));
         }
-
+        
         _isPrinting = false;
+        if (_isWin)
+        {
+            BattleDisplayManager.GetInstance().ShowVictoryPanel();
+        }
+        else if(_isLose)
+        {
+            BattleDisplayManager.GetInstance().ShowDefeatPanel();
+        }
     }
 
     IEnumerator TypeEffect(string text)
@@ -288,8 +303,10 @@ public class BoardPanel : MonoBehaviour
             GameObject go = Instantiate(actionPointPrefab, actionPoints.transform);
             _actionPointsList.Add(go);
             var image = go.GetComponent<Image>();
-            image.sprite = actionPointsList[i%actionPointsList.Length];
+            image.sprite = actionPointsList[i % actionPointsList.Length];
         }
+        
+        if(actionPoint <= 0) NextTurn();
     }
 
     public void OnMouseEnterUnit(int i)

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 6.Scavenger
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uC2A4\uCE90\uBE48\uC838"
+  id: 6
   power: 4
   intelligence: 2
   reviveCool: 2
