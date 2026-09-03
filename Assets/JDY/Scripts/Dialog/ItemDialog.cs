@@ -14,6 +14,7 @@ public class ItemDialog : MonoBehaviour
     {
             dialogs = DialogManager.Instance.GetDialogueGroup("╬ф╫╨ем", DialogType.Welcome, "", currentPhase);
             dialogUI.StartDialog(dialogs, ShowQuestions);
+            currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
     }
     public void ShowQuestions()
     {

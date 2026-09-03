@@ -18,6 +18,7 @@ public class AchievementDialog : MonoBehaviour
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("¾Æ½ºÆ÷µ¨", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
+        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
     }
     public void ShowQuestions()
     {

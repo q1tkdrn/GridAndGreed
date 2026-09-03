@@ -13,6 +13,7 @@ public class MusicDialog : MonoBehaviour
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("¸¶¸®°ñµå", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
+        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
     }
     public void ShowQuestions()
     {
