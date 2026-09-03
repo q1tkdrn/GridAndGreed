@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 4.Bishop
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uBE44\uC20D"
+  id: 4
   power: 1
   intelligence: 6
   reviveCool: 2

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 9.Reaper
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uAF2C\uB9C8\uC0AC\uC2E0"
+  id: 9
   power: 10
   intelligence: 10
   reviveCool: 0

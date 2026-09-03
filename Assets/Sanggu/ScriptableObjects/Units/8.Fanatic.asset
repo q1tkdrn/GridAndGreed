@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 8.Fanatic
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uAD11\uC2E0\uB3C4"
+  id: 8
   power: 3
   intelligence: 2
   reviveCool: 1

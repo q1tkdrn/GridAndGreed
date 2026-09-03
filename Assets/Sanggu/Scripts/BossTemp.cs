@@ -5,9 +5,8 @@ public class BossTemp : ScriptableObject
 {
     [Header("Boss")]
     public string bossName;
+    public string bossId;
     public Sprite bossSprite;
-    public Vector2Int size;
-    public Vector2Int sizeOnCutScene;
 
     [Header("Dialogue")] 
     [TextArea]

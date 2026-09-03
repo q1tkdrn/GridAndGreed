@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 7.Wizard
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uB9C8\uBC95\uC0AC"
+  id: 7
   power: 2
   intelligence: 4
   reviveCool: 2
