@@ -28,6 +28,7 @@ public class BoardPanel : MonoBehaviour
     [Header("Text")]
     [SerializeField] private TextMeshProUGUI textBox;
     [SerializeField] private float delay = 0.1f;
+    private float _delay;
     private Queue<string> _textQueue = new Queue<string>();
     private bool _isPrinting = false; 
     
@@ -72,13 +73,13 @@ public class BoardPanel : MonoBehaviour
 
     public enum ETurn
     {
-        Start,
-        Place,
-        BossReady,
-        Player,
-        Attack,
-        BossPattern,
-        End
+        Start = 0,
+        Place = 1,
+        BossReady = 2,
+        Player = 3,
+        Attack = 4,
+        BossPattern = 5,
+        End = 6
     }
 
     private void OnEnable()
@@ -124,13 +125,30 @@ public class BoardPanel : MonoBehaviour
     {
         yield return new WaitForSeconds(1.5f); 
         cutScene.SetActive(false);
+        Init();
+    }
+
+    public void Init()
+    {
         foreach (var item in items)
         {
             item.OnTurnStart();
         }
+        _isLose = _isWin = false;
+        bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
+        if (boss.bossId != "death2")
+        {
+            reaperCurrentHp = reaperMaxHp;
+        }
+        bossCurrentHp = bossMaxHp;
+        UpdateBossHp(bossCurrentHp);
+        UpdateReaperHp(reaperCurrentHp);
         UpdateActionPoint(7);
+        textBox.text = "";
         PrintText(boss.battleStart);
         PrintText(boss.turnStart[0]);
+        turnCount = 1;
+        turn = ETurn.Start;
         battleManagerTemp.Init();
     }
 
@@ -150,11 +168,14 @@ public class BoardPanel : MonoBehaviour
         }
 
         var turnText = "";
+
+        var nt = false;
         
         switch (turn)
         {
             case ETurn.Start:
                 turnText = "턴 시작";
+                UpdateActionPoint(7);
                 break;
             case ETurn.Place:
                 turnText = "유닛 배치";
@@ -167,22 +188,27 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.Attack:
                 turnText = "공격";
-                battleManagerTemp.Attack();
+                PrintText(boss.attackedAD[turnCount/5]);
                 break;
             case ETurn.BossPattern:
                 turnText = "보스 공격";
                 break;
             case ETurn.End:
                 turnText = "턴 종료";
+                nt = true;
                 break;
         }
 
         turnTextUI.text = turnCount + " - " + turnText;
+        if(nt) NextTurn();
+        if(turn == 0) battleManagerTemp.OnTurnStart();
     }
     
     [DebugButton("텍스트 출력")]
     public void PrintText(string text)
     {
+        if(_isLose || _isWin) return;
+        
         _textQueue.Enqueue(text);
 
         if (!_isPrinting)
@@ -199,16 +225,29 @@ public class BoardPanel : MonoBehaviour
         {
             string text = _textQueue.Dequeue();
 
+            _delay = _textQueue.Count >= 5 ? 0 : delay;
+            
             yield return StartCoroutine(TypeEffect(text));
         }
         
         _isPrinting = false;
         if (_isWin)
         {
-            BattleDisplayManager.GetInstance().ShowVictoryPanel();
+            yield return new WaitForSeconds(0.1f);
+            if (boss.bossId == "death1")
+            {
+                boss = BattleDisplayManager.GetInstance().bossDeath2;
+                BattleDisplayManager.GetInstance().appearedBoss.Add(boss);
+                Init();
+            }
+            else
+            {
+                BattleDisplayManager.GetInstance().ShowVictoryPanel();
+            }
         }
         else if(_isLose)
         {
+            yield return new WaitForSeconds(0.1f);
             BattleDisplayManager.GetInstance().ShowDefeatPanel();
         }
     }
@@ -221,7 +260,7 @@ public class BoardPanel : MonoBehaviour
         {
             stringBuilder.Append(text[i]);
             textBox.text = stringBuilder.ToString();
-            yield return new WaitForSeconds(delay);
+            yield return new WaitForSeconds(_delay);
         }
     }
 
@@ -233,44 +272,50 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("플레이어 HP 업데이트")]
     public void UpdateReaperHp(int hp)
     {
+        if(reaperCurrentHp == 0) return;
         reaperCurrentHp = hp;
-        reaperHp.text = $"{reaperCurrentHp} / {reaperMaxHp}";
-        reaperSlider.value = (float) reaperCurrentHp / reaperMaxHp;
         if (reaperCurrentHp <= 0)
         {
             PrintText(boss.lose);
+            _isLose = true;
+            reaperCurrentHp = 0;
+
         }
+        reaperHp.text = $"{reaperCurrentHp} / {reaperMaxHp}";
+        reaperSlider.value = (float) reaperCurrentHp / reaperMaxHp;
     }
     
     public void UpdateBossHp(int hp)
     {
+        if(bossCurrentHp == 0) return;
         bossCurrentHp = hp;
-        bossHp.text = $"{bossCurrentHp} / {bossMaxHp}";
-        bossSlider.value = (float) bossCurrentHp / bossMaxHp;
-        if (reaperCurrentHp <= 0)
+        if (bossCurrentHp <= 0)
         {
             PrintText(boss.win);
+            bossCurrentHp = 0;
+            _isWin = true;
         }
+        bossHp.text = $"{bossCurrentHp} / {bossMaxHp}";
+        bossSlider.value = (float) bossCurrentHp / bossMaxHp;
     }
 
     [DebugButton("보스 심판")]
     public void JudgeBoss(int dmg)
     {
-        UpdateBossHp(bossCurrentHp-dmg);
         PrintText(boss.attackedAP[turnCount/5]);
+        UpdateBossHp(bossCurrentHp-dmg);
     }
     
     [DebugButton("보스 공격")]
     public void AttackBoss(int dmg)
     {
         UpdateBossHp(bossCurrentHp-dmg);
-        PrintText(boss.attackedAD[turnCount/5]);
     }
 
     public void OnBossAttack(int dmg)
     {
-        UpdateReaperHp(reaperCurrentHp-dmg);
         PrintText(boss.attack[turnCount/5]);
+        UpdateReaperHp(reaperCurrentHp-dmg);
     }
 
     [DebugButton("보스 의지력 업데이트")]
@@ -306,7 +351,11 @@ public class BoardPanel : MonoBehaviour
             image.sprite = actionPointsList[i % actionPointsList.Length];
         }
         
-        if(actionPoint <= 0) NextTurn();
+        if(actionPoint <= 0)
+        {
+            NextTurn();
+            battleManagerTemp.Attack();
+        }
     }
 
     public void OnMouseEnterUnit(int i)

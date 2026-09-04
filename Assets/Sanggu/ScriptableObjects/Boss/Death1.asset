@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Death1
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
   bossName: "\uC8FD\uC74C"
-  bossSprite: {fileID: 21300000, guid: 05c8556d12989d04baed29c2e3de7632, type: 3}
-  size: {x: 0, y: 0}
-  sizeOnCutScene: {x: 0, y: 0}
+  bossId: death1
+  bossSprite: {fileID: 21300000, guid: 8a5e0652694cd44489c0868d22572358, type: 3}
   battleStart: "\u2026.\n\uC815\uB9D0\uB85C \uAE38\uC5C8\uB358 \uB2F9\uC2E0\uC758
     \uC5EC\uC815\uC774..\n\uB05D\uC744 \uB9DE\uC774\uD558\uACE0 \uC788\uB2E4.\n(\uCC28\uAC11\uACE0\uB3C4
     \uC544\uB828\uD55C \uACF5\uAE30\uAC00 \uC5B4\uB450\uC6B4 \uBC29\uC744 \uAC00\uB4DD

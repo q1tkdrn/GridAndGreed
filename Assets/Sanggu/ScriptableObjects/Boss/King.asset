@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: King
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
   bossName: "\uC655"
+  bossId: king
   bossSprite: {fileID: 21300000, guid: 3aea029a354038f41a8c4ea49f0577c6, type: 3}
-  size: {x: 0, y: 0}
-  sizeOnCutScene: {x: 0, y: 0}
   battleStart: "\uAE38\uACE0 \uAE34 \uC5EC\uC815\uC758 \uB05D\uC774 \uB2E4\uAC00\uC654\uB2E4.\n\uC9C0\uAE08,
     \uC5EC\uAE30\uC11C, \uB208 \uC55E\uC758 \uC655\uC744 \uC774\uAE30\uACE0,\n\uC655\uAD6D\uC744
     \uACE0\uD1B5\uC5D0\uC11C \uD574\uBC29\uD558\uC790.\n\"\u2026..\uC654\uB294\uAC00.
