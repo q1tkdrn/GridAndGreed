@@ -1667,7 +1667,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryManager
   soul: 0
-  manager: {fileID: 0}
   ownedCharacters: []
   ownedMemorials: []
 --- !u!4 &1189331171
@@ -2471,10 +2470,10 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 129902981}
   - {fileID: 17866212}
   - {fileID: 1515300078}
   - {fileID: 158229154}
+  - {fileID: 129902981}
   m_Father: {fileID: 351978120}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}

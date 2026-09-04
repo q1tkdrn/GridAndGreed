@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class CutScenePanel: MonoBehaviour
@@ -57,6 +58,11 @@ public class CutScenePanel: MonoBehaviour
             }
             yield return new WaitForSeconds(cutDelay);
         }
+
+        if (currentCutScene.name is "Ending1" or "Ending2")
+        {
+            SceneManager.LoadScene("Main");
+        }
         gameObject.SetActive(false);
     }
 
@@ -86,6 +92,10 @@ public class CutScenePanel: MonoBehaviour
         
         _isSkip = true;
         StopCoroutine(PlayCutScene());
+        if (currentCutScene.name is "Ending1" or "Ending2")
+        {
+            SceneManager.LoadScene("Main");
+        }
         gameObject.SetActive(false);
     }
 }
