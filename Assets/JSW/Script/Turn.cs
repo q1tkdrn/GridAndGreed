@@ -15,6 +15,7 @@ public class Turn : MonoBehaviour
     public TMP_Text BossHP;
     public TMP_Text PlayerHP;
 
+
     void Start()
     {
         UpdateTurnUI();
@@ -48,12 +49,21 @@ public class Turn : MonoBehaviour
         UpdateTurnUI();
     }
 
-    private void UpdateTurnUI()
+    public void UpdateTurnUI()
     {
         if (TurnCountText != null)
         {
             TurnCountText.text = "Turn : " + TurnCount;
+        }
+
+        if (BossHP != null)
+        {
             BossHP.text = "BossHP : " + GameManager.BossHP;
+        }
+
+        if (PlayerHP != null)
+        {
+            PlayerHP.text = "PlayerHP : " + GameManager.PlayerHP;
         }
     }
 

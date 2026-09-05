@@ -156,4 +156,9 @@ public class Player : MonoBehaviour
         }
 
     }
+
+    public void Check_Hitted_Player(GameObject Hitted_Player)
+    {
+
+    }
 }
