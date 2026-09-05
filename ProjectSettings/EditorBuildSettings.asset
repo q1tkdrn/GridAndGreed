@@ -21,6 +21,18 @@ EditorBuildSettings:
     path: Assets/JDY/Scenes/Item.unity
     guid: 0601f2e52d667c44ab024f98275c8824
   - enabled: 1
+    path: Assets/JDY/Scenes/Character.unity
+    guid: d3cc853891b3afa4c9ff0bf435076638
+  - enabled: 1
+    path: Assets/JDY/Scenes/Memorial.unity
+    guid: eb643e23d371e9e4485286340f8fac40
+  - enabled: 1
+    path: Assets/JDY/Scenes/Music.unity
+    guid: 74b3b51bf6e14a14e932158bd7814874
+  - enabled: 1
+    path: Assets/JDY/Scenes/Skin.unity
+    guid: 27ad926874bfa19458dac2ee6b98560c
+  - enabled: 1
     path: Assets/Sanggu/Scenes/BattleTemp.unity
     guid: 47bdf52a4d0ca224796057769a496355
   m_configObjects:

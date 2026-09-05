@@ -11,7 +11,7 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private List<string> ownedMemorials = new List<string>();
 
     private int memorialCount = 8;
-    private int characterCount = 8;
+    private int characterCount = 9;
     void Awake()//Obj
     {
         if (Instance == null)
