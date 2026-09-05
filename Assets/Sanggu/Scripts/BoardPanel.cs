@@ -109,6 +109,7 @@ public class BoardPanel : MonoBehaviour
         cutScene.SetActive(true);
         reaperCutScene.anchoredPosition = new Vector2(-1440, 0);
         bossCutScene.anchoredPosition = new Vector2(1440, 0);
+        BattleDisplayManager.GetInstance().PlayBGM(boss.bgmLoop, boss.bgmStart);
         StartCoroutine(PlayCutSceneAnim());
     }
 

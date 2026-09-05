@@ -19,7 +19,8 @@ MonoBehaviour:
   reviveCool: 2
   abilityText: "\uC774\uB3D9 \uC2DC, \uD50C\uB808\uC774\uC5B4\uC758 HP 1 \uD68C\uBCF5"
   illustration: {fileID: 21300000, guid: 47f1967ab239274459749a736d506890, type: 3}
-  skin1: {fileID: 21300000, guid: 76524af218a8ff94d95826ec03a31594, type: 3}
+  defaultSkin: {fileID: 21300000, guid: 76524af218a8ff94d95826ec03a31594, type: 3}
+  skin1: {fileID: 21300000, guid: af5c8c14bdef9314dbdac05ad8cc96c3, type: 3}
   skin2: {fileID: 21300000, guid: ee132a90e5c41464da5acd902d6a028c, type: 3}
   skin3: {fileID: 21300000, guid: 896b6e2e389ecd14c96bb6454c2caf18, type: 3}
   isSkin2Unlocked: 0

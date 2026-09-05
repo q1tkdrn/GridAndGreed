@@ -28,4 +28,6 @@ public class BossTemp : ScriptableObject
     [Header("Stage")]
     public string stageName;
     public Sprite stageSprite;
+    public AudioClip bgmStart;
+    public AudioClip bgmLoop;
 }
