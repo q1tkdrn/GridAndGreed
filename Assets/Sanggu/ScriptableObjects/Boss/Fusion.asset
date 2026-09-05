@@ -76,3 +76,5 @@ MonoBehaviour:
   - "\"\uC2EB\uC5B4..\" \"\uBB34\uC11C\uC6B0\u3153\u2026\" \"(\uC6B8\uC74C \uC18C\uB9AC)\""
   stageName: "\uAD11\uC7A5"
   stageSprite: {fileID: 0}
+  bgmStart: {fileID: 8300000, guid: 2f4e3fb0f06b4064a8a4bab017757c98, type: 3}
+  bgmLoop: {fileID: 8300000, guid: 42499414050026247a2fd3cbcb6fbfc9, type: 3}

@@ -68,3 +68,5 @@ MonoBehaviour:
   - "\"\uC5EC\uC720\uAC00 \uC788\uB098 \uBCF4\uAD70..\""
   stageName: "\uB300\uC800\uD0DD"
   stageSprite: {fileID: 0}
+  bgmStart: {fileID: 8300000, guid: a77df13de0d1315479b3282a228e4520, type: 3}
+  bgmLoop: {fileID: 8300000, guid: dbf2fa7b5fc22be4f8dee9eba1f4058e, type: 3}

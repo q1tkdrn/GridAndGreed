@@ -41,6 +41,12 @@ public class BattleDisplayManager : MonoBehaviour
     [SerializeField] private GameObject arrow;
     private int _decidedStage = -1;
     
+    public AudioSource bgmSource;
+    public AudioSource sfxSource;
+
+    public AudioClip buildingClip;
+    public AudioClip endingClip;
+    
     
     //싱글톤-------------------------------------------------------------------------------
     private static BattleDisplayManager _instance;
@@ -66,6 +72,11 @@ public class BattleDisplayManager : MonoBehaviour
         }
     }
     //-------------------------------------------------------------------------------싱글톤
+
+    public void OnEnable()
+    {
+        PlayBGM(buildingClip);
+    }
     
     [DebugButton]
     public void OpenGameBoard()
@@ -104,6 +115,8 @@ public class BattleDisplayManager : MonoBehaviour
         itemBuildingPanel.gameObject.SetActive(false);
         entrancePanel.isBuilding = isBuilding;
         entrancePanel.Init();
+        
+        if(bgmSource.clip != buildingClip) PlayBGM(buildingClip);
     }
     
     [DebugButton]
@@ -167,6 +180,7 @@ public class BattleDisplayManager : MonoBehaviour
     {
         cutScenePanel.gameObject.SetActive(true);
         cutScenePanel.SetCutScene(cutsceneName);
+        PlayBGM(endingClip);
     }
 
     public void OnClickStage(int i)
@@ -249,5 +263,35 @@ public class BattleDisplayManager : MonoBehaviour
     public void BackToVillage()
     {
         SceneManager.LoadScene("Main");
+    }
+
+    public void PlayBGM(AudioClip loopBgm, AudioClip introBgm = null)
+    {
+        if (introBgm != null)
+        {
+            StartCoroutine(PlayBGMEnumerator(loopBgm, introBgm));
+        }
+        else
+        {
+            bgmSource.clip = loopBgm;
+            bgmSource.loop = true;
+            bgmSource.Play();
+        }
+    }
+
+    IEnumerator PlayBGMEnumerator(AudioClip loopBgm, AudioClip introBgm)
+    {
+        bgmSource.clip = introBgm;
+        bgmSource.loop = false;
+        bgmSource.Play();
+
+        while (bgmSource.isPlaying)
+        {
+            yield return null;
+        }
+        
+        bgmSource.clip = loopBgm;
+        bgmSource.loop = true;
+        bgmSource.Play();
     }
 }
