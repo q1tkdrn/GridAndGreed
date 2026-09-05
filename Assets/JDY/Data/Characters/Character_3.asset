@@ -20,7 +20,7 @@ MonoBehaviour:
   bossSkin: {fileID: 21300000, guid: dc699bcc6894566498507361aeb03b59, type: 3}
   STR: 3
   INT: 4
-  price: -1
+  price: 1
   npcSkinName: "\uC544\uC2A4\uD3EC\uB378(\uB3C4\uC801)"
   insectSkinName: "\uC0AC\uB9C8\uADC0 (\uB3C4\uC801)"
   bossSkinName: "\uC2E4\uD5D8\uCCB4(\uB3C4\uC801)"

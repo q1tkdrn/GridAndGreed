@@ -63,7 +63,6 @@ public class DialogManager : MonoBehaviour
     public List<DialogData> GetQuestions(string npcName, int phase)
     {
         List<DialogData> questions = new List<DialogData>();
-
         foreach (DialogData data in database.dialogues)
         {
             if (data.npcName != npcName)
@@ -77,7 +76,6 @@ public class DialogManager : MonoBehaviour
 
             if (string.IsNullOrWhiteSpace(data.target))
                 continue;
-
             questions.Add(data);
         }
 

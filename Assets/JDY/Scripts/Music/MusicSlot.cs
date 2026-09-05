@@ -29,7 +29,6 @@ public class MusicSlot : MonoBehaviour
             nameText[i].text = manager.musics[index].name;
         }
         PlayerPrefs.SetInt("MainMusic", currentIndex);
-        dialog.StartMusicDialog(manager.musics[currentIndex].name);
     }
     void Update()
     {
@@ -37,10 +36,12 @@ public class MusicSlot : MonoBehaviour
         if (Keyboard.current.downArrowKey.wasPressedThisFrame || scroll.y < 0)
         {
             NextMusic();
+            dialog.StartMusicDialog(manager.musics[currentIndex].name);
         }
         if (Keyboard.current.upArrowKey.wasPressedThisFrame || scroll.y > 0)
         {
             PrevMusic();
+            dialog.StartMusicDialog(manager.musics[currentIndex].name);
         }
     }
     private void PrevMusic()

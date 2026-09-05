@@ -5,12 +5,13 @@ using TMPro;
 using UnityEngine;
 public class DialogUI : MonoBehaviour
 {
+    [Header("Script")]
+    [SerializeField] private DialogEffectUI effectUI;
     [Header("UI")]
     [SerializeField] private TMP_Text nameText;
-    [SerializeField] private TMP_Text dialogText;
+    public TMP_Text dialogText;
     [SerializeField] private GameObject nextButton;
     [SerializeField] private GameObject questionPanel;
-
     [Header("Setting")]
     [SerializeField] private float typingSpeed = 0.05f;
 
@@ -63,7 +64,7 @@ public class DialogUI : MonoBehaviour
         nameText.text = current.npcName;
 
         nextButton.SetActive(false);
-
+        ApplyEffect(current);
         StartTyping(current.text);
     }
 
@@ -118,6 +119,25 @@ public class DialogUI : MonoBehaviour
             questionPanel.SetActive(true);
             nameText.text = "";
             dialogText.text = "";
+        }
+    }
+    private void ApplyEffect(DialogData data)
+    {
+        switch (data.special)
+        {
+            case "음악 음소거":
+                effectUI.MuteMusic();
+                break;
+            case "다시 재생":
+                effectUI.ResumeMusic();
+                break;
+            case "화면 암전. 텍스트 정 중앙에서 출력":
+                effectUI.FadeToBlack(data.text);
+                break;
+            case "해당 선택지 비활성화) 및 암전 해제, 텍스트 출력 위치 원래대로":
+                effectUI.Clear();
+                break;
+            default: break;
         }
     }
 }

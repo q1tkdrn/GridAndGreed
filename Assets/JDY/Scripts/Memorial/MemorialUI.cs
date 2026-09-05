@@ -13,10 +13,7 @@ public class MemorialUI : MonoBehaviour
     [SerializeField] private Image frame;
     [SerializeField] private TMP_Text text;
 
-    [Header("Memorial Data")]
-    [SerializeField] private MemorialData[] memorials;
-
-    private int memorialIndex;
+    private MemorialData currentMemorial;
     private int currentImageIndex;
     private int currentTextIndex;
     private Action onComplete;
@@ -24,11 +21,11 @@ public class MemorialUI : MonoBehaviour
     {
         memorialPanel.SetActive(false);
     }
-    public void ShowMemorial(int index, Action onComplete)
+    public void ShowMemorial(MemorialData memorial, Action onComplete)
     {
         this.onComplete = onComplete;
+        currentMemorial = memorial;
 
-        memorialIndex = index;
         currentImageIndex = 0;
         currentTextIndex = 0;
 
@@ -37,7 +34,7 @@ public class MemorialUI : MonoBehaviour
     }
     public void NextUIButton()
     {
-        Story story = memorials[memorialIndex].contents[currentImageIndex];
+        Story story = currentMemorial.contents[currentImageIndex];
 
         if (currentTextIndex < story.descriptions.Length - 1)
         {
@@ -48,15 +45,14 @@ public class MemorialUI : MonoBehaviour
             currentImageIndex++;
             currentTextIndex = 0;
         }
+
         SetUI();
     }
     private void SetUI()
     {
-        MemorialData memorial = memorials[memorialIndex];
-
-        if (currentImageIndex < memorial.contents.Length)
+        if (currentImageIndex < currentMemorial.contents.Length)
         {
-            Story story = memorial.contents[currentImageIndex];
+            Story story = currentMemorial.contents[currentImageIndex];
 
             frame.sprite = story.images;
             text.text = story.descriptions[currentTextIndex];

@@ -20,7 +20,7 @@ MonoBehaviour:
   bossSkin: {fileID: 0}
   STR: 10
   INT: 10
-  price: -1
+  price: 0
   npcSkinName: 
   insectSkinName: 
   bossSkinName: 

@@ -10,11 +10,14 @@ public class SkinDialog : MonoBehaviour
     [Header("Test")]
     public int currentPhase = 0;
     private List<DialogData> dialogs;
+    void Awake()
+    {
+        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
+    }
     void Start()
     {
         dialogs = DialogManager.Instance.GetDialogueGroup("ø¿≈∞µÂ", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
-        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
     }
     public void ShowQuestions()
     {

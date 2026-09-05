@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Timeline;
+using static UnityEngine.Rendering.DebugUI;
 public class MusicDialog : MonoBehaviour
 {
     [Header("Script")]
@@ -9,11 +11,16 @@ public class MusicDialog : MonoBehaviour
     [Header("Test")]
     [SerializeField] private int currentPhase = 0;
     private List<DialogData> dialogs;
+    void Awake()
+    {
+        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
+    }
     void Start()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¸¶¸®°ñµå", DialogType.Welcome, "", currentPhase);
+        string target = PlayerPrefs.GetFloat("MasterVolume", 1f) <= 0.001f || PlayerPrefs.GetFloat("BGMVolume", 1f) <= 0.001f
+            ? "(¸¶½ºÅÍ º¼·ý ¶Ç´Â BGM º¼·ýÀÌ 0ÀÏ ¶§)" : "";
+        dialogs = DialogManager.Instance.GetDialogueGroup("¸¶¸®°ñµå", DialogType.Welcome, target, currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
-        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
     }
     public void ShowQuestions()
     {

@@ -24,7 +24,7 @@ public class ItemManager : MonoBehaviour
                 return item;
             }
         }
-        Debug.LogWarning("아이템을 찾을 수 없습니다: " + itemId);
+        Debug.LogWarning("아이템 없음: " + itemId);
         return null;
     }
 }

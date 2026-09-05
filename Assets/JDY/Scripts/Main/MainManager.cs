@@ -70,4 +70,13 @@ public class MainManager : MonoBehaviour
         SceneManager.LoadScene("BattleTemp");
         AchievementManager.Instance.AddProgress("ACH-1", 1);
     }
+    public void InitPlay()
+    {
+        InventoryManager.Instance.AddItem("1");
+        InventoryManager.Instance.AddItem("2");
+        InventoryManager.Instance.AddItem("3");
+        InventoryManager.Instance.UnlockCharacter("1");
+        InventoryManager.Instance.UnlockCharacter("2");
+        InventoryManager.Instance.UnlockCharacter("3");
+    }
 }
