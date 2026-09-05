@@ -14,11 +14,13 @@ public class QuestionUI : MonoBehaviour
     private string currentNpcName;
     private int currentPhase;
     private int lightQuestionCount = 0;
+    private int nowQuestionCount = 0;
     public void ShowQuestions(string npcName, int phase)
     {
         currentNpcName = npcName;
         currentPhase = phase;
         lightQuestionCount = PlayerPrefs.GetInt("lightQuestionCount", 0);
+        nowQuestionCount = PlayerPrefs.GetInt("nowQuestionCount", 0);
         int buttonCount = 0;
         foreach (Transform child in questionContent)
         {
@@ -30,6 +32,8 @@ public class QuestionUI : MonoBehaviour
         foreach (DialogData question in questions)
         {
             if (question.target == "(빛에 대한 이야기) 선택지를 10번 반복했을 때.")
+                continue;
+            if (question.target == "(빛에 대한 이야기)" && nowQuestionCount == 0)
                 continue;
             if (question.target == "(빛에 대한 이야기)" && lightQuestionCount >= 11)
             {
@@ -57,6 +61,11 @@ public class QuestionUI : MonoBehaviour
     {
         lightQuestionCount = PlayerPrefs.GetInt("lightQuestionCount", 0);
         string target = question.target;
+        if (target == "앞으로" && question.npcName == "히아신스" && nowQuestionCount == 0)
+        {
+            PlayerPrefs.SetInt("nowQuestionCount", 1);
+            PlayerPrefs.Save();
+        }
         if (target == "(빛에 대한 이야기)")
         {
             lightQuestionCount++;
