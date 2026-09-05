@@ -13,9 +13,8 @@ MonoBehaviour:
   m_Name: Pope
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
   bossName: "\uAD50\uD669"
+  bossId: pope
   bossSprite: {fileID: 21300000, guid: aca2dc3c25e6d084cbfd95a7d4fb9b01, type: 3}
-  size: {x: 0, y: 0}
-  sizeOnCutScene: {x: 0, y: 0}
   battleStart: "\uADF8\uB987\uB41C \uBBFF\uC74C\uC774 \uB2F9\uC2E0\uC744 \uB9C8\uC8FC\uD558\uACE0
     \uC788\uB2E4."
   turnStart:

@@ -40,6 +40,12 @@ public class BattleManagerTemp : MonoBehaviour
     //활성하시 클릭 가능한 칸 생성
     public void Init()
     {
+        foreach (var blank in _blankPos.ToList())
+        {
+            Destroy(blank.Value);
+        }
+        _blankPos.Clear();
+        
         for (int x = 0; x < 9; x++)
         {
             for (int y = 0; y < 9; y++)
@@ -66,6 +72,8 @@ public class BattleManagerTemp : MonoBehaviour
             units[i].isPlaced = false;
             units[i].reviveRemainTurn = 0;
             units[i].pos = new Vector2Int(-1, -1);
+            units[i].unit.gameObject.SetActive(false);
+            units[i].unitOnWaiting.GetComponent<Image>().color = new Color(1, 1, 1, 1);
         }
         
         boardPanel.NextTurn();
@@ -79,7 +87,7 @@ public class BattleManagerTemp : MonoBehaviour
             if(!unit.isPlaced) tb = true;
         }
 
-        boardPanel.NextTurn(tb ? 1 : 2);
+        boardPanel.NextTurn(tb ? 1 : 3);
     }
 
     public void OnUnitInReadyClicked(int i)
@@ -200,6 +208,7 @@ public class BattleManagerTemp : MonoBehaviour
     //더블 클릭 감지용
     public void OnPointerClick(int i)
     {
+        if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         if(boardPanel.actionPoint <= 0) return;
         if (_currentClickIndex == i && _isClicked)
         {
@@ -226,6 +235,6 @@ public class BattleManagerTemp : MonoBehaviour
         {
             boardPanel.AttackBoss(unit.unitTemp.power);
         }
-        boardPanel.NextTurn(3);
+        boardPanel.NextTurn(2);
     }
 }
