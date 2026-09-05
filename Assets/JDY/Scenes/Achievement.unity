@@ -1574,7 +1574,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: fdf
+  m_text: "(\uADF8\uB140\uAC00 \uAC00\uAE4C\uC774 \uB2E4\uAC00\uC628\uB2E4.)"
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 82c24f5331dd45c499637864fdda1bda, type: 2}
   m_sharedMaterial: {fileID: 894939230271798290, guid: 82c24f5331dd45c499637864fdda1bda, type: 2}
