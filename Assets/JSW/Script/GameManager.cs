@@ -5,12 +5,16 @@ using System.Collections.Generic;
 
 public class GameManager : MonoBehaviour
 {
+    private GameObject Hitted_Object;
     private GameObject PlayerPrefeb;
     private GameObject BossPrefeb;
     public static Vector2[,] position = new Vector2[9, 9];
     private GameObject MainBoard;
     private float MainX;
     private float MainY;
+    private float LastClickTime = 0f;
+    private float SceneTime;
+    private bool IsDoubleClicked;
 
     private string[] Player_Names = { "Kight", "Archer" , "Thief"};
     private int[] Player_Atk = { 6, 4, 3 };
@@ -47,7 +51,6 @@ public class GameManager : MonoBehaviour
     }
     void Start()
     {
-
         players[0] = GameObject.Find("Player1").GetComponent<Player>();
         players[1] = GameObject.Find("Player2").GetComponent<Player>();
         players[2] = GameObject.Find("Player3").GetComponent<Player>();
@@ -63,6 +66,43 @@ public class GameManager : MonoBehaviour
         Activate_Player(2, 2);
         Activate_Boss(0);
         PlayerHP = 15;
+    }
+
+    void Update()
+    {
+        SceneTime = Time.time;
+        if (Input.GetMouseButtonDown(0))
+        {
+            Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
+            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
+            Hitted_Object = hit.collider.gameObject;
+            if (hit != null)
+            {
+                if (Turn.TurnCount > 0)
+                {
+                    if (Hitted_Object.name == "Player1")
+                    {
+                        pl.Check_Hitted_Player(1);
+                    }
+                    if (Hitted_Object.name == "Player2")
+                    {
+                        pl.Check_Hitted_Player(2);
+                    }
+                    if (Hitted_Object.name == "Player3")
+                    {
+                        pl.Check_Hitted_Player(3);
+                    }
+                }
+
+                if(SceneTime - LastClickTime <= 0.3f)
+                {
+                    IsDoubleClicked = true;
+                    LastClickTime = 0f;
+                    pl.DoubleClick();
+                    pt.Remove_MovingPlate();
+                }
+            }
+        }
     }
     private void PositionMove(int CharacterIndex, int x, int y)
     {

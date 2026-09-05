@@ -7,7 +7,7 @@ public class Player : MonoBehaviour
 
     public Plate mp;
     private float SceneTime;
-    private float LastClickTime = 0f;
+    
     private bool IsDoubleClicked;
     private bool isSelected = false;
     private Vector3 originalScale;
@@ -136,7 +136,7 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void DoubleClick()
+    public void DoubleClick()
     {
         GameManager.BossHP = GameManager.BossHP - HHh;
         Debug.Log("현제 보스 HP : " + GameManager.BossHP);
@@ -157,8 +157,10 @@ public class Player : MonoBehaviour
 
     }
 
-    public void Check_Hitted_Player(GameObject Hitted_Player)
+    public void Check_Hitted_Player(int CharacterIndex)
     {
-
+        ClickedCharacterIndex = CharacterIndex;
+        player_x[CharacterIndex-1] = transform.position.x;
+        player_x[CharacterIndex-1] = transform.position.y;
     }
 }
