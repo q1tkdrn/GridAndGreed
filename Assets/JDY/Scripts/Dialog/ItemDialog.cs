@@ -10,11 +10,14 @@ public class ItemDialog : MonoBehaviour
     [Header("Test")]
     [SerializeField] private int currentPhase = 0;
     private List<DialogData> dialogs;
+    void Awake()
+    {
+        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
+    }
     void Start()
     {
-            dialogs = DialogManager.Instance.GetDialogueGroup("아스터", DialogType.Welcome, "", currentPhase);
-            dialogUI.StartDialog(dialogs, ShowQuestions);
-            currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
+        dialogs = DialogManager.Instance.GetDialogueGroup("아스터", DialogType.Welcome, "", currentPhase);
+        dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {

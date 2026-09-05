@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-//using static UnityEditor.Progress;
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
@@ -19,32 +18,35 @@ public class InventoryManager : MonoBehaviour
         {
             Instance = this;
             DontDestroyOnLoad(gameObject);
-            soul = PlayerPrefs.GetInt("Soul", 0);
-            for(int i = 0; i < ItemManager.Instance.items.Length; i++)
-            {
-                int count = PlayerPrefs.GetInt("Item_" + i, 0);
-
-                if (count > 0)
-                    ownedItems.Add(i.ToString(), count);
-            }
-            for (int i = 0; i < characterCount; i++)
-            {
-                string id = i.ToString();
-
-                if (PlayerPrefs.GetInt("Character_" + id, 0) == 1)
-                    ownedCharacters.Add(id);
-            }
-            for (int i = 0; i < memorialCount; i++)
-            {
-                string id = i.ToString();
-
-                if (PlayerPrefs.GetInt("Memorial_" + id, 0) == 1)
-                    ownedMemorials.Add(id);
-            }
         }
         else
         {
             Destroy(gameObject);
+        }
+    }
+    private void Start()
+    {
+        soul = PlayerPrefs.GetInt("Soul", 0);
+        for (int i = 0; i < ItemManager.Instance.items.Length; i++)
+        {
+            int count = PlayerPrefs.GetInt("Item_" + i, 0);
+
+            if (count > 0)
+                ownedItems.Add(i.ToString(), count);
+        }
+        for (int i = 0; i < characterCount; i++)
+        {
+            string id = i.ToString();
+
+            if (PlayerPrefs.GetInt("Character_" + id, 0) == 1)
+                ownedCharacters.Add(id);
+        }
+        for (int i = 0; i < memorialCount; i++)
+        {
+            string id = i.ToString();
+
+            if (PlayerPrefs.GetInt("Memorial_" + id, 0) == 1)
+                ownedMemorials.Add(id);
         }
     }
     //Soul
@@ -57,6 +59,8 @@ public class InventoryManager : MonoBehaviour
     public void RemoveSoul(int amount)
     {
         soul -= amount;
+        AchievementManager.Instance.AddProgress("ACH-3", amount);
+        AchievementManager.Instance.AddProgress("ACH-4", amount);
         PlayerPrefs.SetInt("Soul", soul);
         PlayerPrefs.Save();
     }
@@ -67,6 +71,9 @@ public class InventoryManager : MonoBehaviour
     //Item
     public void AddItem(string itemId, int amount = 1)
     {
+        if (HasItem(itemId))
+            return;
+
         if (ownedItems.ContainsKey(itemId))
             ownedItems[itemId] += amount;
         else
@@ -121,8 +128,10 @@ public class InventoryManager : MonoBehaviour
     //Character
     public void UnlockCharacter(string characterId)
     {
-        if (!ownedCharacters.Contains(characterId))
-            ownedCharacters.Add(characterId);
+        if (HasCharacter(characterId))
+            return;
+
+        ownedCharacters.Add(characterId);
         PlayerPrefs.SetInt("Character_" + characterId, 1);
         PlayerPrefs.Save();
     }
@@ -143,10 +152,16 @@ public class InventoryManager : MonoBehaviour
     //Memory
     public void UnlockMemorial(string memorialId)
     {
-        if (!ownedMemorials.Contains(memorialId))
-            ownedMemorials.Add(memorialId);
+        if (HasMemorial(memorialId))
+            return;
+        
+        ownedMemorials.Add(memorialId);
         PlayerPrefs.SetInt("Memorial_" + memorialId, 1);
         PlayerPrefs.Save();
+        if (HasMemorial("1") && HasMemorial("2") && HasMemorial("3") && HasMemorial("6"))
+        {
+            AchievementManager.Instance.AddProgress("ACH-24", 1);
+        }
     }
     public bool HasMemorial(string memorialId)
     {

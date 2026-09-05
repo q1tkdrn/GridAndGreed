@@ -48,7 +48,7 @@ public static class DialogueCSVImporter
         string previousType = "";
         string previousTarget = "";
         string previousNpc = "";
-
+        
         int previousFromPhase = -1;
         int previousToPhase = -1;
 
@@ -68,6 +68,7 @@ public static class DialogueCSVImporter
             string toPhaseText = row[5].Trim();
 
             string text = row[6].Trim();
+            string special = row[7].Trim();
 
             if (string.IsNullOrWhiteSpace(id))
                 continue;
@@ -128,7 +129,7 @@ public static class DialogueCSVImporter
             data.fromPhase = fromPhase;
             data.toPhase = toPhase;
             data.text = text;
-
+            data.special = special;
             database.dialogues.Add(data);
 
 

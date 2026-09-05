@@ -28,6 +28,7 @@ public class CharacterBuy : MonoBehaviour
                 SetBuy();
                 IsBuy();
                 Debug.Log(characterSlot.character.name + "¿ª ±∏¿‘");
+                AchievementManager.Instance.AddProgress("ACH-5", 1);
             }
             else
             {

@@ -11,6 +11,7 @@ public class DialogData
     public int fromPhase;
     public int toPhase;
     public string text;
+    public string special;
 }
 public enum DialogType
 {

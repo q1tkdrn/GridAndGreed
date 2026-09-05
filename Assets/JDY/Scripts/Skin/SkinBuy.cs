@@ -28,6 +28,7 @@ public class SkinBuy : MonoBehaviour
                 IsBuy();
                 SetBuy();
                 Debug.Log(skinSlot.character.name + "¿ª ±∏¿‘");
+                AchievementManager.Instance.AddProgress("ACH-22", 1);
             }
             else
             {

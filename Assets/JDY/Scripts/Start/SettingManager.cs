@@ -31,6 +31,10 @@ public class SettingManager : MonoBehaviour
         SetMixerVolume("MasterVolume", value);
         PlayerPrefs.SetFloat("MasterVolume", value);
         PlayerPrefs.Save();
+        if (value <= 0.001f) 
+        {
+            AchievementManager.Instance.AddProgress("ACH-27", 1);
+        }
     }
 
     public void SetBGMVolume(float value)

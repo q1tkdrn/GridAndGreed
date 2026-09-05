@@ -27,6 +27,7 @@ public class ItemBuy : MonoBehaviour
                 SetBuy();
                 IsBuy();
                 Debug.Log(itemSlot.item.name+"¿ª ±∏¿‘");
+                AchievementManager.Instance.AddProgress("ACH-6", 1);
             }
             else
             {
