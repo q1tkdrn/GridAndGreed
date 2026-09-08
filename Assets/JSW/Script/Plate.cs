@@ -21,7 +21,7 @@ public class Plate : MonoBehaviour
         MovingPoint = GameObject.Find("MovePoint");
         BossPlate = GameObject.Find("BossPlate");
         sr = GetComponent<SpriteRenderer>();
-        tn = GetComponent<Turn>();
+        tn = FindAnyObjectByType<Turn>();
     }
     public void Check_Character(Player player)
     {

@@ -3,32 +3,25 @@ using UnityEngine;
 public class Items : MonoBehaviour
 {
     private int ItemNumber;
-
+    private Player[] players = new Player[3];
+    private Player pl;
 
     void Start()
     {
-        Player pl = GetComponenet<Player>();
+        players[0] = GameObject.Find("Player1").GetComponent<Player>();
+        players[1] = GameObject.Find("Player2").GetComponent<Player>();
+        players[2] = GameObject.Find("Player3").GetComponent<Player>();
     }
 
     void Update()
     {
-        if (Input.GetMouseButtonDown(0))
-        {
-            Vector2 mousePos = Camera.main.ScreenToWorldPoint(Input.mousePosition);
-            RaycastHit2D hit = Physics2D.Raycast(mousePos, Vector2.zero);
-            if (hit != null)
-            {
-                ItemNumber = int.Parse(hit.collider.gameObject.name);
-                Use_Item(ItemNumber);
-            }
-        }
 
     }
 
     private void Old_Sword()
     {
         for (int i = 0; i < 3; i++) {
-            Player.Attck[i] += 2;
+            players[i].Attck += 2;
         }
     }
 
@@ -42,7 +35,7 @@ public class Items : MonoBehaviour
     {
         switch (ItemIndex)
         {
-            case 0:
+            case 0: break;
         }
      }
 

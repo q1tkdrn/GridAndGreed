@@ -19,8 +19,8 @@ public class Turn : MonoBehaviour
     void Start()
     {
         UpdateTurnUI();
-        gm = gameObject.AddComponent<GameManager>();
-        pt = gameObject.AddComponent<Plate>();
+        gm = FindAnyObjectByType<GameManager>();
+        pt = FindAnyObjectByType<Plate>();
 
     }
     private void Call_Boss_PlateCreate()
