@@ -209,12 +209,14 @@ public class BattleManagerTemp : MonoBehaviour
     public void OnPointerClick(int i)
     {
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
+        if(boardPanel.IsAnimPlaying(i)) return;
         if(boardPanel.actionPoint <= 0) return;
         if (_currentClickIndex == i && _isClicked)
         {
             Debug.Log("db");
             boardPanel.JudgeBoss(units[i].unitTemp.intelligence);
             boardPanel.UpdateActionPoint(boardPanel.actionPoint - 1);
+            boardPanel.PlayJudgeAnim(i);
         }
         _isClicked = true;
         _currentClickIndex = i;
@@ -234,7 +236,14 @@ public class BattleManagerTemp : MonoBehaviour
         foreach (var unit in units.Where(x => x.isPlaced).ToList())
         {
             boardPanel.AttackBoss(unit.unitTemp.power);
+            boardPanel.PlayAttackAnim(units.ToList().IndexOf(unit));
         }
         boardPanel.NextTurn(2);
+    }
+
+    public void OnHit(int i)
+    {
+        units[i].unit.gameObject.SetActive(false);
+        units[i].reviveRemainTurn = units[i].unitTemp.reviveCool;
     }
 }

@@ -42,6 +42,7 @@ public class BattleDisplayManager : MonoBehaviour
     private int _decidedStage = -1;
     
     public AudioSource bgmSource;
+    public AudioSource bgmSourceLoop;
     public AudioSource sfxSource;
 
     public AudioClip buildingClip;
@@ -267,9 +268,23 @@ public class BattleDisplayManager : MonoBehaviour
 
     public void PlayBGM(AudioClip loopBgm, AudioClip introBgm = null)
     {
+        bgmSourceLoop.loop = false;
+        bgmSourceLoop.Stop();
+        bgmSource.loop = false;
+        bgmSource.Stop();
+        
         if (introBgm != null)
         {
-            StartCoroutine(PlayBGMEnumerator(loopBgm, introBgm));
+            var startTime = AudioSettings.dspTime + 0.1;
+            bgmSource.clip = introBgm;
+            bgmSource.loop = false;
+            bgmSource.PlayScheduled(startTime);
+        
+            var loopStartTime = startTime + introBgm.length;
+        
+            bgmSourceLoop.clip = loopBgm;
+            bgmSourceLoop.loop = true;
+            bgmSourceLoop.PlayScheduled(loopStartTime);
         }
         else
         {
@@ -277,21 +292,5 @@ public class BattleDisplayManager : MonoBehaviour
             bgmSource.loop = true;
             bgmSource.Play();
         }
-    }
-
-    IEnumerator PlayBGMEnumerator(AudioClip loopBgm, AudioClip introBgm)
-    {
-        bgmSource.clip = introBgm;
-        bgmSource.loop = false;
-        bgmSource.Play();
-
-        while (bgmSource.isPlaying)
-        {
-            yield return null;
-        }
-        
-        bgmSource.clip = loopBgm;
-        bgmSource.loop = true;
-        bgmSource.Play();
     }
 }

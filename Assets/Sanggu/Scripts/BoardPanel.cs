@@ -44,6 +44,8 @@ public class BoardPanel : MonoBehaviour
     [SerializeField] private GameObject actionPoints;
     [SerializeField] private Sprite[] actionPointsList;
     private List<GameObject> _actionPointsList = new List<GameObject>();
+    
+    private static readonly int EnableGlitch = Shader.PropertyToID("_EnableGlitch");
 
     [Serializable]
     private struct Unit
@@ -52,6 +54,8 @@ public class BoardPanel : MonoBehaviour
         public GameObject popUp;
         public TextMeshProUGUI nameText;
         public TextMeshProUGUI descriptionText;
+        public Image unit;
+        public bool isAnimPlaying;
     }
     
     [SerializeField] private Unit[] units = new Unit[3];
@@ -88,9 +92,10 @@ public class BoardPanel : MonoBehaviour
         {
             units[i].image.sprite = BattleDisplayManager.GetInstance().currentUnits[i].currentSkin switch
             {
-                0 => BattleDisplayManager.GetInstance().currentUnits[i].skin1,
-                1 => BattleDisplayManager.GetInstance().currentUnits[i].skin2,
-                2 => BattleDisplayManager.GetInstance().currentUnits[i].skin3,
+                0 => BattleDisplayManager.GetInstance().currentUnits[i].defaultSkin,
+                1 => BattleDisplayManager.GetInstance().currentUnits[i].skin1,
+                2 => BattleDisplayManager.GetInstance().currentUnits[i].skin2,
+                3 => BattleDisplayManager.GetInstance().currentUnits[i].skin3,
                 _ => units[i].image.sprite
             };
             units[i].nameText.text = BattleDisplayManager.GetInstance().currentUnits[i].unitName;
@@ -98,6 +103,10 @@ public class BoardPanel : MonoBehaviour
             
             items[i].itemData = BattleDisplayManager.GetInstance().currentItems[i];
             items[i].Init();
+            var mat = Instantiate(units[i].unit.material);
+            units[i].unit.material = mat;
+            units[i].unit.material.SetFloat(EnableGlitch, 0);
+            units[i].isAnimPlaying = false;
         }
     }
 
@@ -382,4 +391,86 @@ public class BoardPanel : MonoBehaviour
         }
         PrintText(t);
     }
+
+    [DebugButton("유닛 처치")]
+    public void HitAttack(int i)
+    {
+        StartCoroutine(SetGlitch(i));
+    }
+
+    IEnumerator SetGlitch(int i)
+    {
+        units[i].unit.material.SetFloat(EnableGlitch, 1);
+        yield return new WaitForSeconds(1f);
+        battleManagerTemp.OnHit(i);
+    }
+
+    [DebugButton("공격 실행")]
+    public void PlayAttackAnim(int i)
+    {
+        if(units[i].isAnimPlaying) return;
+        units[i].isAnimPlaying = true;
+        
+        StartCoroutine(MoveUI(i, new Vector2(0, 50f), 0.2f, 0.1f));
+    }
+    
+    [DebugButton("심판 실행")]
+    public void PlayJudgeAnim(int i)
+    {
+        if(units[i].isAnimPlaying) return;
+        units[i].isAnimPlaying = true;
+        
+        StartCoroutine(MoveUI(i, new Vector2(0, -10f), 0.2f, 0.1f, new Vector2(100f, 60f)));
+    }
+    
+    public bool IsAnimPlaying(int i)
+    {
+        return units[i].isAnimPlaying;
+    }
+
+    IEnumerator MoveUI(int i, Vector2 posOffset, float startTime, float endTime, Vector2 scaleOffset = default)
+    {
+        var target = units[i].unit.rectTransform;
+        Vector2 start = target.anchoredPosition;
+        Vector2 end = start + posOffset;
+        
+        Vector2 scale = target.sizeDelta;
+        
+        if(scaleOffset == default) scaleOffset = scale;
+
+        float time = 0f;
+
+        while (time < startTime)
+        {
+            time += Time.deltaTime;
+            
+            float t = time / startTime;
+            target.anchoredPosition = Vector2.Lerp(start, end, t);
+            target.sizeDelta = Vector2.Lerp(scale, scaleOffset, t);
+            
+            yield return null;
+        }
+        
+        target.anchoredPosition = end;
+        target.sizeDelta = scaleOffset;
+
+        time = 0f;
+
+        while (time < endTime)
+        {
+            time += Time.deltaTime;
+
+            float t = time / endTime;
+            target.anchoredPosition = Vector2.Lerp(end, start, t);
+            target.sizeDelta = Vector2.Lerp(scaleOffset, scale, t);
+            
+            yield return null;
+        }
+        target.anchoredPosition = start;
+        target.sizeDelta = scale;
+        
+        units[i].isAnimPlaying = false;
+    }
+
+    
 }
