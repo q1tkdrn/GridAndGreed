@@ -2597,8 +2597,8 @@ MonoBehaviour:
   dialogUI: {fileID: 1642029152}
   questionUI: {fileID: 462692760}
   exitButton: {fileID: 561218437}
-  currentPhase: 0
-  isEnding: 0
+  currentPhase: 2
+  isEnding: 1
 --- !u!114 &1642029154
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2802,7 +2802,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1848967179
 RectTransform:
   m_ObjectHideFlags: 0
