@@ -14,7 +14,7 @@ public class AchievementUI : MonoBehaviour
     void Start()
     {
         CreateAchievementSlots();
-        NPC.sprite = achievementDialog.isEnding == 2 ? NPCImages[1] : NPCImages[0];
+        NPC.sprite = achievementDialog.currentPhase == 2 ? NPCImages[1] : NPCImages[0];
     }
     public void CreateAchievementSlots()
     {
@@ -32,7 +32,7 @@ public class AchievementUI : MonoBehaviour
     }
     private bool IsShowAchievement(AchievementData data)
     {
-        int ending = achievementDialog.isEnding;
+        int ending = achievementDialog.currentPhase;
 
         if (ending == 2)
             return true;

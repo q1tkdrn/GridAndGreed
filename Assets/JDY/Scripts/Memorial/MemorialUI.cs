@@ -30,6 +30,10 @@ public class MemorialUI : MonoBehaviour
         currentTextIndex = 0;
 
         memorialPanel.SetActive(true);
+        if (memorial.id == "7")
+        {
+            AchievementManager.Instance.AddProgress("ACH-30", 1);
+        }
         SetUI();
     }
     public void NextUIButton()

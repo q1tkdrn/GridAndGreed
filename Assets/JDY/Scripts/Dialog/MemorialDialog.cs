@@ -12,7 +12,7 @@ public class MemorialDialog : MonoBehaviour
     private List<DialogData> dialogs;
     void Awake()
     {
-        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
+        currentPhase = PlayerPrefs.GetInt("IsEnding", 0);
     }
     void Start()
     {

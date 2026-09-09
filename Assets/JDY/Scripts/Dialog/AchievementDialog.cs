@@ -8,26 +8,24 @@ public class AchievementDialog : MonoBehaviour
     [SerializeField] private QuestionUI questionUI;
     [SerializeField] private ExitButton exitButton;
     [Header("Test")]
-    [SerializeField] private int currentPhase = 0;
-    public int isEnding = 0;
+    public int currentPhase = 0;
 
     private List<DialogData> dialogs;
     void Awake()
     {
         Instance = this;
-        currentPhase = PlayerPrefs.GetInt("currentPhase", 0);
-        isEnding = PlayerPrefs.GetInt("IsEnding", 0);
+        currentPhase = PlayerPrefs.GetInt("IsEnding", 0);
     }
     void Start()
     {
-        string npc = isEnding == 2 ? "유" : "아스포델";
+        string npc = currentPhase == 2 ? "유" : "아스포델";
        
         dialogs = DialogManager.Instance.GetDialogueGroup(npc, DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {
-        string npc = isEnding == 2 ? "유" : "아스포델";
+        string npc = currentPhase == 2 ? "유" : "아스포델";
         questionUI.ShowQuestions(npc, currentPhase);
     }
     public void StartAchievementDialog(AchievementData data)
@@ -35,7 +33,7 @@ public class AchievementDialog : MonoBehaviour
         string title;
         string npc;
 
-        if (isEnding == 2)
+        if (currentPhase == 2)
         {
             title = (data.id == "ACH-30" || data.id == "ACH-31")? data.title : "(나머지 업적들)";
             npc = "유";
@@ -53,7 +51,7 @@ public class AchievementDialog : MonoBehaviour
     }
     public void ExitDialog()
     {
-        string npc = isEnding == 2 ? "유" : "아스포델";
+        string npc = currentPhase == 2 ? "유" : "아스포델";
         dialogs = DialogManager.Instance.GetDialogueGroup(npc, DialogType.Exit, "", currentPhase);
         dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
