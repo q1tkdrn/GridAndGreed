@@ -32,6 +32,7 @@ public class AchievementManager : MonoBehaviour
                 if (current >= data.targetValue)
                 {
                     PlayerPrefs.SetInt(id + "_Completed", 1);//ex)ACH-1_Completed = 1(달성)
+                    GetReward(id);
                     Debug.Log("업적 달성 : " + id);
                 }
                 break;
