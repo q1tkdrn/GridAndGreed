@@ -16,9 +16,10 @@ public class Unit : MonoBehaviour
         intelligenceText.text = unitTemp.intelligence.ToString();
         sd.sprite = unitTemp.currentSkin switch
         {
-            0 => unitTemp.skin1,
-            1 => unitTemp.skin2,
-            2 => unitTemp.skin3,
+            0 => unitTemp.defaultSkin,
+            1 => unitTemp.skin1,
+            2 => unitTemp.skin2,
+            3 => unitTemp.skin3,
             _ => sd.sprite
         };
     }

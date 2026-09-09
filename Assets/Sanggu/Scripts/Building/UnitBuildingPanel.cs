@@ -161,18 +161,21 @@ public class UnitBuildingPanel : MonoBehaviour
         skins[1].sprite = cards[_currentCardIndex].unitTemp.skin2;
         skins[2].sprite = cards[_currentCardIndex].unitTemp.skin3;
 
-        skinTexts[0].text = "해금됨";
+        skinTexts[0].text = cards[_currentCardIndex].unitTemp.isSkin1Unlocked ? "해금됨" : "잠금됨";
         skinTexts[1].text = cards[_currentCardIndex].unitTemp.isSkin2Unlocked ? "해금됨" : "잠금됨";
         skinTexts[2].text = cards[_currentCardIndex].unitTemp.isSkin3Unlocked ? "해금됨" : "잠금됨";
-
-        skinTexts[cards[_currentCardIndex].unitTemp.currentSkin].text = "장착됨";
+        
+        if(cards[_currentCardIndex].unitTemp.currentSkin == 0) return;
+        skinTexts[cards[_currentCardIndex].unitTemp.currentSkin - 1].text = "장착됨";
     }
 
     public void OnSkinClick(int i)
     {
-        if (i == 1 && !cards[_currentCardIndex].unitTemp.isSkin2Unlocked) return;
-        if (i == 2 && !cards[_currentCardIndex].unitTemp.isSkin3Unlocked) return;
-        cards[_currentCardIndex].unitTemp.currentSkin = i;
+        if (i == 1 && !cards[_currentCardIndex].unitTemp.isSkin1Unlocked) return;
+        if (i == 2 && !cards[_currentCardIndex].unitTemp.isSkin2Unlocked) return;
+        if (i == 3 && !cards[_currentCardIndex].unitTemp.isSkin3Unlocked) return;
+        if(cards[_currentCardIndex].unitTemp.currentSkin == i) cards[_currentCardIndex].unitTemp.currentSkin = 0;
+        else cards[_currentCardIndex].unitTemp.currentSkin = i;
         InitSkin();
     }
 }

@@ -83,3 +83,5 @@ MonoBehaviour:
     \uC54A\uC740 \uC704\uCE58\uB85C \uBCF4\uB0B4\uC84C\uB2E4."
   stageName: "\uC655\uC2E4\uC5F0\uAD6C\uC18C"
   stageSprite: {fileID: 0}
+  bgmStart: {fileID: 8300000, guid: 78f0e3e98a4002742a8f4683d544ec0a, type: 3}
+  bgmLoop: {fileID: 8300000, guid: 961947c3cb507414095ff5e5ad25cb9a, type: 3}

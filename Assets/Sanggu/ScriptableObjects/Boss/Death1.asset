@@ -76,3 +76,5 @@ MonoBehaviour:
     \uAC00\uB9AC\uAE30 \uC2DC\uC791\uD55C\uB2E4.)"
   stageName: "\uC800\uC2B9"
   stageSprite: {fileID: 0}
+  bgmStart: {fileID: 0}
+  bgmLoop: {fileID: 8300000, guid: c4378c1c0cc41524fa2c605827b5ed92, type: 3}
