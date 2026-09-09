@@ -1,18 +1,20 @@
 using System.Collections.Generic;
 using UnityEngine;
+
 public class InventoryManager : MonoBehaviour
 {
     public static InventoryManager Instance;
 
+    [Header("Inventory")]
     [SerializeField] private int soul = 0;
     [SerializeField] private Dictionary<string, int> ownedItems = new Dictionary<string, int>();
-
     [SerializeField] private List<string> ownedCharacters = new List<string>();
     [SerializeField] private List<string> ownedMemorials = new List<string>();
 
     private int memorialCount = 8;
     private int characterCount = 9;
-    void Awake()//Obj
+    // Init
+    private void Awake()
     {
         if (Instance == null)
         {
@@ -26,41 +28,30 @@ public class InventoryManager : MonoBehaviour
     }
     private void Start()
     {
-        soul = PlayerPrefs.GetInt("Soul", 0);
-        for (int i = 0; i < ItemManager.Instance.items.Length; i++)
-        {
-            int count = PlayerPrefs.GetInt("Item_" + i, 0);
-
-            if (count > 0)
-                ownedItems.Add(i.ToString(), count);
-        }
-        for (int i = 0; i < characterCount; i++)
-        {
-            string id = i.ToString();
-
-            if (PlayerPrefs.GetInt("Character_" + id, 0) == 1)
-                ownedCharacters.Add(id);
-        }
-        for (int i = 0; i < memorialCount; i++)
-        {
-            string id = i.ToString();
-
-            if (PlayerPrefs.GetInt("Memorial_" + id, 0) == 1)
-                ownedMemorials.Add(id);
-        }
+        LoadSoul();
+        LoadItems();
+        LoadCharacters();
+        LoadMemorials();
     }
-    //Soul
-    public void AddSoul(int amount) 
+    // Soul
+    private void LoadSoul()
+    {
+        soul = PlayerPrefs.GetInt("Soul", 0);
+    }
+    public void AddSoul(int amount)
     {
         soul += amount;
+
         PlayerPrefs.SetInt("Soul", soul);
         PlayerPrefs.Save();
     }
     public void RemoveSoul(int amount)
     {
         soul -= amount;
+
         AchievementManager.Instance.AddProgress("ACH-3", amount);
         AchievementManager.Instance.AddProgress("ACH-4", amount);
+
         PlayerPrefs.SetInt("Soul", soul);
         PlayerPrefs.Save();
     }
@@ -68,7 +59,17 @@ public class InventoryManager : MonoBehaviour
     {
         return soul;
     }
-    //Item
+    // Item
+    private void LoadItems()
+    {
+        for (int i = 1; i <= ItemManager.Instance.items.Length; i++)
+        {
+            int count = PlayerPrefs.GetInt("Item_" + i, 0);
+
+            if (count > 0)
+                ownedItems.Add(i.ToString(), count);
+        }
+    }
     public void AddItem(string itemId, int amount = 1)
     {
         if (HasItem(itemId))
@@ -80,6 +81,12 @@ public class InventoryManager : MonoBehaviour
             ownedItems.Add(itemId, amount);
 
         PlayerPrefs.SetInt("Item_" + itemId, ownedItems[itemId]);
+
+        if (HasAllItems())
+        {
+            AchievementManager.Instance.AddProgress("ACH-31", 1);
+        }
+
         PlayerPrefs.Save();
     }
     public void AddItem(ItemData item, int amount = 1)
@@ -125,43 +132,117 @@ public class InventoryManager : MonoBehaviour
     {
         return GetItemCount(item.id);
     }
-    //Character
+    private bool HasAllItems()
+    {
+        for (int i = 1; i <= ItemManager.Instance.items.Length; i++)
+        {
+            if (!HasItem(i.ToString()))
+                return false;
+        }
+
+        return true;
+    }
+    // Character
+    private void LoadCharacters()
+    {
+        for (int i = 1; i <= characterCount; i++)
+        {
+            string id = i.ToString();
+
+            if (PlayerPrefs.GetInt("Character_" + id, 0) == 1)
+                ownedCharacters.Add(id);
+        }
+    }
     public void UnlockCharacter(string characterId)
     {
         if (HasCharacter(characterId))
             return;
 
         ownedCharacters.Add(characterId);
+
         PlayerPrefs.SetInt("Character_" + characterId, 1);
+
+        if (HasAllCharacters())
+        {
+            AchievementManager.Instance.AddProgress("ACH-31", 1);
+        }
+
         PlayerPrefs.Save();
     }
     public bool HasCharacter(string characterId)
     {
         return ownedCharacters.Contains(characterId);
     }
-    //Skin
+    private bool HasAllCharacters()
+    {
+        for (int i = 1; i <= characterCount; i++)
+        {
+            if (!HasCharacter(i.ToString()))
+                return false;
+        }
+
+        return true;
+    }
+    // Skin
     public void UnlockSkin(string characterId, Skin skin)
     {
         PlayerPrefs.SetInt($"Skin_{characterId}_{skin}", 1);
+
+        if (HasAllSkins())
+        {
+            AchievementManager.Instance.AddProgress("ACH-31", 1);
+        }
+
         PlayerPrefs.Save();
     }
     public bool HasSkin(string characterId, Skin skin)
     {
         return PlayerPrefs.GetInt($"Skin_{characterId}_{skin}", 0) == 1;
     }
-    //Memory
+    private bool HasAllSkins()
+    {
+        // 1~8
+        for (int i = 1; i <= characterCount - 1; i++)
+        {
+            if (!HasSkin(i.ToString(), Skin.BossSkin) || !HasSkin(i.ToString(), Skin.InsectSkin) || !HasSkin(i.ToString(), Skin.NpcSkin))
+            {
+                return false;
+            }
+        }
+        return true;
+    }
+    // Memorial
+    private void LoadMemorials()
+    {
+        for (int i = 1; i <= memorialCount; i++)
+        {
+            string id = i.ToString();
+
+            if (PlayerPrefs.GetInt("Memorial_" + id, 0) == 1)
+                ownedMemorials.Add(id);
+        }
+    }
     public void UnlockMemorial(string memorialId)
     {
         if (HasMemorial(memorialId))
             return;
-        
+
         ownedMemorials.Add(memorialId);
+
         PlayerPrefs.SetInt("Memorial_" + memorialId, 1);
-        PlayerPrefs.Save();
+
         if (HasMemorial("1") && HasMemorial("2") && HasMemorial("3") && HasMemorial("6"))
         {
             AchievementManager.Instance.AddProgress("ACH-24", 1);
+
+            // All
+            if (HasMemorial("4") && HasMemorial("5") && HasMemorial("7") && HasMemorial("8"))
+            {
+                AchievementManager.Instance.AddProgress("ACH-31", 1);
+            }
         }
+
+        PlayerPrefs.Save();
     }
     public bool HasMemorial(string memorialId)
     {
