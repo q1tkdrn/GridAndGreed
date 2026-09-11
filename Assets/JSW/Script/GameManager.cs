@@ -32,6 +32,8 @@ public class GameManager : MonoBehaviour
     private int[] Player_Atk = { 6, 4, 3 };
     private int[] Player_HH = { 1, 3, 4 };
 
+    private string[] Item_Name = { "Old_Sword" };
+
     private string[] Boss_Names = { "BigHouse" };
     private int[] Boss_Hp = { 100 };
     private int[] Boss_Atk = { 5 };
@@ -43,6 +45,7 @@ public class GameManager : MonoBehaviour
     private Turn tn;
     private Player pl;
     private Plate pt;
+    private Items it;
 
     // 현재 선택된 Player
     private Player selectedPlayer;
@@ -90,7 +93,7 @@ public class GameManager : MonoBehaviour
         tn = FindAnyObjectByType<Turn>();
         pl = FindAnyObjectByType<Player>();
         pt = FindAnyObjectByType<Plate>();
-
+        it = FindAnyObjectByType<Items>();
 
         players[0] = GameObject.Find("Player1").GetComponent<Player>();
         players[1] = GameObject.Find("Player2").GetComponent<Player>();
@@ -117,6 +120,7 @@ public class GameManager : MonoBehaviour
 
         Activate_Boss(0);
 
+        it.Activate_Items(0);
 
         PlayerHP = 15;
     }
@@ -317,6 +321,8 @@ public class GameManager : MonoBehaviour
             }
         }
     }
+
+
 
 
     // =========================================

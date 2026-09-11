@@ -2,7 +2,12 @@ using UnityEngine;
 
 public class Items : MonoBehaviour
 {
-    private int ItemNumber;
+    private GameObject[] Item = new GameObject[3];
+
+    private List<int> Public_ItemNumber = new List<int>();
+
+    public Sprite[] Item_Sprite;
+
     private Player[] players = new Player[3];
     private Player pl;
 
@@ -11,6 +16,8 @@ public class Items : MonoBehaviour
         players[0] = GameObject.Find("Player1").GetComponent<Player>();
         players[1] = GameObject.Find("Player2").GetComponent<Player>();
         players[2] = GameObject.Find("Player3").GetComponent<Player>();
+
+
     }
 
     void Update()
@@ -30,14 +37,14 @@ public class Items : MonoBehaviour
         GameManager.BossHP -= 3;
 
     }
-
-    private void Activate_Items(int ItemIndex)
+    
+    public void Activate_Items(int ItemNumber)
     {
-        switch (ItemIndex)
-        {
-            case 0: break;
-        }
-     }
+        Item[ItemNumber] = GameObject.Find("Item"+(ItemNumber+1));
+        SpriteRenderer sr = Item[ItemNumber].GetComponent<SpriteRenderer>();
+        sr.sprite = Item_Sprite[ItemNumber];
+       
+    }
 
     public void Use_Item(int ItemIndex)
     {
