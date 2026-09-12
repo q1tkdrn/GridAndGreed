@@ -12,6 +12,14 @@ public class Items : MonoBehaviour
     private Player[] players = new Player[3];
     private Player pl;
 
+    private void Awake()
+    {
+        if (FindAnyObjectByType<BoardPanel>() != null)
+        {
+            enabled = false;
+        }
+    }
+
     void Start()
     {
         players[0] = GameObject.Find("Player1").GetComponent<Player>();

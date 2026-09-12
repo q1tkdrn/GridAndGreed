@@ -15,6 +15,14 @@ public class Turn : MonoBehaviour
     public TMP_Text BossHP;
     public TMP_Text PlayerHP;
 
+    private void Awake()
+    {
+        if (FindAnyObjectByType<BoardPanel>() != null)
+        {
+            enabled = false;
+        }
+    }
+
 
     void Start()
     {

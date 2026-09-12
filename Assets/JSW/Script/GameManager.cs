@@ -87,6 +87,16 @@ public class GameManager : MonoBehaviour
         }
     }
 
+    private void Awake()
+    {
+        // 통합 전투는 Canvas/UI 입력을 사용한다. 월드 Raycast 컨트롤러가 같이 실행되면
+        // 같은 클릭과 HP를 이중으로 처리하므로 UI 전투 씬에서는 이 프로토타입을 끈다.
+        if (FindAnyObjectByType<BoardPanel>() != null)
+        {
+            enabled = false;
+        }
+    }
+
 
     void Start()
     {

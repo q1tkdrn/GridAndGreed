@@ -16,6 +16,14 @@ public class Plate : MonoBehaviour
     SpriteRenderer sr;
     private Turn tn;
 
+    private void Awake()
+    {
+        if (FindAnyObjectByType<BoardPanel>() != null)
+        {
+            enabled = false;
+        }
+    }
+
     void Start()
     {
         MovingPoint = GameObject.Find("MovePoint");
@@ -347,4 +355,56 @@ public class Plate : MonoBehaviour
         }
     }
     
+}
+
+/// <summary>
+/// JSW 전투 규칙의 단일 원본입니다. 월드 오브젝트와 UI 보드 모두 이 좌표 규칙을 공유합니다.
+/// </summary>
+public static class BattlePatternRules
+{
+    public const int BoardSize = 9;
+
+    public enum Pattern
+    {
+        Corners,
+        Cross,
+        SideColumns,
+        MiddleRows,
+        CenterSquare,
+        Border
+    }
+
+    public static HashSet<Vector2Int> GetDangerCells(Pattern pattern)
+    {
+        var cells = new HashSet<Vector2Int>();
+
+        for (int x = 0; x < BoardSize; x++)
+        {
+            for (int y = 0; y < BoardSize; y++)
+            {
+                var isDangerous = pattern switch
+                {
+                    Pattern.Corners => (x / 3 != 1) && (y / 3 != 1),
+                    Pattern.Cross => x / 3 == 1 || y / 3 == 1,
+                    Pattern.SideColumns => x < 3 || x > 5,
+                    Pattern.MiddleRows => x is >= 3 and <= 5,
+                    Pattern.CenterSquare => x is >= 2 and <= 6 && y is >= 2 and <= 6,
+                    Pattern.Border => x < 2 || x > 6 || y < 2 || y > 6,
+                    _ => false
+                };
+
+                if (isDangerous)
+                {
+                    cells.Add(new Vector2Int(x, y));
+                }
+            }
+        }
+
+        return cells;
+    }
+
+    public static Pattern GetDefaultPattern(int turnCount)
+    {
+        return (Pattern)((turnCount - 1) % 6);
+    }
 }

@@ -30,4 +30,10 @@ public class BossTemp : ScriptableObject
     public Sprite stageSprite;
     public AudioClip bgmStart;
     public AudioClip bgmLoop;
+
+    [Header("Battle Pattern")]
+    [Tooltip("비어 있으면 기본 6개 패턴을 순서대로 사용합니다.")]
+    public BattlePatternRules.Pattern[] patterns;
+    [Min(1)] public int patternDamage = 5;
+    [Min(0.1f)] public float patternPreviewSeconds = 1f;
 }
