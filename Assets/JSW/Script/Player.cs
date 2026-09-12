@@ -7,7 +7,7 @@ public class Player : MonoBehaviour
 
     public Plate mp;
     private float SceneTime;
-    private float LastClickTime = 0f;
+    
     private bool IsDoubleClicked;
     private bool isSelected = false;
     private Vector3 originalScale;
@@ -20,7 +20,6 @@ public class Player : MonoBehaviour
     public float doubleClickThreshold = 0.3f; // 더블클릭으로 인정할 시간 간격(초)
 
     private Vector3 targetPosition;
-    private bool isMoving = false;
 
     public string CharacterName;
     public int Attck;
@@ -53,6 +52,8 @@ public class Player : MonoBehaviour
         sr = GetComponent<SpriteRenderer>();
     }
 
+
+    /*
     void Update()
     {
         SceneTime = Time.time;
@@ -135,15 +136,16 @@ public class Player : MonoBehaviour
             }
         }
     }
+    */
 
-    private void DoubleClick()
+    public void DoubleClick()
     {
         GameManager.BossHP = GameManager.BossHP - HHh;
         Debug.Log("현제 보스 HP : " + GameManager.BossHP);
         tn.TurnCount_Subtract(1);
     }
 
-    private void FlipX()
+    public void FlipX()
     {
         int RandomNumber = UnityEngine.Random.Range(0, 2);
         if(RandomNumber == 1)
@@ -155,5 +157,12 @@ public class Player : MonoBehaviour
             sr.flipX = false;
         }
 
+    }
+
+    public void Check_Hitted_Player(int CharacterIndex)
+    {
+        ClickedCharacterIndex = CharacterIndex;
+        player_x[CharacterIndex-1] = transform.position.x;
+        player_y[CharacterIndex-1] = transform.position.y;
     }
 }

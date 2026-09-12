@@ -15,11 +15,12 @@ public class Turn : MonoBehaviour
     public TMP_Text BossHP;
     public TMP_Text PlayerHP;
 
+
     void Start()
     {
         UpdateTurnUI();
-        gm = gameObject.AddComponent<GameManager>();
-        pt = gameObject.AddComponent<Plate>();
+        gm = FindAnyObjectByType<GameManager>();
+        pt = FindAnyObjectByType<Plate>();
 
     }
     private void Call_Boss_PlateCreate()
@@ -48,12 +49,21 @@ public class Turn : MonoBehaviour
         UpdateTurnUI();
     }
 
-    private void UpdateTurnUI()
+    public void UpdateTurnUI()
     {
         if (TurnCountText != null)
         {
             TurnCountText.text = "Turn : " + TurnCount;
+        }
+
+        if (BossHP != null)
+        {
             BossHP.text = "BossHP : " + GameManager.BossHP;
+        }
+
+        if (PlayerHP != null)
+        {
+            PlayerHP.text = "PlayerHP : " + GameManager.PlayerHP;
         }
     }
 
