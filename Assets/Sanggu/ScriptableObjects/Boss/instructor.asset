@@ -65,3 +65,5 @@ MonoBehaviour:
   distinctText: []
   stageName: "\uD6C8\uB828\uC7A5"
   stageSprite: {fileID: 0}
+  bgmStart: {fileID: 8300000, guid: cd2f2205dc8170a4ba2e382770c74336, type: 3}
+  bgmLoop: {fileID: 8300000, guid: 05301831324e7ef4db689ee178b5cac6, type: 3}
