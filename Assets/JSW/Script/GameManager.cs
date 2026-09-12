@@ -120,7 +120,7 @@ public class GameManager : MonoBehaviour
 
         Activate_Boss(0);
 
-        it.Activate_Items(0);
+        it.Activate_Items(0, 0);
 
         PlayerHP = 15;
     }
@@ -151,6 +151,13 @@ public class GameManager : MonoBehaviour
 
             Hitted_Object = hit.collider.gameObject;
 
+
+            if (Hitted_Object.name.Contains("Item"))
+            {
+                int ItemIndex = int.Parse(Hitted_Object.name.Replace("Item", ""));
+                Debug.Log(ItemIndex);
+                it.Use_Item(it.Public_ItemNumber[ItemIndex-1]);
+            }   
 
             // 턴이 남아있을 때만 행동
             if (Turn.TurnCount > 0)
@@ -259,13 +266,8 @@ public class GameManager : MonoBehaviour
             }
         }
 
-
-        // =========================================
-        // Player 이동
-        // =========================================
         if (isMoving && selectedPlayer != null)
         {
-            // 실제 선택된 Player를 이동시킨다
             selectedPlayer.transform.position =
                 Vector3.MoveTowards(
                     selectedPlayer.transform.position,
@@ -274,7 +276,6 @@ public class GameManager : MonoBehaviour
                 );
 
 
-            // 목표 위치에 도착했는지 확인
             if (Vector3.Distance(
                     selectedPlayer.transform.position,
                     targetPosition) < 0.01f)
