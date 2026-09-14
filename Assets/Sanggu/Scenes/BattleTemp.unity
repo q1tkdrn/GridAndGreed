@@ -1690,16 +1690,19 @@ MonoBehaviour:
     nameText: {fileID: 1863778731}
     descriptionText: {fileID: 416408871}
     unit: {fileID: 596214967}
+    isAnimPlaying: 0
   - image: {fileID: 1649646039}
     popUp: {fileID: 473591619}
     nameText: {fileID: 116433776}
     descriptionText: {fileID: 1233635026}
     unit: {fileID: 1888426359}
+    isAnimPlaying: 0
   - image: {fileID: 493098863}
     popUp: {fileID: 1520160407}
     nameText: {fileID: 628618497}
     descriptionText: {fileID: 530187356}
     unit: {fileID: 2137072742}
+    isAnimPlaying: 0
   items:
   - {fileID: 609378580}
   - {fileID: 1274776077}
