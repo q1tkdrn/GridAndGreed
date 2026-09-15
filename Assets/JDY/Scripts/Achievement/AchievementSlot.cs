@@ -7,17 +7,19 @@ public class AchievementSlot : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private TMP_Text descriptionText;
+    [SerializeField] private TMP_Text rewardText;
     //[SerializeField] private Image stamp;
     [SerializeField] private Button button;
     //[Header("Stamp Image")]
     //[SerializeField] private Sprite completedStamp;
     //[SerializeField] private Sprite rewardedStamp;
-    public void SetData(AchievementData data)
+    public void SetData(AchievementData data, string reward)
     {
         this.data = data;
         button.image.sprite = data.icon;
         nameText.text = data.title;
         descriptionText.text = data.description;
+        rewardText.text = reward;
         UpdateUI();
     }
     public void UpdateUI()
@@ -36,7 +38,7 @@ public class AchievementSlot : MonoBehaviour
         else
         {
             //stamp.gameObject.SetActive(false);
-            button.image.color = new Color(0.7f, 0.7f, 0.7f, 1f);
+            button.image.color = new Color(0.3f, 0.3f, 0.3f, 1f);
         }
     }
     public void AchievementButton()

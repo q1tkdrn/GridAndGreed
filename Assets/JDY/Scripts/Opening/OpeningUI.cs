@@ -4,12 +4,16 @@ using UnityEngine.UI;
 using TMPro;
 public class OpeningUI : MonoBehaviour
 {
+    [Header("Script")]
+    [SerializeField] private TypingEffect typingEffect;
     [Header("UI-image")]
     [SerializeField] private Image frame;
     [SerializeField] private Sprite[] Images;
     [Header("UI-text")]
-    [SerializeField] private TMP_Text text;
+    [TextArea]
     [SerializeField] private string[] content;
+    [Header("UI")]
+    [SerializeField] private GameObject nextButton;
     private int currentIndex;
     void Start()
     {
@@ -26,7 +30,8 @@ public class OpeningUI : MonoBehaviour
         if (currentIndex < Images.Length)
         {
             frame.sprite = Images[currentIndex];
-            text.text = content[currentIndex];
+            nextButton.SetActive(false);
+            typingEffect.StartTyping(content[currentIndex], ()=>nextButton.SetActive(true));
         }
         else
         {
