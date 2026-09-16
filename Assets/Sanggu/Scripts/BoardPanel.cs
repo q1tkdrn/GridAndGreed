@@ -74,6 +74,7 @@ public class BoardPanel : MonoBehaviour
 
     private bool _isWin = false;
     private bool _isLose = false; 
+    private bool _isResolvingBossPattern;
 
     public enum ETurn
     {
@@ -145,6 +146,7 @@ public class BoardPanel : MonoBehaviour
             item.OnTurnStart();
         }
         _isLose = _isWin = false;
+        _isResolvingBossPattern = false;
         bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
         if (boss.bossId != "death2")
         {
@@ -156,7 +158,7 @@ public class BoardPanel : MonoBehaviour
         UpdateActionPoint(7);
         textBox.text = "";
         PrintText(boss.battleStart);
-        PrintText(boss.turnStart[0]);
+        PrintText(GetBossText(boss.turnStart, 0));
         turnCount = 1;
         turn = ETurn.Start;
         battleManagerTemp.Init();
@@ -165,6 +167,7 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("다음 턴")]
     public void NextTurn(int i = 1)
     {
+        if (_isResolvingBossPattern) return;
         turn += i;
         if(turn > ETurn.End) 
         {
@@ -174,7 +177,7 @@ public class BoardPanel : MonoBehaviour
             {
                 item.OnTurnStart();
             }
-            PrintText(boss.turnStart[turnCount/5]);
+            PrintText(GetBossText(boss.turnStart, turnCount / 5));
         }
 
         var turnText = "";
@@ -198,10 +201,11 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.Attack:
                 turnText = "공격";
-                PrintText(boss.attackedAD[turnCount/5]);
+                PrintText(GetBossText(boss.attackedAD, turnCount / 5));
                 break;
             case ETurn.BossPattern:
                 turnText = "보스 공격";
+                StartCoroutine(ResolveBossPattern());
                 break;
             case ETurn.End:
                 turnText = "턴 종료";
@@ -210,14 +214,19 @@ public class BoardPanel : MonoBehaviour
         }
 
         turnTextUI.text = turnCount + " - " + turnText;
-        if(nt) NextTurn();
-        if(turn == 0) battleManagerTemp.OnTurnStart();
+        if(nt)
+        {
+            NextTurn();
+            return;
+        }
+        if(turn == ETurn.Start) battleManagerTemp.OnTurnStart();
     }
     
     [DebugButton("텍스트 출력")]
     public void PrintText(string text)
     {
         if(_isLose || _isWin) return;
+        if (string.IsNullOrWhiteSpace(text)) return;
         
         _textQueue.Enqueue(text);
 
@@ -276,7 +285,7 @@ public class BoardPanel : MonoBehaviour
 
     public void PrintDistinctText(int i = 0)
     {
-        PrintText(boss.distinctText[i]);
+        PrintText(GetBossText(boss.distinctText, i));
     }
     
     [DebugButton("플레이어 HP 업데이트")]
@@ -312,7 +321,7 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("보스 심판")]
     public void JudgeBoss(int dmg)
     {
-        PrintText(boss.attackedAP[turnCount/5]);
+        PrintText(GetBossText(boss.attackedAP, turnCount / 5));
         UpdateBossHp(bossCurrentHp-dmg);
     }
     
@@ -324,7 +333,7 @@ public class BoardPanel : MonoBehaviour
 
     public void OnBossAttack(int dmg)
     {
-        PrintText(boss.attack[turnCount/5]);
+        PrintText(GetBossText(boss.attack, turnCount / 5));
         UpdateReaperHp(reaperCurrentHp-dmg);
     }
 
@@ -333,11 +342,11 @@ public class BoardPanel : MonoBehaviour
     {
         if (value == 0)
         {
-            PrintText(boss.willZero[turnCount/5]);
+            PrintText(GetBossText(boss.willZero, turnCount / 5));
         }
         else if (value < willPower)
         {
-            PrintText(boss.willDecline[turnCount/5]);
+            PrintText(GetBossText(boss.willDecline, turnCount / 5));
         }
         willPower = value;
         willPowerText.text = $"의지력: {willPower}";
@@ -365,6 +374,19 @@ public class BoardPanel : MonoBehaviour
         {
             NextTurn();
             battleManagerTemp.Attack();
+            NextTurn();
+        }
+    }
+
+    private IEnumerator ResolveBossPattern()
+    {
+        _isResolvingBossPattern = true;
+        yield return battleManagerTemp.PlayBossPattern(boss, turnCount);
+        _isResolvingBossPattern = false;
+
+        if (!_isWin && !_isLose)
+        {
+            NextTurn();
         }
     }
 
@@ -384,10 +406,10 @@ public class BoardPanel : MonoBehaviour
         var t = "";
         if (phase == 1)
         {
-            t = boss.phaseTwo[turnCount/5];
+            t = GetBossText(boss.phaseTwo, turnCount / 5);
         } else if (phase == 2)
         {
-            t = boss.phaseThree[turnCount/5];
+            t = GetBossText(boss.phaseThree, turnCount / 5);
         }
         PrintText(t);
     }
@@ -396,6 +418,13 @@ public class BoardPanel : MonoBehaviour
     public void HitAttack(int i)
     {
         StartCoroutine(SetGlitch(i));
+    }
+
+    public void OnUnitRevived(int i)
+    {
+        if (i < 0 || i >= units.Length) return;
+        units[i].unit.material.SetFloat(EnableGlitch, 0);
+        units[i].isAnimPlaying = false;
     }
 
     IEnumerator SetGlitch(int i)
@@ -470,6 +499,12 @@ public class BoardPanel : MonoBehaviour
         target.sizeDelta = scale;
         
         units[i].isAnimPlaying = false;
+    }
+
+    private static string GetBossText(string[] texts, int index)
+    {
+        if (texts == null || texts.Length == 0) return string.Empty;
+        return texts[Mathf.Clamp(index, 0, texts.Length - 1)];
     }
 
     
