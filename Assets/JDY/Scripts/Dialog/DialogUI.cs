@@ -113,7 +113,7 @@ public class DialogUI : MonoBehaviour
         currentIndex = 0;
         completeCallback?.Invoke();
         completeCallback = null;
-
+        
         if (showQuestionOnComplete)
         {
             questionPanel.SetActive(true);
