@@ -6,6 +6,8 @@ public class AchievementUI : MonoBehaviour
     [SerializeField] private GameObject achievementSlotPrefab;
     [Header("Script")]
     [SerializeField] private AchievementDialog achievementDialog;
+    [SerializeField] private CharacterManager characterManager;//item=instance, character, memorial, none, soul
+    [SerializeField] private MemorialManager memorialManager;
     [Header("UI")]
     [SerializeField] private Transform content;
     [Header("Image")]
@@ -27,7 +29,7 @@ public class AchievementUI : MonoBehaviour
 
             obj = Instantiate(achievementSlotPrefab, content);
             AchievementSlot slot = obj.GetComponent<AchievementSlot>();
-            slot.SetData(data);
+            slot.SetData(data, FindReward(data));
         }
     }
     private bool IsShowAchievement(AchievementData data)
@@ -44,5 +46,63 @@ public class AchievementUI : MonoBehaviour
             return false;
 
         return true;
+    }
+    private string FindReward(AchievementData data)
+    {
+        string rewardText = "보상 : ";
+
+        foreach (AchievementReward reward in data.rewards)
+        {
+            switch (reward.type)
+            {
+                case RewardType.Soul:
+                    rewardText += "소울 "+reward.amount + "개\n";
+                    break;
+
+                case RewardType.Item:
+                    rewardText += "아이템 - "+FindItemName(reward.rewardID) + "\n";
+                    break;
+
+                case RewardType.Memorial:
+                    rewardText += "기억 - "+FindMemorialName(reward.rewardID) + "\n";
+                    break;
+
+                case RewardType.Character:
+                    rewardText += "캐릭터 - "+FindCharacterName(reward.rewardID) + "\n";
+                    break;
+
+                case RewardType.None:
+                    rewardText += "없음";
+                    break;
+            }
+        }
+        return rewardText;
+    }
+
+    private string FindItemName(string id)
+    {
+        foreach (ItemData item in ItemManager.Instance.items)
+        {
+            if (item.id == id) return item.itemName;
+        }
+        return "없음";
+    }
+
+    private string FindMemorialName(string id)
+    {
+        foreach (MemorialData memorial in memorialManager.memorials)
+        {
+            if (memorial.id == id) return memorial.memorialName;
+        }
+        return "없음";
+    }
+
+    private string FindCharacterName(string id)
+    {
+        foreach (CharacterData character in characterManager.characters)
+        {
+            if (character.id == id) return character.characterName;
+        }
+        return "없음";
     }
 }
