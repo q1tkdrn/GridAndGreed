@@ -184,7 +184,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 751e77559f807d1488a7f49170fbdc74, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::OpeningUI
-  typingEffect: {fileID: 1693221190}
+  textFadeEffect: {fileID: 1693221190}
   frame: {fileID: 2051362972}
   Images:
   - {fileID: 21300000, guid: a13d24361e64ca44c969d721bc95b66a, type: 3}
@@ -197,6 +197,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 46ff3cd849b1d8e4daf3816d2dad8d98, type: 3}
   - {fileID: 21300000, guid: 03c82bc4dd85dba4eb2e405d4c4f89d6, type: 3}
   - {fileID: 21300000, guid: 9d9115af57584424498d29f3c4c518c0, type: 3}
+  text: {fileID: 418254418}
   content:
   - "\uC61B\uB0A0 \uC5B4\uB290 \uC655\uAD6D\uC5D0 \uD55C \uC655\uC774 \uC788\uC5C8\uC2B5\uB2C8\uB2E4. "
   - "\uADF8\uB294 \uC790\uC2E0\uC758 \uBC31\uC131\uC774 \uC8FD\uC5B4 \uC0AC\uB77C\uC9C0\uB294
@@ -1063,7 +1064,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::FloatingObject
   moveDistance: 10
-  moveSpeed: 2
+  moveSpeed: 7
 --- !u!1 &1693221184
 GameObject:
   m_ObjectHideFlags: 0
@@ -1092,7 +1093,7 @@ RectTransform:
   m_GameObject: {fileID: 1693221184}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1.0000122, z: 1.0000122}
+  m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 418254420}
@@ -1151,11 +1152,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 1693221184}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fbdd12a1f52a7ba478068c8c6f270888, type: 3}
+  m_Script: {fileID: 11500000, guid: 5859d28df634dbf49b94310b898bfc03, type: 3}
   m_Name: 
-  m_EditorClassIdentifier: Assembly-CSharp::TypingEffect
-  text: {fileID: 418254418}
-  typingSpeed: 0.05
+  m_EditorClassIdentifier: Assembly-CSharp::TextFadeEffect
+  fadeInTime: 2
+  fadeOutTime: 0.5
 --- !u!1 &1803685937
 GameObject:
   m_ObjectHideFlags: 0
