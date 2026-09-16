@@ -111,7 +111,7 @@ public class BattleManagerTemp : MonoBehaviour
             if(!unit.isPlaced) tb = true;
         }
 
-        boardPanel.NextTurn(tb ? 1 : 3);
+        boardPanel.NextTurn(tb ? 1 : 2);
     }
 
     public void OnUnitInReadyClicked(int i)
@@ -154,7 +154,7 @@ public class BattleManagerTemp : MonoBehaviour
             {
                 if(!unit.isPlaced) tb = true;
             }
-            if(!tb) boardPanel.NextTurn(2);
+            if(!tb) boardPanel.NextTurn();
         }
     }
 
