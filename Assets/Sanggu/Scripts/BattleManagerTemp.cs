@@ -26,6 +26,13 @@ public class BattleManagerTemp : MonoBehaviour
     [SerializeField] private BoardPanel boardPanel;
     [SerializeField] private GameObject boardObject;
     [SerializeField] private GameObject blankPrefab;
+    [SerializeField] private Sprite attackPreviewSprite;
+    private readonly Dictionary<Vector2Int, Image> _attackPreviewPlates = new();
+    private readonly Dictionary<Vector2Int, Image> _attackPlates = new();
+    private int _patternRevision;
+    private HashSet<Vector2Int> _preparedDangerCells;
+    private BossTemp _preparedBoss;
+    private int _preparedTurn = -1;
     [SerializeField] private Unit[] units = new Unit[3];
     
     [SerializeField] private EventSystem eventSystem;
@@ -35,11 +42,32 @@ public class BattleManagerTemp : MonoBehaviour
     private int _currentClickIndex = -1;
 
     private bool _isClicked = false;
+    private readonly BattlePatternRules.PlazaSequence _plazaSequence = new();
+    private readonly BattlePatternRules.MansionSequence _mansionSequence = new();
+    private readonly BattlePatternRules.CathedralSequence _cathedralSequence = new();
+    private readonly BattlePatternRules.DoorSequence _doorSequence = new();
+    private readonly BattlePatternRules.BasementSequence _basementSequence = new();
+    private readonly BattlePatternRules.LibrarySequence _librarySequence = new();
+    private readonly BattlePatternRules.TrainingSequence _trainingSequence = new();
     [SerializeField] private float doubleClickDelay = 0.1f;
 
     //활성하시 클릭 가능한 칸 생성
     public void Init()
     {
+        ClearBossPatternPreview();
+        _attackPreviewPlates.Clear();
+        _attackPlates.Clear();
+        if (attackPreviewSprite == null)
+        {
+            attackPreviewSprite = Resources.Load<Sprite>("공격 예상");
+        }
+        _plazaSequence.Reset();
+        _mansionSequence.Reset();
+        _cathedralSequence.Reset();
+        _doorSequence.Reset();
+        _basementSequence.Reset();
+        _librarySequence.Reset();
+        _trainingSequence.Reset();
         foreach (var blank in _blankPos.ToList())
         {
             Destroy(blank.Value);
@@ -74,6 +102,37 @@ public class BattleManagerTemp : MonoBehaviour
                 trigger.triggers.Add(entry);
                 go.transform.SetAsFirstSibling();
                 _blankPos[new Vector2Int(x, y)] = go;
+
+                // 이동 가능 표시와 분리한다. 부모 Image의 색 변경으로 예고가 지워지지 않는다.
+                var previewObject = new GameObject($"AttackPreview{x},{y}", typeof(RectTransform), typeof(Image));
+                previewObject.layer = go.layer;
+                var previewRect = (RectTransform)previewObject.transform;
+                previewRect.SetParent(go.transform, false);
+                previewRect.anchorMin = Vector2.zero;
+                previewRect.anchorMax = Vector2.one;
+                previewRect.offsetMin = Vector2.zero;
+                previewRect.offsetMax = Vector2.zero;
+                var previewImage = previewObject.GetComponent<Image>();
+                previewImage.sprite = attackPreviewSprite;
+                previewImage.color = new Color(1f, 1f, 1f, 0.65f);
+                previewImage.raycastTarget = false;
+                previewImage.enabled = false;
+                _attackPreviewPlates[new Vector2Int(x, y)] = previewImage;
+
+                // 실제 공격도 이동 표시와 별도 Image를 사용한다.
+                var attackObject = new GameObject($"BossAttack{x},{y}", typeof(RectTransform), typeof(Image));
+                attackObject.layer = go.layer;
+                var attackRect = (RectTransform)attackObject.transform;
+                attackRect.SetParent(go.transform, false);
+                attackRect.anchorMin = Vector2.zero;
+                attackRect.anchorMax = Vector2.one;
+                attackRect.offsetMin = Vector2.zero;
+                attackRect.offsetMax = Vector2.zero;
+                var attackImage = attackObject.GetComponent<Image>();
+                attackImage.color = new Color(1f, 0.2f, 0.2f, 0.65f);
+                attackImage.raycastTarget = false;
+                attackImage.enabled = false;
+                _attackPlates[new Vector2Int(x, y)] = attackImage;
             }
         }
         
@@ -266,7 +325,7 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void Attack()
     {
-        foreach (var unit in units.Where(x => x.isPlaced).ToList())
+        foreach (var unit in units.Where(x => x.isPlaced && x.reviveRemainTurn <= 0).ToList())
         {
             boardPanel.AttackBoss(unit.unitTemp.power);
             boardPanel.PlayAttackAnim(units.ToList().IndexOf(unit));
@@ -280,16 +339,55 @@ public class BattleManagerTemp : MonoBehaviour
         units[i].reviveRemainTurn = Mathf.Max(1, units[i].unitTemp.reviveCool);
     }
 
+    public void PrepareBossPattern(BossTemp boss, int turnCount)
+    {
+        // 준비와 행동 단계 양쪽에서 호출해도 이번 턴의 패턴은 한 번만 선택한다.
+        if (_preparedDangerCells != null && _preparedBoss == boss && _preparedTurn == turnCount) return;
+
+        ClearBossPatternPreview();
+        var pattern = GetPattern(boss, turnCount);
+        _preparedDangerCells = BattlePatternRules.GetDangerCells(pattern);
+        _preparedBoss = boss;
+        _preparedTurn = turnCount;
+        foreach (var cell in _preparedDangerCells)
+        {
+            if (_attackPreviewPlates.TryGetValue(cell, out var preview)) preview.enabled = true;
+        }
+    }
+
+    public void ClearBossPatternPreview()
+    {
+        _patternRevision++;
+        foreach (var preview in _attackPreviewPlates.Values)
+        {
+            if (preview != null) preview.enabled = false;
+        }
+        _preparedDangerCells = null;
+        _preparedBoss = null;
+        _preparedTurn = -1;
+        foreach (var attack in _attackPlates.Values)
+        {
+            if (attack != null) attack.enabled = false;
+        }
+    }
+
     public IEnumerator PlayBossPattern(BossTemp boss, int turnCount)
     {
-        var pattern = GetPattern(boss, turnCount);
-        var dangerCells = BattlePatternRules.GetDangerCells(pattern);
+        PrepareBossPattern(boss, turnCount);
+        // 예고한 좌표를 그대로 공격하며, 다음 패턴을 새로 뽑지 않는다.
+        var dangerCells = _preparedDangerCells;
+        var revision = _patternRevision;
+        foreach (var preview in _attackPreviewPlates.Values)
+        {
+            if (preview != null) preview.enabled = false;
+        }
+        if (dangerCells.Count == 0) yield break;
 
         foreach (var cell in dangerCells)
         {
-            if (_blankPos.TryGetValue(cell, out var blank))
+            if (_attackPlates.TryGetValue(cell, out var attack) && attack != null)
             {
-                blank.GetComponent<Image>().color = new Color(1f, 0.2f, 0.2f, 0.65f);
+                attack.enabled = true;
             }
         }
 
@@ -297,37 +395,90 @@ public class BattleManagerTemp : MonoBehaviour
             ? boss.patternPreviewSeconds
             : 1f;
         yield return new WaitForSeconds(previewSeconds);
+        if (revision != _patternRevision) yield break;
 
         var damage = boss != null && boss.patternDamage > 0 ? boss.patternDamage : 5;
+        var anyUnitHit = false;
+        var hitAnimations = new List<Coroutine>();
         for (int i = 0; i < units.Length; i++)
         {
             if (!units[i].isPlaced || units[i].reviveRemainTurn > 0) continue;
             if (!dangerCells.Contains(units[i].pos)) continue;
 
-            boardPanel.OnBossAttack(damage);
-            boardPanel.HitAttack(i);
+            anyUnitHit = true;
+            var hitAnimation = boardPanel.HitAttack(i);
+            if (hitAnimation != null) hitAnimations.Add(hitAnimation);
         }
 
-        // HitAttack의 글리치 애니메이션이 끝날 때까지 다음 턴 입력을 막는다.
-        yield return new WaitForSeconds(1f);
+        // 피격 캐릭터 수와 관계없이 이번 패턴의 공유 HP 피해는 한 번만 적용한다.
+        if (anyUnitHit) boardPanel.OnBossAttack(damage);
+
+        // 동일한 1초 타이머끼리 경쟁하지 않고 실제 피격/사망 처리가 끝날 때까지 기다린다.
+        foreach (var hitAnimation in hitAnimations)
+        {
+            yield return hitAnimation;
+            if (revision != _patternRevision) yield break;
+        }
+        if (hitAnimations.Count == 0) yield return new WaitForSeconds(1f);
+        if (revision != _patternRevision) yield break;
 
         foreach (var cell in dangerCells)
         {
-            if (_blankPos.TryGetValue(cell, out var blank))
+            if (_attackPlates.TryGetValue(cell, out var attack) && attack != null)
             {
-                blank.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0f);
+                attack.enabled = false;
             }
         }
+        // 다음 턴의 Prepare 호출까지 확정 좌표를 유지한다.
     }
 
     private BattlePatternRules.Pattern GetPattern(BossTemp boss, int turnCount)
     {
+        // 대저택의 A/B/C는 대저택 전투에서만 사용한다.
+        if (boss != null && boss.bossId == "noble")
+        {
+            return _mansionSequence.Next();
+        }
+
+        // Fusion.asset은 광장 스테이지다. 배열 순환 대신 A/B/C 묶음을 진행한다.
+        if (boss != null && boss.bossId == "fusion")
+        {
+            return _plazaSequence.Next();
+        }
+
+        if (boss != null && boss.bossId == "door")
+        {
+            return _doorSequence.Next();
+        }
+
+        if (boss != null && boss.bossId == "subject")
+        {
+            return _basementSequence.Next();
+        }
+
+        if (boss != null && boss.bossId == "secretary")
+        {
+            return _librarySequence.Next();
+        }
+
+        if (boss != null && boss.bossId == "instructor")
+        {
+            return _trainingSequence.Next();
+        }
+
         var patterns = boss?.patterns;
+        // Pope.asset은 성당 스테이지다. 다른 스테이지와 진행 상태를 공유하지 않는다.
+        if (boss != null && boss.bossId == "pope")
+        {
+            return _cathedralSequence.Next();
+        }
+
         if (patterns != null && patterns.Length > 0)
         {
             return patterns[(turnCount - 1) % patterns.Length];
         }
 
-        return BattlePatternRules.GetDefaultPattern(turnCount);
+        // 미설정 보스에게 대저택 패턴을 대신 적용하지 않는다.
+        return BattlePatternRules.Pattern.None;
     }
 }

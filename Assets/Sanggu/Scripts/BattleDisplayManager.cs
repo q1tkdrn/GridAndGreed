@@ -131,7 +131,7 @@ public class BattleDisplayManager : MonoBehaviour
     public void ShowDefeatPanel()
     {
         defeatPanel.SetActive(true);
-        AchievementManager.Instance.AddProgress("ACH-7", 100);
+        RecordAchievement("ACH-7", 100);
         
     }
 
@@ -148,7 +148,7 @@ public class BattleDisplayManager : MonoBehaviour
             var boss = check == 3 ? bossDeath1 : bossKing;
             if (check != 3)
             {
-                AchievementManager.Instance.AddProgress("ACH-18", 1);
+                RecordAchievement("ACH-18", 1);
             } 
             appearedBoss.Add(boss);
             boardPanel.boss = boss;
@@ -211,16 +211,17 @@ public class BattleDisplayManager : MonoBehaviour
 
     public void ClearBoss(BossTemp boss)
     {
-        AchievementManager.Instance.AddProgress("ACH-2", 1);
-        AchievementManager.Instance.AddProgress("ACH-8", 1);
-        AchievementManager.Instance.AddProgress("ACH-9", 1);
+        if (boss == null) return;
+        RecordAchievement("ACH-2", 1);
+        RecordAchievement("ACH-8", 1);
+        RecordAchievement("ACH-9", 1);
 
         switch (boss.bossId)
         {
             case "king":
                 PlayerPrefs.SetInt("IsEnding", 1);
-                AchievementManager.Instance.AddProgress("ACH-19", 1);
-                AchievementManager.Instance.AddProgress("ACH-20", 1);
+                RecordAchievement("ACH-19", 1);
+                RecordAchievement("ACH-20", 1);
                 ShowCutScene("Ending1");
                 if (PlayerPrefs.GetInt("IsEnding") == 0) PlayerPrefs.SetInt("IsEnding", 1);
                 waysPanel.gameObject.SetActive(false);
@@ -228,36 +229,53 @@ public class BattleDisplayManager : MonoBehaviour
             case "death2":
                 Debug.Log("b");
                 PlayerPrefs.SetInt("IsEnding", 2);
-                AchievementManager.Instance.AddProgress("ACH-28", 1);
-                AchievementManager.Instance.AddProgress("ACH-29", 1);
+                RecordAchievement("ACH-28", 1);
+                RecordAchievement("ACH-29", 1);
                 ShowCutScene("Ending2");
 
                 waysPanel.gameObject.SetActive(false);
                 break;
             case "pope":
-                AchievementManager.Instance.AddProgress("ACH-11", 1);
+                RecordAchievement("ACH-11", 1);
                 break;
             case "noble":
-                AchievementManager.Instance.AddProgress("ACH-12", 1);
+                RecordAchievement("ACH-12", 1);
                 break;
             case "instructor":
-                AchievementManager.Instance.AddProgress("ACH-13", 1);
+                RecordAchievement("ACH-13", 1);
                 break;
             case "subject":
-                AchievementManager.Instance.AddProgress("ACH-14", 1);
+                RecordAchievement("ACH-14", 1);
                 break;
             case "secretary":
-                AchievementManager.Instance.AddProgress("ACH-15", 1);
+                RecordAchievement("ACH-15", 1);
                 break;
             case "fusion":
-                AchievementManager.Instance.AddProgress("ACH-16", 1);
+                RecordAchievement("ACH-16", 1);
                 break;
             case "door":
-                AchievementManager.Instance.AddProgress("ACH-17", 1);
+                RecordAchievement("ACH-17", 1);
                 break;
         }
 
         PlayerPrefs.Save();
+    }
+
+    private bool _warnedMissingAchievements;
+
+    private void RecordAchievement(string id, int amount)
+    {
+        // 전투 씬을 직접 실행한 테스트에서도 결과 화면은 정상적으로 진행한다.
+        var achievements = AchievementManager.Instance;
+        if (achievements != null)
+        {
+            achievements.AddProgress(id, amount);
+        }
+        else if (!_warnedMissingAchievements)
+        {
+            _warnedMissingAchievements = true;
+            Debug.LogWarning("업적 관리자가 없어 이번 전투 테스트의 업적 기록을 건너뜁니다. 업적 검증은 시작 씬부터 실행하세요.", this);
+        }
     }
 
     [DebugButton]

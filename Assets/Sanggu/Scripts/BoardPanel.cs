@@ -75,6 +75,7 @@ public class BoardPanel : MonoBehaviour
     private bool _isWin = false;
     private bool _isLose = false; 
     private bool _isResolvingBossPattern;
+    private Coroutine _bossPatternCoroutine;
 
     public enum ETurn
     {
@@ -85,6 +86,16 @@ public class BoardPanel : MonoBehaviour
         Attack = 4,
         BossPattern = 5,
         End = 6
+    }
+
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+        _bossPatternCoroutine = null;
+        _isResolvingBossPattern = false;
+        _isPrinting = false;
+        _textQueue.Clear();
+        if (battleManagerTemp != null) battleManagerTemp.ClearBossPatternPreview();
     }
 
     private void OnEnable()
@@ -141,6 +152,8 @@ public class BoardPanel : MonoBehaviour
 
     public void Init()
     {
+        if (_bossPatternCoroutine != null) StopCoroutine(_bossPatternCoroutine);
+        _bossPatternCoroutine = null;
         foreach (var item in items)
         {
             item.OnTurnStart();
@@ -195,9 +208,11 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.BossReady:
                 turnText = "보스 공격 준비";
+                battleManagerTemp.PrepareBossPattern(boss, turnCount);
                 break;
             case ETurn.Player:
                 turnText = "행동";
+                battleManagerTemp.PrepareBossPattern(boss, turnCount);
                 break;
             case ETurn.Attack:
                 turnText = "공격";
@@ -205,7 +220,7 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.BossPattern:
                 turnText = "보스 공격";
-                StartCoroutine(ResolveBossPattern());
+                _bossPatternCoroutine = StartCoroutine(ResolveBossPattern());
                 break;
             case ETurn.End:
                 turnText = "턴 종료";
@@ -370,7 +385,7 @@ public class BoardPanel : MonoBehaviour
             image.sprite = actionPointsList[i % actionPointsList.Length];
         }
         
-        if(actionPoint <= 0)
+        if(actionPoint <= 0 && turn == ETurn.Player && !_isWin && !_isLose)
         {
             NextTurn();
             battleManagerTemp.Attack();
@@ -381,8 +396,15 @@ public class BoardPanel : MonoBehaviour
     private IEnumerator ResolveBossPattern()
     {
         _isResolvingBossPattern = true;
-        yield return battleManagerTemp.PlayBossPattern(boss, turnCount);
-        _isResolvingBossPattern = false;
+        try
+        {
+            yield return battleManagerTemp.PlayBossPattern(boss, turnCount);
+        }
+        finally
+        {
+            _isResolvingBossPattern = false;
+            _bossPatternCoroutine = null;
+        }
 
         if (!_isWin && !_isLose)
         {
@@ -415,9 +437,10 @@ public class BoardPanel : MonoBehaviour
     }
 
     [DebugButton("유닛 처치")]
-    public void HitAttack(int i)
+    public Coroutine HitAttack(int i)
     {
-        StartCoroutine(SetGlitch(i));
+        if (i < 0 || i >= units.Length || units[i].unit == null) return null;
+        return StartCoroutine(SetGlitch(i));
     }
 
     public void OnUnitRevived(int i)
