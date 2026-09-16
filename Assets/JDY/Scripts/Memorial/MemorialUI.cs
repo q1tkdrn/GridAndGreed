@@ -1,7 +1,8 @@
 using System;
-using UnityEngine;
-using UnityEngine.UI;
 using TMPro;
+using UnityEngine;
+using UnityEngine.InputSystem;
+using UnityEngine.UI;
 
 public class MemorialUI : MonoBehaviour
 {
@@ -17,12 +18,16 @@ public class MemorialUI : MonoBehaviour
     private int currentImageIndex;
     private int currentTextIndex;
     private Action onComplete;
+
+    private bool isShowMemorial = false;
     private void Start()
     {
         memorialPanel.SetActive(false);
+        isShowMemorial = false;
     }
     public void ShowMemorial(MemorialData memorial, Action onComplete)
     {
+        isShowMemorial = true;
         this.onComplete = onComplete;
         currentMemorial = memorial;
 
@@ -70,9 +75,16 @@ public class MemorialUI : MonoBehaviour
         else
         {
             memorialPanel.SetActive(false);
-
+            isShowMemorial = false;
             onComplete?.Invoke();
             onComplete = null;
+        }
+    }
+    void Update()
+    {
+        if (Keyboard.current.spaceKey.wasPressedThisFrame && isShowMemorial)
+        {
+            SkipButton();
         }
     }
     public void SkipButton()
