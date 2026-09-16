@@ -36,6 +36,14 @@ public class Player : MonoBehaviour
     public int CharacterIndex;
     private SpriteRenderer sr;
 
+    private void Awake()
+    {
+        if (FindAnyObjectByType<BoardPanel>() != null)
+        {
+            enabled = false;
+        }
+    }
+
 
 
 

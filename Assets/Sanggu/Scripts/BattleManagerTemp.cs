@@ -45,6 +45,10 @@ public class BattleManagerTemp : MonoBehaviour
             Destroy(blank.Value);
         }
         _blankPos.Clear();
+        _movableBlank.Clear();
+        _currentMoveIndex = -1;
+        _currentClickIndex = -1;
+        _isClicked = false;
         
         for (int x = 0; x < 9; x++)
         {
@@ -53,6 +57,13 @@ public class BattleManagerTemp : MonoBehaviour
                 var go = Instantiate(blankPrefab, boardObject.transform);
                 go.GetComponent<RectTransform>().anchoredPosition = new Vector2(-330 + 82 * x, 331 - 82 * y);
                 go.name = $"blank{x},{y}";
+                var trigger = go.GetComponent<EventTrigger>();
+                if (trigger == null)
+                {
+                    trigger = go.AddComponent<EventTrigger>();
+                }
+                trigger.triggers ??= new List<EventTrigger.Entry>();
+
                 EventTrigger.Entry entry = new EventTrigger.Entry();
                 entry.eventID = EventTriggerType.PointerClick;
                 
@@ -60,7 +71,7 @@ public class BattleManagerTemp : MonoBehaviour
                 {
                     OnBoardClicked(go);
                 });
-                go.GetComponent<EventTrigger>().triggers.Add(entry);
+                trigger.triggers.Add(entry);
                 go.transform.SetAsFirstSibling();
                 _blankPos[new Vector2Int(x, y)] = go;
             }
@@ -81,6 +92,19 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnTurnStart()
     {
+        for (int i = 0; i < units.Length; i++)
+        {
+            if (units[i].reviveRemainTurn <= 0) continue;
+
+            units[i].reviveRemainTurn--;
+            if (units[i].reviveRemainTurn != 0) continue;
+
+            units[i].unit.gameObject.SetActive(true);
+            units[i].unit.GetComponent<RectTransform>().anchoredPosition =
+                _blankPos[units[i].pos].GetComponent<RectTransform>().anchoredPosition;
+            boardPanel.OnUnitRevived(i);
+        }
+
         var tb = false;
         foreach (var unit in units)
         {
@@ -92,6 +116,7 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnUnitInReadyClicked(int i)
     {
+        if (i < 0 || i >= units.Length) return;
         if (!units[i].isPlaced && units[i].reviveRemainTurn == 0)
         {
             _currentMoveIndex = i;
@@ -102,8 +127,11 @@ public class BattleManagerTemp : MonoBehaviour
     public void OnBoardClicked(GameObject go)
     {
         if(_currentMoveIndex == -1) return;
-        
-        var pos = _blankPos.FirstOrDefault(x => x.Value == go).Key;
+
+        var blank = _blankPos.FirstOrDefault(pair => pair.Value == go);
+        if (blank.Value == null) return;
+
+        var pos = blank.Key;
         
         foreach (var unit in units)
         {
@@ -132,6 +160,7 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnPointerEnter(int i)
     {
+        if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         var pos = units[i].pos;
         for (int x = -1; x <= 1; x++)
@@ -153,16 +182,17 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnPointerExit(int i)
     {
-        foreach (var blank in _movableBlank.ToList())
+        foreach (var blank in _movableBlank)
         {
             blank.GetComponent<Image>().color = new Color(1, 1, 1, 0);
-            _movableBlank.Remove(blank);
         }
+        _movableBlank.Clear();
     }
 
     //유닛 클릭 감지
     public void OnPointerDown(int i)
     {
+        if(i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         _currentMoveIndex = i;
         units[_currentMoveIndex].unit.transform.SetAsLastSibling();
@@ -171,6 +201,7 @@ public class BattleManagerTemp : MonoBehaviour
     //유닛 드래그 감지
     public void OnPointerDrag(int i)
     {
+        if (_currentMoveIndex != i) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         if(boardPanel.actionPoint <= 0) return;
         units[i].unit.transform.position = Input.mousePosition;
@@ -179,6 +210,7 @@ public class BattleManagerTemp : MonoBehaviour
     //유닛 클릭 헤제 감지
     public void OnPointerUp(int i)
     {
+        if (_currentMoveIndex != i) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         if(boardPanel.actionPoint <= 0) return;
         PointerEventData data = new PointerEventData(eventSystem)
@@ -188,12 +220,12 @@ public class BattleManagerTemp : MonoBehaviour
         
         List<RaycastResult> results = new List<RaycastResult>();
         eventSystem.RaycastAll(data, results);
-        var pos = _blankPos.FirstOrDefault(x =>
-            x.Value == results.FirstOrDefault(y => y.gameObject.CompareTag("Board")).gameObject).Key;
-        if (_movableBlank.Contains(_blankPos[pos]))
+        var boardHit = results.FirstOrDefault(result => result.gameObject != null && result.gameObject.CompareTag("Board"));
+        var target = _blankPos.FirstOrDefault(pair => pair.Value == boardHit.gameObject);
+        if (target.Value != null && _movableBlank.Contains(target.Value))
         {
-            units[_currentMoveIndex].unit.GetComponent<RectTransform>().anchoredPosition = _blankPos[pos].GetComponent<RectTransform>().anchoredPosition;
-            units[_currentMoveIndex].pos = pos;
+            units[_currentMoveIndex].unit.GetComponent<RectTransform>().anchoredPosition = target.Value.GetComponent<RectTransform>().anchoredPosition;
+            units[_currentMoveIndex].pos = target.Key;
             OnPointerExit(_currentMoveIndex);
             OnPointerEnter(_currentMoveIndex);
             boardPanel.UpdateActionPoint(boardPanel.actionPoint - 1);
@@ -208,6 +240,7 @@ public class BattleManagerTemp : MonoBehaviour
     //더블 클릭 감지용
     public void OnPointerClick(int i)
     {
+        if(i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         if(boardPanel.IsAnimPlaying(i)) return;
         if(boardPanel.actionPoint <= 0) return;
@@ -238,12 +271,63 @@ public class BattleManagerTemp : MonoBehaviour
             boardPanel.AttackBoss(unit.unitTemp.power);
             boardPanel.PlayAttackAnim(units.ToList().IndexOf(unit));
         }
-        boardPanel.NextTurn(2);
     }
 
     public void OnHit(int i)
     {
+        if (i < 0 || i >= units.Length || !units[i].isPlaced) return;
         units[i].unit.gameObject.SetActive(false);
-        units[i].reviveRemainTurn = units[i].unitTemp.reviveCool;
+        units[i].reviveRemainTurn = Mathf.Max(1, units[i].unitTemp.reviveCool);
+    }
+
+    public IEnumerator PlayBossPattern(BossTemp boss, int turnCount)
+    {
+        var pattern = GetPattern(boss, turnCount);
+        var dangerCells = BattlePatternRules.GetDangerCells(pattern);
+
+        foreach (var cell in dangerCells)
+        {
+            if (_blankPos.TryGetValue(cell, out var blank))
+            {
+                blank.GetComponent<Image>().color = new Color(1f, 0.2f, 0.2f, 0.65f);
+            }
+        }
+
+        var previewSeconds = boss != null && boss.patternPreviewSeconds > 0f
+            ? boss.patternPreviewSeconds
+            : 1f;
+        yield return new WaitForSeconds(previewSeconds);
+
+        var damage = boss != null && boss.patternDamage > 0 ? boss.patternDamage : 5;
+        for (int i = 0; i < units.Length; i++)
+        {
+            if (!units[i].isPlaced || units[i].reviveRemainTurn > 0) continue;
+            if (!dangerCells.Contains(units[i].pos)) continue;
+
+            boardPanel.OnBossAttack(damage);
+            boardPanel.HitAttack(i);
+        }
+
+        // HitAttack의 글리치 애니메이션이 끝날 때까지 다음 턴 입력을 막는다.
+        yield return new WaitForSeconds(1f);
+
+        foreach (var cell in dangerCells)
+        {
+            if (_blankPos.TryGetValue(cell, out var blank))
+            {
+                blank.GetComponent<Image>().color = new Color(1f, 1f, 1f, 0f);
+            }
+        }
+    }
+
+    private BattlePatternRules.Pattern GetPattern(BossTemp boss, int turnCount)
+    {
+        var patterns = boss?.patterns;
+        if (patterns != null && patterns.Length > 0)
+        {
+            return patterns[(turnCount - 1) % patterns.Length];
+        }
+
+        return BattlePatternRules.GetDefaultPattern(turnCount);
     }
 }
