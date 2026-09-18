@@ -20,11 +20,17 @@ public class CutScenePanel: MonoBehaviour
     [SerializeField] private float textDelay = 0.5f;
     [SerializeField] private float cutDelay = 0.5f;
     [SerializeField] private float timeForSkip = 2f;
+    [SerializeField] private Button nextButton;
+    [SerializeField] private TextFadeEffect textFadeEffect;
     private float _holdTime = 0f;
     private bool _isSkip = false;
 
+    private int _currentCut = 0;
+    private int _currentText = -1;
+
     public void SetCutScene(string cutsceneName)
     {
+        _currentText = -1;
         slider.value = 0f;
         currentCutScene = null;
         currentCutScene = cutscenes.FirstOrDefault(x => x.cutSceneName == cutsceneName);
@@ -37,7 +43,8 @@ public class CutScenePanel: MonoBehaviour
         slider.gameObject.SetActive(currentCutScene.skippable);
         _holdTime = 0f;
         _isSkip = false;
-        StartCoroutine(PlayCutScene());
+        //StartCoroutine(PlayCutScene());
+        NextText();
     }
 
     IEnumerator PlayCutScene()
@@ -66,6 +73,38 @@ public class CutScenePanel: MonoBehaviour
         gameObject.SetActive(false);
     }
 
+    public void NextText()
+    {
+        nextButton.gameObject.SetActive(false);
+        _currentText++;
+        if (currentCutScene.cuts[_currentCut].texts.Length <= _currentText)
+        {
+            _currentCut++;
+            _currentText = 0;
+        }
+
+        if (currentCutScene.cuts.Length <= _currentCut)
+        {
+            if (currentCutScene.name is "Ending1" or "Ending2")
+            {
+                SceneManager.LoadScene("Main");
+            }
+            gameObject.SetActive(false);
+            return;
+        }
+        
+        image.sprite = currentCutScene.cuts[_currentCut].image;
+        
+        text.text = currentCutScene.cuts[_currentCut].texts[_currentText];
+        textFadeEffect.FadeInText(text, () => nextButton.gameObject.SetActive(true));
+    }
+
+    public void ClickButton()
+    {
+        textFadeEffect.FadeOutText(text, () => NextText());
+    }
+    
+
     private void Update()
     {
         if (Input.GetKeyDown(KeyCode.Space))
@@ -91,7 +130,7 @@ public class CutScenePanel: MonoBehaviour
         if (!(_holdTime >= timeForSkip)) return;
         
         _isSkip = true;
-        StopCoroutine(PlayCutScene());
+        //StopCoroutine(PlayCutScene());
         if (currentCutScene.name is "Ending1" or "Ending2")
         {
             SceneManager.LoadScene("Main");
