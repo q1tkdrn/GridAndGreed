@@ -446,6 +446,36 @@ public static class BattlePatternRules
 {
     public const int BoardSize = 9;
 
+    public enum ColorEffect { None, Relocate, ReduceNextActionPoints, DamageBossOnDodge }
+
+    public static ColorEffect GetColorEffect(Pattern pattern) => pattern switch
+    {
+        Pattern.AfterlifePhase1A3 or Pattern.AfterlifePhase2A4 or Pattern.AfterlifePhase2C2 => ColorEffect.Relocate,
+        Pattern.AfterlifePhase1B2 or Pattern.AfterlifePhase2B1 or Pattern.AfterlifePhase2B3 => ColorEffect.ReduceNextActionPoints,
+        Pattern.AfterlifePhase1B3 or Pattern.AfterlifePhase1C3 or Pattern.AfterlifePhase2A3 => ColorEffect.DamageBossOnDodge,
+        _ => ColorEffect.None
+    };
+
+    // 배치되지 않은 칸과 피격 유닛의 이전 칸을 포함해, 예약된 칸을 제외한 위치를 추첨한다.
+    public static List<Vector2Int> PickRelocationCells(int count, HashSet<Vector2Int> occupied)
+    {
+        var available = new List<Vector2Int>();
+        for (int y = 0; y < BoardSize; y++)
+            for (int x = 0; x < BoardSize; x++)
+            {
+                var cell = new Vector2Int(x, y);
+                if (!occupied.Contains(cell)) available.Add(cell);
+            }
+        var result = new List<Vector2Int>();
+        while (result.Count < count && available.Count > 0)
+        {
+            int index = Random.Range(0, available.Count);
+            result.Add(available[index]);
+            available.RemoveAt(index);
+        }
+        return result;
+    }
+
     public enum Pattern
     {
         Corners,
@@ -465,7 +495,14 @@ public static class BattlePatternRules
         DoorA1, DoorA2, DoorB1, DoorB2, DoorB3, DoorB4, DoorB5, DoorC1, DoorC2, DoorC3, DoorC4,
         BasementA1, BasementA2, BasementA3, BasementA4, BasementB1, BasementB2, BasementB3, BasementB4, BasementB5, BasementC1, BasementC2, BasementC3,
         LibraryA1, LibraryA2, LibraryB1, LibraryB2, LibraryC1, LibraryC2,
-        TrainingA1, TrainingA2, TrainingA3, TrainingB1, TrainingB2, TrainingC1, TrainingC2
+        TrainingA1, TrainingA2, TrainingA3, TrainingB1, TrainingB2, TrainingC1, TrainingC2,
+        // 기존 enum 값은 에셋에 직렬화되므로 새 패턴은 끝에 추가한다.
+        AfterlifePhase1A1, AfterlifePhase1A2, AfterlifePhase1A3,
+        AfterlifePhase1B1, AfterlifePhase1B2, AfterlifePhase1B3,
+        AfterlifePhase1C1, AfterlifePhase1C2, AfterlifePhase1C3,
+        AfterlifePhase2A1, AfterlifePhase2A2, AfterlifePhase2A3, AfterlifePhase2A4,
+        AfterlifePhase2B1, AfterlifePhase2B2, AfterlifePhase2B3, AfterlifePhase2B4,
+        AfterlifePhase2C1, AfterlifePhase2C2
     }
 
     public static HashSet<Vector2Int> GetDangerCells(Pattern pattern)
@@ -540,6 +577,20 @@ public static class BattlePatternRules
                     Pattern.TrainingB2 => (x / 3 == 1) != (y / 3 == 1),
                     Pattern.TrainingC1 => x is >= 2 and <= 6 && y is >= 2 and <= 6,
                     Pattern.TrainingC2 => x < 2 || x > 6 || y < 2 || y > 6,
+                    // 저승: 색상별 기믹 없이 밝은 영역을 공격 칸으로 해석한다.
+                    Pattern.AfterlifePhase1A1 or Pattern.AfterlifePhase2B2 =>
+                        (x / 3 != 1 && y / 3 != 1) || (x / 3 == 1 && y / 3 == 1),
+                    Pattern.AfterlifePhase1A2 or Pattern.AfterlifePhase2B4 =>
+                        (x / 3 == 1) != (y / 3 == 1),
+                    Pattern.AfterlifePhase1A3 or Pattern.AfterlifePhase2A4 or Pattern.AfterlifePhase2C2 => true,
+                    Pattern.AfterlifePhase1B1 or Pattern.AfterlifePhase2C1 => y < 3,
+                    Pattern.AfterlifePhase1B2 or Pattern.AfterlifePhase2B1 or Pattern.AfterlifePhase2B3 => x < 3 || x > 5,
+                    Pattern.AfterlifePhase1B3 or Pattern.AfterlifePhase1C3 or Pattern.AfterlifePhase2A3 =>
+                        x >= 1 && x <= 7 && y >= 1 && y <= 7,
+                    Pattern.AfterlifePhase1C1 => x == y || x + y == 8,
+                    Pattern.AfterlifePhase1C2 => x == 4 || y == 4,
+                    Pattern.AfterlifePhase2A1 => x < 3,
+                    Pattern.AfterlifePhase2A2 => x > 5,
                     _ => false
                 };
 
@@ -626,6 +677,26 @@ public static class BattlePatternRules
             new[] { Pattern.TrainingA1, Pattern.TrainingA2, Pattern.TrainingA3 },
             new[] { Pattern.TrainingB1, Pattern.TrainingB2 },
             new[] { Pattern.TrainingC1, Pattern.TrainingC2 }
+        }) { }
+    }
+
+    public sealed class AfterlifePhase1Sequence : PatternSequence
+    {
+        public AfterlifePhase1Sequence() : base(new[]
+        {
+            new[] { Pattern.AfterlifePhase1A1, Pattern.AfterlifePhase1A2, Pattern.AfterlifePhase1A3 },
+            new[] { Pattern.AfterlifePhase1B1, Pattern.AfterlifePhase1B2, Pattern.AfterlifePhase1B3 },
+            new[] { Pattern.AfterlifePhase1C1, Pattern.AfterlifePhase1C2, Pattern.AfterlifePhase1C3 }
+        }) { }
+    }
+
+    public sealed class AfterlifePhase2Sequence : PatternSequence
+    {
+        public AfterlifePhase2Sequence() : base(new[]
+        {
+            new[] { Pattern.AfterlifePhase2A1, Pattern.AfterlifePhase2A2, Pattern.AfterlifePhase2A3, Pattern.AfterlifePhase2A4 },
+            new[] { Pattern.AfterlifePhase2B1, Pattern.AfterlifePhase2B2, Pattern.AfterlifePhase2B3, Pattern.AfterlifePhase2B4 },
+            new[] { Pattern.AfterlifePhase2C1, Pattern.AfterlifePhase2C2 }
         }) { }
     }
 

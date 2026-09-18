@@ -19,6 +19,7 @@ public class BattleManagerTemp : MonoBehaviour
         public Vector2Int pos;
         public Image unit;
         public Image unitOnWaiting;
+        public CharacterPassiveState passive;
     }
     
     private Dictionary<Vector2Int, GameObject> _blankPos = new Dictionary<Vector2Int, GameObject>();
@@ -33,6 +34,7 @@ public class BattleManagerTemp : MonoBehaviour
     private HashSet<Vector2Int> _preparedDangerCells;
     private BossTemp _preparedBoss;
     private int _preparedTurn = -1;
+    private BattlePatternRules.ColorEffect _preparedEffect;
     [SerializeField] private Unit[] units = new Unit[3];
     
     [SerializeField] private EventSystem eventSystem;
@@ -49,6 +51,8 @@ public class BattleManagerTemp : MonoBehaviour
     private readonly BattlePatternRules.BasementSequence _basementSequence = new();
     private readonly BattlePatternRules.LibrarySequence _librarySequence = new();
     private readonly BattlePatternRules.TrainingSequence _trainingSequence = new();
+    private readonly BattlePatternRules.AfterlifePhase1Sequence _afterlifePhase1Sequence = new();
+    private readonly BattlePatternRules.AfterlifePhase2Sequence _afterlifePhase2Sequence = new();
     [SerializeField] private float doubleClickDelay = 0.1f;
 
     //활성하시 클릭 가능한 칸 생성
@@ -68,6 +72,8 @@ public class BattleManagerTemp : MonoBehaviour
         _basementSequence.Reset();
         _librarySequence.Reset();
         _trainingSequence.Reset();
+        _afterlifePhase1Sequence.Reset();
+        _afterlifePhase2Sequence.Reset();
         foreach (var blank in _blankPos.ToList())
         {
             Destroy(blank.Value);
@@ -139,6 +145,7 @@ public class BattleManagerTemp : MonoBehaviour
         for (int i = 0; i < 3; i++)
         {
             units[i].unitTemp = BattleDisplayManager.GetInstance().currentUnits[i];
+            units[i].passive = new CharacterPassiveState(units[i].unitTemp.id);
             units[i].isPlaced = false;
             units[i].reviveRemainTurn = 0;
             units[i].pos = new Vector2Int(-1, -1);
@@ -153,6 +160,7 @@ public class BattleManagerTemp : MonoBehaviour
     {
         for (int i = 0; i < units.Length; i++)
         {
+            units[i].passive.StartTurn();
             if (units[i].reviveRemainTurn <= 0) continue;
 
             units[i].reviveRemainTurn--;
@@ -171,6 +179,8 @@ public class BattleManagerTemp : MonoBehaviour
         }
 
         boardPanel.NextTurn(tb ? 1 : 3);
+        // 부활 대기 중인 유닛만 남아도 다음 부활 턴으로 진행할 수 있어야 한다.
+        if (!tb && units.All(u => u.reviveRemainTurn > 0)) boardPanel.UpdateActionPoint(0);
     }
 
     public void OnUnitInReadyClicked(int i)
@@ -251,6 +261,7 @@ public class BattleManagerTemp : MonoBehaviour
     //유닛 클릭 감지
     public void OnPointerDown(int i)
     {
+        if (boardPanel.IsBattleOver) return;
         if(i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         _currentMoveIndex = i;
@@ -260,6 +271,7 @@ public class BattleManagerTemp : MonoBehaviour
     //유닛 드래그 감지
     public void OnPointerDrag(int i)
     {
+        if (boardPanel.IsBattleOver) return;
         if (_currentMoveIndex != i) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         if(boardPanel.actionPoint <= 0) return;
@@ -269,6 +281,7 @@ public class BattleManagerTemp : MonoBehaviour
     //유닛 클릭 헤제 감지
     public void OnPointerUp(int i)
     {
+        if (boardPanel.IsBattleOver) return;
         if (_currentMoveIndex != i) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         if(boardPanel.actionPoint <= 0) return;
@@ -285,6 +298,10 @@ public class BattleManagerTemp : MonoBehaviour
         {
             units[_currentMoveIndex].unit.GetComponent<RectTransform>().anchoredPosition = target.Value.GetComponent<RectTransform>().anchoredPosition;
             units[_currentMoveIndex].pos = target.Key;
+            var passive = units[_currentMoveIndex].passive;
+            passive.Move();
+            boardPanel.AttackBoss(passive.MoveDamage);
+            boardPanel.HealReaper(passive.MoveHealing);
             OnPointerExit(_currentMoveIndex);
             OnPointerEnter(_currentMoveIndex);
             boardPanel.UpdateActionPoint(boardPanel.actionPoint - 1);
@@ -299,6 +316,7 @@ public class BattleManagerTemp : MonoBehaviour
     //더블 클릭 감지용
     public void OnPointerClick(int i)
     {
+        if (boardPanel.IsBattleOver) return;
         if(i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         if(boardPanel.IsAnimPlaying(i)) return;
@@ -306,9 +324,12 @@ public class BattleManagerTemp : MonoBehaviour
         if (_currentClickIndex == i && _isClicked)
         {
             Debug.Log("db");
-            boardPanel.JudgeBoss(units[i].unitTemp.intelligence);
-            boardPanel.UpdateActionPoint(boardPanel.actionPoint - 1);
+            var passive = units[i].passive;
+            boardPanel.JudgeBoss(units[i].unitTemp.intelligence + passive.IntelligenceBonus);
+            boardPanel.HealReaper(passive.JudgeHealing);
+            passive.AfterJudge();
             boardPanel.PlayJudgeAnim(i);
+            boardPanel.UpdateActionPoint(boardPanel.actionPoint - 1);
         }
         _isClicked = true;
         _currentClickIndex = i;
@@ -327,16 +348,37 @@ public class BattleManagerTemp : MonoBehaviour
     {
         foreach (var unit in units.Where(x => x.isPlaced && x.reviveRemainTurn <= 0).ToList())
         {
-            boardPanel.AttackBoss(unit.unitTemp.power);
+            if (boardPanel.IsBattleOver) break;
+            boardPanel.AutomaticAttackBoss(unit.unitTemp.power + unit.passive.PowerBonus);
             boardPanel.PlayAttackAnim(units.ToList().IndexOf(unit));
         }
     }
 
     public void OnHit(int i)
     {
-        if (i < 0 || i >= units.Length || !units[i].isPlaced) return;
+        if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         units[i].unit.gameObject.SetActive(false);
         units[i].reviveRemainTurn = Mathf.Max(1, units[i].unitTemp.reviveCool);
+        units[i].passive.OnDeath();
+        // 전투 내 누적 효과는 자신이 사망/부활해도 유지한다.
+        foreach (var unit in units) unit.passive.OnAllyDeath();
+        boardPanel.OnAllyDeath();
+        if (units[i].passive.LosesBattleOnDeath) boardPanel.LoseBattle();
+    }
+
+    public bool TryBlockHit(int i)
+    {
+        return units[i].passive.TryBlockHit();
+    }
+
+    public void OnTurnEnd()
+    {
+        foreach (var unit in units)
+        {
+            if (boardPanel.IsBattleOver) break;
+            if (unit.isPlaced && unit.reviveRemainTurn <= 0)
+                boardPanel.AttackBoss(unit.passive.TurnEndDamage);
+        }
     }
 
     public void PrepareBossPattern(BossTemp boss, int turnCount)
@@ -346,12 +388,17 @@ public class BattleManagerTemp : MonoBehaviour
 
         ClearBossPatternPreview();
         var pattern = GetPattern(boss, turnCount);
+        _preparedEffect = BattlePatternRules.GetColorEffect(pattern);
         _preparedDangerCells = BattlePatternRules.GetDangerCells(pattern);
         _preparedBoss = boss;
         _preparedTurn = turnCount;
         foreach (var cell in _preparedDangerCells)
         {
-            if (_attackPreviewPlates.TryGetValue(cell, out var preview)) preview.enabled = true;
+            if (_attackPreviewPlates.TryGetValue(cell, out var preview))
+            {
+                preview.color = GetPatternColor(_preparedEffect, true);
+                preview.enabled = true;
+            }
         }
     }
 
@@ -365,6 +412,7 @@ public class BattleManagerTemp : MonoBehaviour
         _preparedDangerCells = null;
         _preparedBoss = null;
         _preparedTurn = -1;
+        _preparedEffect = BattlePatternRules.ColorEffect.None;
         foreach (var attack in _attackPlates.Values)
         {
             if (attack != null) attack.enabled = false;
@@ -373,9 +421,11 @@ public class BattleManagerTemp : MonoBehaviour
 
     public IEnumerator PlayBossPattern(BossTemp boss, int turnCount)
     {
+        if (boardPanel.IsBattleOver) yield break;
         PrepareBossPattern(boss, turnCount);
         // 예고한 좌표를 그대로 공격하며, 다음 패턴을 새로 뽑지 않는다.
         var dangerCells = _preparedDangerCells;
+        var effect = _preparedEffect;
         var revision = _patternRevision;
         foreach (var preview in _attackPreviewPlates.Values)
         {
@@ -388,6 +438,7 @@ public class BattleManagerTemp : MonoBehaviour
             if (_attackPlates.TryGetValue(cell, out var attack) && attack != null)
             {
                 attack.enabled = true;
+                attack.color = GetPatternColor(effect, false);
             }
         }
 
@@ -398,20 +449,37 @@ public class BattleManagerTemp : MonoBehaviour
         if (revision != _patternRevision) yield break;
 
         var damage = boss != null && boss.patternDamage > 0 ? boss.patternDamage : 5;
-        var anyUnitHit = false;
+        var hitUnits = new List<int>();
         var hitAnimations = new List<Coroutine>();
         for (int i = 0; i < units.Length; i++)
         {
             if (!units[i].isPlaced || units[i].reviveRemainTurn > 0) continue;
             if (!dangerCells.Contains(units[i].pos)) continue;
+            if (TryBlockHit(i)) continue;
 
-            anyUnitHit = true;
+            hitUnits.Add(i);
             var hitAnimation = boardPanel.HitAttack(i);
             if (hitAnimation != null) hitAnimations.Add(hitAnimation);
         }
 
         // 피격 캐릭터 수와 관계없이 이번 패턴의 공유 HP 피해는 한 번만 적용한다.
-        if (anyUnitHit) boardPanel.OnBossAttack(damage);
+        if (hitUnits.Count > 0) boardPanel.OnBossAttack(damage);
+
+        if (!boardPanel.IsBattleOver)
+        {
+            switch (effect)
+            {
+                case BattlePatternRules.ColorEffect.Relocate:
+                    RelocateHitUnits(hitUnits);
+                    break;
+                case BattlePatternRules.ColorEffect.ReduceNextActionPoints:
+                    boardPanel.ReduceNextTurnActionPoints(hitUnits.Count);
+                    break;
+                case BattlePatternRules.ColorEffect.DamageBossOnDodge:
+                    if (hitUnits.Count == 0) boardPanel.AttackBoss(3);
+                    break;
+            }
+        }
 
         // 동일한 1초 타이머끼리 경쟁하지 않고 실제 피격/사망 처리가 끝날 때까지 기다린다.
         foreach (var hitAnimation in hitAnimations)
@@ -434,6 +502,9 @@ public class BattleManagerTemp : MonoBehaviour
 
     private BattlePatternRules.Pattern GetPattern(BossTemp boss, int turnCount)
     {
+        // 기존 저승 2연전 전환에 대응한다. 페이즈별 보스 패시브는 별도로 적용한다.
+        if (boss != null && boss.bossId == "death1") return _afterlifePhase1Sequence.Next();
+        if (boss != null && boss.bossId == "death2") return _afterlifePhase2Sequence.Next();
         // 대저택의 A/B/C는 대저택 전투에서만 사용한다.
         if (boss != null && boss.bossId == "noble")
         {
@@ -480,5 +551,33 @@ public class BattleManagerTemp : MonoBehaviour
 
         // 미설정 보스에게 대저택 패턴을 대신 적용하지 않는다.
         return BattlePatternRules.Pattern.None;
+    }
+
+    private void RelocateHitUnits(List<int> hitUnits)
+    {
+        var occupied = new HashSet<Vector2Int>();
+        for (int i = 0; i < units.Length; i++)
+            if (units[i].isPlaced && !hitUnits.Contains(i)) occupied.Add(units[i].pos);
+        var destinations = BattlePatternRules.PickRelocationCells(hitUnits.Count, occupied);
+        for (int n = 0; n < destinations.Count; n++)
+        {
+            int i = hitUnits[n];
+            units[i].pos = destinations[n];
+            units[i].unit.rectTransform.anchoredPosition = _blankPos[destinations[n]].GetComponent<RectTransform>().anchoredPosition;
+        }
+        // 강제 이동은 아군의 이동 행동이 아니므로 이동 패시브/행동력은 발동하지 않는다.
+        OnPointerExit(-1);
+        _currentMoveIndex = -1;
+    }
+
+    private static Color GetPatternColor(BattlePatternRules.ColorEffect effect, bool preview)
+    {
+        return effect switch
+        {
+            BattlePatternRules.ColorEffect.Relocate => new Color(1f, 0.2f, 0.2f, 0.65f),
+            BattlePatternRules.ColorEffect.ReduceNextActionPoints => new Color(0.2f, 0.85f, 0.35f, 0.65f),
+            BattlePatternRules.ColorEffect.DamageBossOnDodge => new Color(1f, 0.85f, 0.15f, 0.65f),
+            _ => preview ? new Color(1f, 1f, 1f, 0.65f) : new Color(1f, 0.2f, 0.2f, 0.65f)
+        };
     }
 }

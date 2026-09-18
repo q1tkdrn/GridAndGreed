@@ -30,6 +30,13 @@ public class DisplayDebug: Editor
         {
             BattleDisplayManager manager = (BattleDisplayManager)target;
             EditorGUI.indentLevel++;
+            using (new EditorGUI.DisabledScope(!Application.isPlaying))
+            {
+                if (GUILayout.Button("저승 1페이즈 바로 시작 (HP 100 / 의지 5)"))
+                    manager.DebugEnterAfterlife(1);
+                if (GUILayout.Button("저승 2페이즈 바로 시작 (HP 10 / 의지 7)"))
+                    manager.DebugEnterAfterlife(2);
+            }
             _panelFoldOut = EditorGUILayout.Foldout(_panelFoldOut, "Panel");
             if (_panelFoldOut)
             {

@@ -18,6 +18,50 @@ public struct Stage
 
 public class BattleDisplayManager : MonoBehaviour
 {
+#if UNITY_EDITOR
+    public enum DebugStartStage { Normal, AfterlifePhase1, AfterlifePhase2 }
+    [Header("Editor Play Test")]
+    [Tooltip("BattleTemp 씬에서 Play할 때 지정한 저승 페이즈로 바로 진입합니다.")]
+    public DebugStartStage debugStartStage;
+
+    private void Start()
+    {
+        if (debugStartStage == DebugStartStage.AfterlifePhase1) DebugEnterAfterlife(1);
+        else if (debugStartStage == DebugStartStage.AfterlifePhase2) DebugEnterAfterlife(2);
+    }
+
+    public void DebugEnterAfterlife(int phaseNumber)
+    {
+        if (!Application.isPlaying) return;
+        var targetBoss = phaseNumber == 2 ? bossDeath2 : bossDeath1;
+        if (targetBoss == null || currentUnits.Length != 3 || currentUnits.Any(unit => unit == null))
+        {
+            Debug.LogError("저승 보스와 기본 캐릭터 3명의 참조를 확인하세요.", this);
+            return;
+        }
+
+        // 이전 전투/결과/컷신의 코루틴과 화면을 닫고 독립적인 테스트를 시작한다.
+        boardPanel.gameObject.SetActive(false);
+        cutScenePanel.gameObject.SetActive(false);
+        entrancePanel.gameObject.SetActive(false);
+        unitBuildingPanel.SetActive(false);
+        itemBuildingPanel.gameObject.SetActive(false);
+        victoryPanel.SetActive(false);
+        defeatPanel.SetActive(false);
+        waysPanel.gameObject.SetActive(false);
+        arrow.SetActive(false);
+        _decidedStage = -1;
+        appearedBoss.Clear();
+        appearedBoss.Add(targetBoss);
+        boardPanel.boss = targetBoss;
+        boardPanel.reaperCurrentHp = boardPanel.reaperMaxHp;
+        // 전투 씬만 실행한 경우 인벤토리 없이 기본 3인으로 테스트한다.
+        if (InventoryManager.Instance == null) currentItems = new ItemData[3];
+        boardPanel.gameObject.SetActive(true);
+        boardPanel.ShowCutScene();
+    }
+#endif
+
     [Header("Panel")]
     public EntrancePanel entrancePanel;
     public BoardPanel boardPanel;

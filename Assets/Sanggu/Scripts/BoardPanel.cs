@@ -74,6 +74,48 @@ public class BoardPanel : MonoBehaviour
 
     private bool _isWin = false;
     private bool _isLose = false; 
+    public bool IsBattleOver => _isWin || _isLose;
+    private int _nextTurnActionPenalty;
+    [SerializeField] private AfterlifePassiveRules.PhaseOneEffect afterlifeTurnPassive;
+
+    private void BeginBossTurn()
+    {
+        afterlifeTurnPassive = boss.bossId == "death1"
+            ? (AfterlifePassiveRules.PhaseOneEffect)UnityEngine.Random.Range(1, 4)
+            : AfterlifePassiveRules.PhaseOneEffect.None;
+        int maximum = AfterlifePassiveRules.GetActionPointMaximum(afterlifeTurnPassive);
+        UpdateActionPoint(Mathf.Max(0, maximum - _nextTurnActionPenalty));
+        _nextTurnActionPenalty = 0;
+        if (boss.bossId == "death1")
+        {
+            string effect = afterlifeTurnPassive switch
+            {
+                AfterlifePassiveRules.PhaseOneEffect.LimitActions => "최대 행동력 4",
+                AfterlifePassiveRules.PhaseOneEffect.JudgmentWeakness => "심판 피해 +2 / 힘 자동 공격 면역",
+                _ => "턴 종료 시 보스 HP 4 회복"
+            };
+            PrintText("[저승 1페이즈 패시브] " + effect);
+        }
+        else if (boss.bossId == "death2")
+            PrintText("[저승 2페이즈 패시브] 받는 피해 0 / 턴 종료 HP -1 / 아군 사망 시 의지력 +1");
+    }
+
+    private void EndBossTurn()
+    {
+        if (IsBattleOver) return;
+        // 자신의 턴 종료 HP 변화는 받는 피해가 아니므로 피해 면역을 거치지 않는다.
+        UpdateBossHp(AfterlifePassiveRules.GetTurnEndHp(boss.bossId, afterlifeTurnPassive, bossCurrentHp, bossMaxHp));
+    }
+
+    public void OnAllyDeath()
+    {
+        if (!IsBattleOver && boss.bossId == "death2") UpdateBossWillPower(willPower + 1);
+    }
+
+    public void ReduceNextTurnActionPoints(int amount)
+    {
+        _nextTurnActionPenalty += Mathf.Max(0, amount);
+    }
     private bool _isResolvingBossPattern;
     private Coroutine _bossPatternCoroutine;
 
@@ -159,27 +201,35 @@ public class BoardPanel : MonoBehaviour
             item.OnTurnStart();
         }
         _isLose = _isWin = false;
+        _nextTurnActionPenalty = 0;
         _isResolvingBossPattern = false;
         bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
         if (boss.bossId != "death2")
         {
             reaperCurrentHp = reaperMaxHp;
         }
+        // 각 보스 에셋의 스탯을 새로 읽어 이전 페이즈 HP/의지력이 남지 않도록 한다.
+        bossMaxHp = Mathf.Max(1, boss.maxHp);
+        willPower = Mathf.Max(0, boss.initialWillPower);
+        willPowerText.text = $"의지력: {willPower}";
+        // 기존 OnPhaseChange의 0 기반 규약: 0 = 1페이즈, 1 = 2페이즈.
+        phase = boss.bossId == "death2" ? 1 : 0;
         bossCurrentHp = bossMaxHp;
         UpdateBossHp(bossCurrentHp);
         UpdateReaperHp(reaperCurrentHp);
-        UpdateActionPoint(7);
         textBox.text = "";
         PrintText(boss.battleStart);
         PrintText(GetBossText(boss.turnStart, 0));
         turnCount = 1;
         turn = ETurn.Start;
+        BeginBossTurn();
         battleManagerTemp.Init();
     }
 
     [DebugButton("다음 턴")]
     public void NextTurn(int i = 1)
     {
+        if (IsBattleOver) return;
         if (_isResolvingBossPattern) return;
         turn += i;
         if(turn > ETurn.End) 
@@ -201,7 +251,7 @@ public class BoardPanel : MonoBehaviour
         {
             case ETurn.Start:
                 turnText = "턴 시작";
-                UpdateActionPoint(7);
+                BeginBossTurn();
                 break;
             case ETurn.Place:
                 turnText = "유닛 배치";
@@ -224,6 +274,9 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.End:
                 turnText = "턴 종료";
+                battleManagerTemp.OnTurnEnd();
+                EndBossTurn();
+                if (IsBattleOver) return;
                 nt = true;
                 break;
         }
@@ -270,8 +323,10 @@ public class BoardPanel : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             if (boss.bossId == "death1")
             {
+                // 1페이즈에서는 승리 화면/보상을 표시하지 않고 다음 보스 데이터로 전환한다.
                 boss = BattleDisplayManager.GetInstance().bossDeath2;
                 BattleDisplayManager.GetInstance().appearedBoss.Add(boss);
+                BattleDisplayManager.GetInstance().PlayBGM(boss.bgmLoop, boss.bgmStart);
                 Init();
             }
             else
@@ -306,14 +361,11 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("플레이어 HP 업데이트")]
     public void UpdateReaperHp(int hp)
     {
-        if(reaperCurrentHp == 0) return;
-        reaperCurrentHp = hp;
+        if (IsBattleOver) return;
+        reaperCurrentHp = Mathf.Clamp(hp, 0, reaperMaxHp);
         if (reaperCurrentHp <= 0)
         {
-            PrintText(boss.lose);
-            _isLose = true;
-            reaperCurrentHp = 0;
-
+            LoseBattle();
         }
         reaperHp.text = $"{reaperCurrentHp} / {reaperMaxHp}";
         reaperSlider.value = (float) reaperCurrentHp / reaperMaxHp;
@@ -321,11 +373,11 @@ public class BoardPanel : MonoBehaviour
     
     public void UpdateBossHp(int hp)
     {
-        if(bossCurrentHp == 0) return;
+        if (IsBattleOver) return;
         bossCurrentHp = hp;
         if (bossCurrentHp <= 0)
         {
-            PrintText(boss.win);
+            PrintText(string.IsNullOrWhiteSpace(boss.win) ? "승리" : boss.win);
             bossCurrentHp = 0;
             _isWin = true;
         }
@@ -336,14 +388,41 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("보스 심판")]
     public void JudgeBoss(int dmg)
     {
+        if (IsBattleOver) return;
         PrintText(GetBossText(boss.attackedAP, turnCount / 5));
-        UpdateBossHp(bossCurrentHp-dmg);
+        ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.Judgment);
     }
     
     [DebugButton("보스 공격")]
     public void AttackBoss(int dmg)
     {
-        UpdateBossHp(bossCurrentHp-dmg);
+        ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.Other);
+    }
+
+    public void AutomaticAttackBoss(int dmg)
+    {
+        ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.AutomaticAttack);
+    }
+
+    private void ApplyBossDamage(int dmg, AfterlifePassiveRules.DamageSource source)
+    {
+        if (IsBattleOver) return;
+        int damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, dmg);
+        if (damage > 0) UpdateBossHp(bossCurrentHp - damage);
+    }
+
+    public void HealReaper(int amount)
+    {
+        if (amount <= 0 || IsBattleOver) return;
+        UpdateReaperHp(reaperCurrentHp + amount);
+    }
+
+    public void LoseBattle()
+    {
+        if (IsBattleOver) return;
+        // HP를 강제로 0으로 만들지 않아도 꼬마 사신 사망으로 패배할 수 있다.
+        PrintText(string.IsNullOrWhiteSpace(boss.lose) ? "패배" : boss.lose);
+        _isLose = true;
     }
 
     public void OnBossAttack(int dmg)
