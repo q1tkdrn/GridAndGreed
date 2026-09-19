@@ -14,6 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
   bossName: "\uBB38"
   bossId: door
+  maxHp: 100
+  initialWillPower: 5
   bossSprite: {fileID: 21300000, guid: d3ab4c8e42a8d4d4b8e99267b9a204a8, type: 3}
   battleStart: "\uB2F9\uC2E0\uC740 \uC775\uC219\uD55C '\uBB38' \uC55E\uC5D0 \uC11C
     \uC788\uB2E4."

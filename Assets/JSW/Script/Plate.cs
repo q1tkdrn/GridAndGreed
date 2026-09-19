@@ -446,13 +446,25 @@ public static class BattlePatternRules
 {
     public const int BoardSize = 9;
 
-    public enum ColorEffect { None, Relocate, ReduceNextActionPoints, DamageBossOnDodge }
+    public enum ColorEffect
+    {
+        None,
+        Relocate,
+        ReduceNextActionPoints,
+        DamageBossOnDodge,
+        IncreaseKingWillPower,
+        HealKing,
+        RelocateKingTargets
+    }
 
     public static ColorEffect GetColorEffect(Pattern pattern) => pattern switch
     {
         Pattern.AfterlifePhase1A3 or Pattern.AfterlifePhase2A4 or Pattern.AfterlifePhase2C2 => ColorEffect.Relocate,
         Pattern.AfterlifePhase1B2 or Pattern.AfterlifePhase2B1 or Pattern.AfterlifePhase2B3 => ColorEffect.ReduceNextActionPoints,
         Pattern.AfterlifePhase1B3 or Pattern.AfterlifePhase1C3 or Pattern.AfterlifePhase2A3 => ColorEffect.DamageBossOnDodge,
+        Pattern.KingB3 => ColorEffect.IncreaseKingWillPower,
+        Pattern.KingA2 => ColorEffect.HealKing,
+        Pattern.KingC4 => ColorEffect.RelocateKingTargets,
         _ => ColorEffect.None
     };
 
@@ -502,7 +514,10 @@ public static class BattlePatternRules
         AfterlifePhase1C1, AfterlifePhase1C2, AfterlifePhase1C3,
         AfterlifePhase2A1, AfterlifePhase2A2, AfterlifePhase2A3, AfterlifePhase2A4,
         AfterlifePhase2B1, AfterlifePhase2B2, AfterlifePhase2B3, AfterlifePhase2B4,
-        AfterlifePhase2C1, AfterlifePhase2C2
+        AfterlifePhase2C1, AfterlifePhase2C2,
+        KingA1, KingA2, KingA3,
+        KingB1, KingB2, KingB3,
+        KingC1, KingC2, KingC3, KingC4
     }
 
     public static HashSet<Vector2Int> GetDangerCells(Pattern pattern)
@@ -591,6 +606,16 @@ public static class BattlePatternRules
                     Pattern.AfterlifePhase1C2 => x == 4 || y == 4,
                     Pattern.AfterlifePhase2A1 => x < 3,
                     Pattern.AfterlifePhase2A2 => x > 5,
+                    Pattern.KingA1 => x < 3 || x > 5,
+                    Pattern.KingA2 => x < 2 || x > 6 || y < 2 || y > 6,
+                    Pattern.KingA3 => x is >= 3 and <= 5,
+                    Pattern.KingB1 => x == y || x + y == 8,
+                    Pattern.KingB2 => x == 4 || y == 4,
+                    Pattern.KingB3 => x is >= 3 and <= 5 && y is >= 3 and <= 5,
+                    Pattern.KingC1 => x % 4 == 0,
+                    Pattern.KingC2 => y % 4 == 0,
+                    Pattern.KingC3 => x < 2 || x > 6 || y < 2 || y > 6,
+                    Pattern.KingC4 => true,
                     _ => false
                 };
 
@@ -697,6 +722,16 @@ public static class BattlePatternRules
             new[] { Pattern.AfterlifePhase2A1, Pattern.AfterlifePhase2A2, Pattern.AfterlifePhase2A3, Pattern.AfterlifePhase2A4 },
             new[] { Pattern.AfterlifePhase2B1, Pattern.AfterlifePhase2B2, Pattern.AfterlifePhase2B3, Pattern.AfterlifePhase2B4 },
             new[] { Pattern.AfterlifePhase2C1, Pattern.AfterlifePhase2C2 }
+        }) { }
+    }
+
+    public sealed class KingSequence : PatternSequence
+    {
+        public KingSequence() : base(new[]
+        {
+            new[] { Pattern.KingA1, Pattern.KingA2, Pattern.KingA3 },
+            new[] { Pattern.KingB1, Pattern.KingB2, Pattern.KingB3 },
+            new[] { Pattern.KingC1, Pattern.KingC2, Pattern.KingC3, Pattern.KingC4 }
         }) { }
     }
 

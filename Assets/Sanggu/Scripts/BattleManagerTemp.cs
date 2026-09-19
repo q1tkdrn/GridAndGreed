@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -53,6 +53,7 @@ public class BattleManagerTemp : MonoBehaviour
     private readonly BattlePatternRules.TrainingSequence _trainingSequence = new();
     private readonly BattlePatternRules.AfterlifePhase1Sequence _afterlifePhase1Sequence = new();
     private readonly BattlePatternRules.AfterlifePhase2Sequence _afterlifePhase2Sequence = new();
+    private readonly BattlePatternRules.KingSequence _kingSequence = new();
     [SerializeField] private float doubleClickDelay = 0.1f;
 
     //활성하시 클릭 가능한 칸 생성
@@ -74,6 +75,7 @@ public class BattleManagerTemp : MonoBehaviour
         _trainingSequence.Reset();
         _afterlifePhase1Sequence.Reset();
         _afterlifePhase2Sequence.Reset();
+        _kingSequence.Reset();
         foreach (var blank in _blankPos.ToList())
         {
             Destroy(blank.Value);
@@ -300,11 +302,11 @@ public class BattleManagerTemp : MonoBehaviour
             units[_currentMoveIndex].pos = target.Key;
             var passive = units[_currentMoveIndex].passive;
             passive.Move();
-            boardPanel.AttackBoss(passive.MoveDamage);
+            boardPanel.AttackBoss(passive.MoveDamage + boardPanel.ItemEffects.MoveDamage);
             boardPanel.HealReaper(passive.MoveHealing);
             OnPointerExit(_currentMoveIndex);
             OnPointerEnter(_currentMoveIndex);
-            boardPanel.UpdateActionPoint(boardPanel.actionPoint - 1);
+            boardPanel.SpendAction();
         }
         else
         {
@@ -325,11 +327,12 @@ public class BattleManagerTemp : MonoBehaviour
         {
             Debug.Log("db");
             var passive = units[i].passive;
-            boardPanel.JudgeBoss(units[i].unitTemp.intelligence + passive.IntelligenceBonus);
+            boardPanel.JudgeBoss(units[i].unitTemp.intelligence + passive.IntelligenceBonus
+                + boardPanel.ItemEffects.IntelligenceBonus(units[i].unitTemp.id, boardPanel.reaperCurrentHp));
             boardPanel.HealReaper(passive.JudgeHealing);
             passive.AfterJudge();
             boardPanel.PlayJudgeAnim(i);
-            boardPanel.UpdateActionPoint(boardPanel.actionPoint - 1);
+            boardPanel.SpendAction(judgment: true);
         }
         _isClicked = true;
         _currentClickIndex = i;
@@ -349,21 +352,29 @@ public class BattleManagerTemp : MonoBehaviour
         foreach (var unit in units.Where(x => x.isPlaced && x.reviveRemainTurn <= 0).ToList())
         {
             if (boardPanel.IsBattleOver) break;
-            boardPanel.AutomaticAttackBoss(unit.unitTemp.power + unit.passive.PowerBonus);
+            boardPanel.AutomaticAttackBoss(unit.unitTemp.power + unit.passive.PowerBonus
+                + boardPanel.ItemEffects.PowerBonus(unit.unitTemp.id, boardPanel.reaperCurrentHp));
             boardPanel.PlayAttackAnim(units.ToList().IndexOf(unit));
         }
     }
 
     public void OnHit(int i)
     {
+        if (boardPanel.IsBattleOver) return;
         if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         units[i].unit.gameObject.SetActive(false);
-        units[i].reviveRemainTurn = Mathf.Max(1, units[i].unitTemp.reviveCool);
+        units[i].reviveRemainTurn = boardPanel.ItemEffects.ReviveTurns(units[i].unitTemp.reviveCool);
         units[i].passive.OnDeath();
         // 전투 내 누적 효과는 자신이 사망/부활해도 유지한다.
         foreach (var unit in units) unit.passive.OnAllyDeath();
         boardPanel.OnAllyDeath();
         if (units[i].passive.LosesBattleOnDeath) boardPanel.LoseBattle();
+        // The watch can reduce a one-turn revival to zero, after death effects resolve.
+        if (!boardPanel.IsBattleOver && units[i].reviveRemainTurn == 0)
+        {
+            units[i].unit.gameObject.SetActive(true);
+            boardPanel.OnUnitRevived(i);
+        }
     }
 
     public bool TryBlockHit(int i)
@@ -478,6 +489,16 @@ public class BattleManagerTemp : MonoBehaviour
                 case BattlePatternRules.ColorEffect.DamageBossOnDodge:
                     if (hitUnits.Count == 0) boardPanel.AttackBoss(3);
                     break;
+                case BattlePatternRules.ColorEffect.IncreaseKingWillPower:
+                    if (hitUnits.Count > 0)
+                        boardPanel.UpdateBossWillPower(boardPanel.willPower + hitUnits.Count);
+                    break;
+                case BattlePatternRules.ColorEffect.HealKing:
+                    boardPanel.HealBoss(3 * hitUnits.Count);
+                    break;
+                case BattlePatternRules.ColorEffect.RelocateKingTargets:
+                    RelocateHitUnits(hitUnits);
+                    break;
             }
         }
 
@@ -505,6 +526,7 @@ public class BattleManagerTemp : MonoBehaviour
         // 기존 저승 2연전 전환에 대응한다. 페이즈별 보스 패시브는 별도로 적용한다.
         if (boss != null && boss.bossId == "death1") return _afterlifePhase1Sequence.Next();
         if (boss != null && boss.bossId == "death2") return _afterlifePhase2Sequence.Next();
+        if (boss != null && boss.bossId == "king") return _kingSequence.Next();
         // 대저택의 A/B/C는 대저택 전투에서만 사용한다.
         if (boss != null && boss.bossId == "noble")
         {
@@ -577,6 +599,9 @@ public class BattleManagerTemp : MonoBehaviour
             BattlePatternRules.ColorEffect.Relocate => new Color(1f, 0.2f, 0.2f, 0.65f),
             BattlePatternRules.ColorEffect.ReduceNextActionPoints => new Color(0.2f, 0.85f, 0.35f, 0.65f),
             BattlePatternRules.ColorEffect.DamageBossOnDodge => new Color(1f, 0.85f, 0.15f, 0.65f),
+            BattlePatternRules.ColorEffect.IncreaseKingWillPower => new Color(0.65f, 0.25f, 0.22f, 0.65f),
+            BattlePatternRules.ColorEffect.HealKing => new Color(0.2f, 0.55f, 0.3f, 0.65f),
+            BattlePatternRules.ColorEffect.RelocateKingTargets => new Color(0.62f, 0.61f, 0.39f, 0.65f),
             _ => preview ? new Color(1f, 1f, 1f, 0.65f) : new Color(1f, 0.2f, 0.2f, 0.65f)
         };
     }

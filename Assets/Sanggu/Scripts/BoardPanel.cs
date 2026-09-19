@@ -75,6 +75,7 @@ public class BoardPanel : MonoBehaviour
     private bool _isWin = false;
     private bool _isLose = false; 
     public bool IsBattleOver => _isWin || _isLose;
+    public ItemBattleState ItemEffects { get; private set; } = new ItemBattleState(null);
     private int _nextTurnActionPenalty;
     [SerializeField] private AfterlifePassiveRules.PhaseOneEffect afterlifeTurnPassive;
 
@@ -83,9 +84,16 @@ public class BoardPanel : MonoBehaviour
         afterlifeTurnPassive = boss.bossId == "death1"
             ? (AfterlifePassiveRules.PhaseOneEffect)UnityEngine.Random.Range(1, 4)
             : AfterlifePassiveRules.PhaseOneEffect.None;
-        int maximum = AfterlifePassiveRules.GetActionPointMaximum(afterlifeTurnPassive);
+        ItemEffects.StartTurn();
+        int maximum = AfterlifePassiveRules.GetActionPointMaximum(afterlifeTurnPassive) + ItemEffects.ActionPointBonus;
         UpdateActionPoint(Mathf.Max(0, maximum - _nextTurnActionPenalty));
         _nextTurnActionPenalty = 0;
+        foreach (var item in items) item.OnTurnStart();
+        // Turn-start healing precedes tobacco's HP cost; each change uses normal HP limits.
+        HealReaper(ItemEffects.TurnHealing);
+        if (ItemEffects.TurnHpCost > 0) UpdateReaperHp(reaperCurrentHp - ItemEffects.TurnHpCost);
+        if (IsBattleOver) return;
+        AttackBoss(ItemEffects.TurnDamage(UnityEngine.Random.Range));
         if (boss.bossId == "death1")
         {
             string effect = afterlifeTurnPassive switch
@@ -110,6 +118,14 @@ public class BoardPanel : MonoBehaviour
     public void OnAllyDeath()
     {
         if (!IsBattleOver && boss.bossId == "death2") UpdateBossWillPower(willPower + 1);
+        HealReaper(ItemEffects.DeathHealing);
+        AttackBoss(ItemEffects.DeathDamage);
+    }
+
+    public void SpendAction(bool judgment = false)
+    {
+        if (IsBattleOver) return;
+        UpdateActionPoint(ItemEffects.SpendAction(actionPoint, judgment, UnityEngine.Random.Range));
     }
 
     public void ReduceNextTurnActionPoints(int amount)
@@ -196,10 +212,10 @@ public class BoardPanel : MonoBehaviour
     {
         if (_bossPatternCoroutine != null) StopCoroutine(_bossPatternCoroutine);
         _bossPatternCoroutine = null;
-        foreach (var item in items)
-        {
-            item.OnTurnStart();
-        }
+        // The two afterlife phases are one battle: do not refill the contract in phase two.
+        if (boss.bossId != "death2")
+            ItemEffects = new ItemBattleState(BattleDisplayManager.GetInstance().currentItems
+                .Where(item => item != null).Select(item => item.id));
         _isLose = _isWin = false;
         _nextTurnActionPenalty = 0;
         _isResolvingBossPattern = false;
@@ -210,7 +226,7 @@ public class BoardPanel : MonoBehaviour
         }
         // 각 보스 에셋의 스탯을 새로 읽어 이전 페이즈 HP/의지력이 남지 않도록 한다.
         bossMaxHp = Mathf.Max(1, boss.maxHp);
-        willPower = Mathf.Max(0, boss.initialWillPower);
+        willPower = Mathf.Max(0, boss.initialWillPower - ItemEffects.WillPowerReduction);
         willPowerText.text = $"의지력: {willPower}";
         // 기존 OnPhaseChange의 0 기반 규약: 0 = 1페이즈, 1 = 2페이즈.
         phase = boss.bossId == "death2" ? 1 : 0;
@@ -223,6 +239,7 @@ public class BoardPanel : MonoBehaviour
         turnCount = 1;
         turn = ETurn.Start;
         BeginBossTurn();
+        if (IsBattleOver) return;
         battleManagerTemp.Init();
     }
 
@@ -236,10 +253,6 @@ public class BoardPanel : MonoBehaviour
         {
             turn = ETurn.Start;
             turnCount++;
-            foreach (var item in items)
-            {
-                item.OnTurnStart();
-            }
             PrintText(GetBossText(boss.turnStart, turnCount / 5));
         }
 
@@ -252,6 +265,7 @@ public class BoardPanel : MonoBehaviour
             case ETurn.Start:
                 turnText = "턴 시작";
                 BeginBossTurn();
+                if (IsBattleOver) return;
                 break;
             case ETurn.Place:
                 turnText = "유닛 배치";
@@ -362,7 +376,7 @@ public class BoardPanel : MonoBehaviour
     public void UpdateReaperHp(int hp)
     {
         if (IsBattleOver) return;
-        reaperCurrentHp = Mathf.Clamp(hp, 0, reaperMaxHp);
+        reaperCurrentHp = ItemEffects.ResolveHp(hp, reaperMaxHp);
         if (reaperCurrentHp <= 0)
         {
             LoseBattle();
@@ -415,6 +429,12 @@ public class BoardPanel : MonoBehaviour
     {
         if (amount <= 0 || IsBattleOver) return;
         UpdateReaperHp(reaperCurrentHp + amount);
+    }
+
+    public void HealBoss(int amount)
+    {
+        if (amount <= 0 || IsBattleOver) return;
+        UpdateBossHp(Mathf.Min(bossCurrentHp + amount, bossMaxHp));
     }
 
     public void LoseBattle()
@@ -533,6 +553,12 @@ public class BoardPanel : MonoBehaviour
     {
         units[i].unit.material.SetFloat(EnableGlitch, 1);
         yield return new WaitForSeconds(1f);
+        if (boss != null && boss.bossId == "king")
+        {
+            // 왕의 공격은 캐릭터를 사망시키지 않고 사신의 공유 HP만 감소시킨다.
+            units[i].unit.material.SetFloat(EnableGlitch, 0);
+            yield break;
+        }
         battleManagerTemp.OnHit(i);
     }
 

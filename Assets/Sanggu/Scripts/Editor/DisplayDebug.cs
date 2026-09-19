@@ -1,6 +1,7 @@
 ﻿
 using UnityEditor;
 using UnityEngine;
+using System.Linq;
 
 [CustomEditor(typeof(BattleDisplayManager))]
 public class DisplayDebug: Editor
@@ -16,6 +17,29 @@ public class DisplayDebug: Editor
     private string _inputText;
     private string _inputItemId;
     private int _inputSoul;
+    private BossTemp[] _testBosses;
+
+    private void OnEnable()
+    {
+        // 진행 중 remainBoss에서 제거된 보스도 언제든 다시 테스트할 수 있다.
+        _testBosses = AssetDatabase.FindAssets("t:BossTemp", new[] { "Assets/Sanggu/ScriptableObjects/Boss" })
+            .Select(guid => AssetDatabase.LoadAssetAtPath<BossTemp>(AssetDatabase.GUIDToAssetPath(guid)))
+            .Where(boss => boss != null)
+            .OrderBy(boss => boss.bossId)
+            .ToArray();
+    }
+
+    private static string GetBossTestLabel(BossTemp boss)
+    {
+        string name = boss.bossId switch
+        {
+            "death1" => "저승 1페이즈",
+            "death2" => "저승 2페이즈",
+            _ => string.IsNullOrWhiteSpace(boss.stageName)
+                ? boss.bossName : $"{boss.stageName} · {boss.bossName}"
+        };
+        return $"{name} 바로 시작 (HP {boss.maxHp} / 의지 {boss.initialWillPower})";
+    }
     
     public override void OnInspectorGUI()
     {
@@ -30,12 +54,14 @@ public class DisplayDebug: Editor
         {
             BattleDisplayManager manager = (BattleDisplayManager)target;
             EditorGUI.indentLevel++;
+            EditorGUILayout.LabelField("보스전 테스트", EditorStyles.boldLabel);
             using (new EditorGUI.DisabledScope(!Application.isPlaying))
             {
-                if (GUILayout.Button("저승 1페이즈 바로 시작 (HP 100 / 의지 5)"))
-                    manager.DebugEnterAfterlife(1);
-                if (GUILayout.Button("저승 2페이즈 바로 시작 (HP 10 / 의지 7)"))
-                    manager.DebugEnterAfterlife(2);
+                foreach (var boss in _testBosses)
+                {
+                    if (boss != null && GUILayout.Button(GetBossTestLabel(boss)))
+                        manager.DebugEnterBoss(boss);
+                }
             }
             _panelFoldOut = EditorGUILayout.Foldout(_panelFoldOut, "Panel");
             if (_panelFoldOut)

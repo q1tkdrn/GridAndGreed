@@ -23,8 +23,12 @@ public class ItemUI : MonoBehaviour
 
     public void Init()
     {
+        StopAllCoroutines();
+        if (talkText != null) talkText.text = "";
+        if (popup != null) popup.SetActive(false);
         if (itemData is null)
         {
+            id = 0;
             unlock = false;
             image.gameObject.SetActive(false);
             return;
@@ -34,6 +38,7 @@ public class ItemUI : MonoBehaviour
         nameText.text = itemData.itemName;
         descriptionText.text = itemData.description;
         image.sprite = itemData.icon;
+        image.gameObject.SetActive(unlock);
         gameObject.SetActive(unlock);
     }
 
@@ -51,7 +56,23 @@ public class ItemUI : MonoBehaviour
 
     public void OnTurnStart()
     {
+        if (itemData == null || !unlock || !isActiveAndEnabled) return;
         if(id is not (10 or 17 or 18)) return;
+        if (talkText == null)
+        {
+            var bubble = new GameObject("ItemDialogue", typeof(RectTransform), typeof(TextMeshProUGUI));
+            bubble.transform.SetParent(transform, false);
+            talkText = bubble.GetComponent<TextMeshProUGUI>();
+            talkText.font = nameText.font;
+            talkText.fontSize = 20;
+            talkText.alignment = TextAlignmentOptions.Center;
+            talkText.raycastTarget = false;
+            var rect = talkText.rectTransform;
+            rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 1f);
+            rect.pivot = new Vector2(0.5f, 0f);
+            rect.anchoredPosition = new Vector2(0f, 8f);
+            rect.sizeDelta = new Vector2(240f, 70f);
+        }
         List<string> dialogue = new List<string>();
         switch (id)
         {
@@ -67,6 +88,7 @@ public class ItemUI : MonoBehaviour
         }
 
         dialogue.Shuffle();
+        StopAllCoroutines();
         StartCoroutine(PrintText(dialogue[0]));
     }
 
@@ -90,21 +112,21 @@ public class ItemUI : MonoBehaviour
     {
         new string[]
         {
-            "(Mr. COCKROACH 대사 1)",
-            "(Mr. COCKROACH 대사 2)",
-            "(Mr. COCKROACH 대사 3)"
+            "아직 살아 있지? 나도 그래!",
+            "이번엔 어디로 갈 거야?",
+            "내 얘기 좀 들어 봐!"
         },
         new string[]
         {
-            "(Mr. FLOWER 대사 1)",
-            "(Mr. FLOWER 대사 2)",
-            "(Mr. FLOWER 대사 3)",
+            "살랑, 살랑.",
+            "바람이 불어오네.",
+            "오늘도 꽃잎을 흔들어.",
         },
         new string[]
         {
-            "(Miss. GHOST 대사 1)",
-            "(Miss. GHOST 대사 2)",
-            "(Miss. GHOST 대사 3)",
+            "흐음~ 흠흠~♪",
+            "라라라~♪",
+            "이 노래, 기억하니?",
         }
     };
 }
