@@ -225,7 +225,8 @@ public class BattleManagerTemp : MonoBehaviour
             {
                 if(!unit.isPlaced) tb = true;
             }
-            if(!tb) boardPanel.NextTurn();
+            // 배치 완료 후 입력 가능한 행동 단계로 이동한다. 공격 예고는 Player 진입 시 준비된다.
+            if(!tb) boardPanel.NextTurn(2);
         }
     }
 

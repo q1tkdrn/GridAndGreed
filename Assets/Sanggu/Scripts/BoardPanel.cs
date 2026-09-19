@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -540,13 +540,6 @@ public class BoardPanel : MonoBehaviour
     {
         if (i < 0 || i >= units.Length || units[i].unit == null) return null;
         return StartCoroutine(SetGlitch(i));
-    }
-
-    public void OnUnitRevived(int i)
-    {
-        if (i < 0 || i >= units.Length) return;
-        units[i].unit.material.SetFloat(EnableGlitch, 0);
-        units[i].isAnimPlaying = false;
     }
 
     public void OnUnitRevived(int i)
