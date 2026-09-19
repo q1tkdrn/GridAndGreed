@@ -549,6 +549,13 @@ public class BoardPanel : MonoBehaviour
         units[i].isAnimPlaying = false;
     }
 
+    public void OnUnitRevived(int i)
+    {
+        if (i < 0 || i >= units.Length) return;
+        units[i].unit.material.SetFloat(EnableGlitch, 0);
+        units[i].isAnimPlaying = false;
+    }
+
     IEnumerator SetGlitch(int i)
     {
         units[i].unit.material.SetFloat(EnableGlitch, 1);

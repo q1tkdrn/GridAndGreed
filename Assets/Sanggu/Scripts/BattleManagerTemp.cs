@@ -225,7 +225,7 @@ public class BattleManagerTemp : MonoBehaviour
             {
                 if(!unit.isPlaced) tb = true;
             }
-            if(!tb) boardPanel.NextTurn(2);
+            if(!tb) boardPanel.NextTurn();
         }
     }
 

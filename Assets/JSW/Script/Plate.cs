@@ -25,6 +25,14 @@ public class Plate : MonoBehaviour
         }
     }
 
+    private void Awake()
+    {
+        if (FindAnyObjectByType<BoardPanel>() != null)
+        {
+            enabled = false;
+        }
+    }
+
     void Start()
     {
         MovingPoint = GameObject.Find("MovePoint");
