@@ -49,6 +49,7 @@ public class ItemBuildingPanel : MonoBehaviour
 
     public void OnItemClick(int id)
     {
+        if (id < 1 || id > items.Length || !items[id - 1].unlock) return;
         var item = items[id - 1];
         if (!item.isEquip)
         {
@@ -73,7 +74,8 @@ public class ItemBuildingPanel : MonoBehaviour
             for (int i = 0; i < slots.Length; i++)
             {
                 var slot = slots[i];
-                if (slot.name.text != item.itemData.name) continue;
+                if (slot.itemId != id) continue;
+                slots[i].itemId = 0;
                 slot.name.text = "";
                 slot.name.gameObject.SetActive(false);
                 slot.description.gameObject.SetActive(false);
@@ -87,6 +89,7 @@ public class ItemBuildingPanel : MonoBehaviour
 
     public void UnEquipItemInSlot(int i)
     {
+        if (i < 0 || i >= slots.Length) return;
         if(!slots[i].name.gameObject.activeSelf) return;
         if(!items[slots[i].itemId - 1].isEquip) return;
         items[slots[i].itemId - 1].isEquip = false;
@@ -95,6 +98,6 @@ public class ItemBuildingPanel : MonoBehaviour
         slots[i].description.gameObject.SetActive(false);
         slots[i].image.gameObject.SetActive(false);
         BattleDisplayManager.GetInstance().currentItems[i] = null;
-        items[slots[i].itemId - 1].isEquip = false;
+        slots[i].itemId = 0;
     }
 }
