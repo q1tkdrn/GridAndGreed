@@ -606,15 +606,17 @@ public static class BattlePatternRules
                     Pattern.AfterlifePhase1C2 => x == 4 || y == 4,
                     Pattern.AfterlifePhase2A1 => x < 3,
                     Pattern.AfterlifePhase2A2 => x > 5,
-                    Pattern.KingA1 => x < 3 || x > 5,
-                    Pattern.KingA2 => x < 2 || x > 6 || y < 2 || y > 6,
-                    Pattern.KingA3 => x is >= 3 and <= 5,
+                    // 알현실 참고도: 밝은 칸이 공격 범위. A2는 바깥 1칸과 중앙 5x5.
+                    Pattern.KingA1 => x is >= 3 and <= 5,
+                    Pattern.KingA2 => x == 0 || x == 8 || y == 0 || y == 8
+                        || (x is >= 2 and <= 6 && y is >= 2 and <= 6),
+                    Pattern.KingA3 => x < 2 || x > 6,
                     Pattern.KingB1 => x == y || x + y == 8,
                     Pattern.KingB2 => x == 4 || y == 4,
-                    Pattern.KingB3 => x is >= 3 and <= 5 && y is >= 3 and <= 5,
-                    Pattern.KingC1 => x % 4 == 0,
-                    Pattern.KingC2 => y % 4 == 0,
-                    Pattern.KingC3 => x < 2 || x > 6 || y < 2 || y > 6,
+                    Pattern.KingB3 => x < 3 || x > 5 || y < 3 || y > 5,
+                    Pattern.KingC1 => x % 4 != 0,
+                    Pattern.KingC2 => y % 4 != 0,
+                    Pattern.KingC3 => x is >= 2 and <= 6 && y is >= 2 and <= 6,
                     Pattern.KingC4 => true,
                     _ => false
                 };

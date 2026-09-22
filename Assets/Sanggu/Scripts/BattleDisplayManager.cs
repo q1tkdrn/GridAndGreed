@@ -86,6 +86,8 @@ public class BattleDisplayManager : MonoBehaviour
     [SerializeField] private GameObject victoryPanel;
     [SerializeField] private GameObject defeatPanel;
     [SerializeField] private Image waysPanel;
+    [SerializeField] private GameObject waysBackButton;
+    private bool _waysChoicesReady;
     public UnitTemp[] currentUnits = new UnitTemp[3];
     public ItemData[] currentItems = new ItemData[3];
     
@@ -97,6 +99,23 @@ public class BattleDisplayManager : MonoBehaviour
     public Stage[] stages = new Stage[3];
     [SerializeField] private GameObject arrow;
     private int _decidedStage = -1;
+    private bool _formationLoaded;
+
+    private UnitTemp[] FormationRoster() => unitBuildingPanel.GetComponentInChildren<UnitBuildingPanel>(true)
+        .cards.Where(card => card != null).Select(card => card.unitTemp).Concat(currentUnits).Where(unit => unit != null).Distinct().ToArray();
+
+    public void EnsureFormationLoaded()
+    {
+        if (_formationLoaded || unitBuildingPanel == null || ItemManager.Instance == null) return;
+        FormationSave.Load(currentUnits, currentItems, FormationRoster(), ItemManager.Instance.items);
+        _formationLoaded = true;
+    }
+
+    public void SaveFormation()
+    {
+        if (!_formationLoaded) return;
+        FormationSave.Save(currentUnits, currentItems, FormationRoster());
+    }
     
     public AudioSource bgmSource;
     public AudioSource bgmSourceLoop;
@@ -139,6 +158,7 @@ public class BattleDisplayManager : MonoBehaviour
     [DebugButton]
     public void OpenGameBoard()
     {
+        EnsureFormationLoaded();
         entrancePanel.gameObject.SetActive(false);
         boardPanel.gameObject.SetActive(true);
         unitBuildingPanel.SetActive(false);
@@ -149,6 +169,7 @@ public class BattleDisplayManager : MonoBehaviour
     [DebugButton]
     public void OpenUnitBuilding()
     {
+        EnsureFormationLoaded();
         entrancePanel.gameObject.SetActive(false);
         boardPanel.gameObject.SetActive(false);
         unitBuildingPanel.SetActive(true);
@@ -158,6 +179,7 @@ public class BattleDisplayManager : MonoBehaviour
     [DebugButton]
     public void OpenItemBuilding()
     {
+        EnsureFormationLoaded();
         entrancePanel.gameObject.SetActive(false);
         boardPanel.gameObject.SetActive(false);
         unitBuildingPanel.SetActive(false);
@@ -198,12 +220,8 @@ public class BattleDisplayManager : MonoBehaviour
         victoryPanel.SetActive(false);
         if (appearedBoss.Count == 4)
         {
-            var check = 0;
-            if (currentItems.Count(i => i?.id == "22") > 0) check++;
-            if (currentItems.Count(i => i?.id == "23") > 0) check++;
-            if (currentUnits.Count(i => i?.id == 9) > 0) check++;
-            var boss = check == 3 ? bossDeath1 : bossKing;
-            if (check != 3)
+            var boss = GetFinalBoss();
+            if (boss == bossKing)
             {
                 RecordAchievement("ACH-18", 1);
             } 
@@ -219,18 +237,40 @@ public class BattleDisplayManager : MonoBehaviour
         }
         
         waysPanel.gameObject.SetActive(true);
+        if (waysBackButton != null) waysBackButton.SetActive(appearedBoss.Count == 0);
+        if (_waysChoicesReady) return;
         remainBoss.Shuffle();
         for (int i = 0; i < 3; i++)
         {
-            var temp = remainBoss[i];
-            if (remainBoss.Count < i + 1)
+            if (remainBoss.Count == 0)
             {
-                temp = remainBoss[0];
+                waysPanel.gameObject.SetActive(false);
+                Debug.LogWarning("선택 가능한 보스가 없습니다.", this);
+                return;
             }
+            var temp = remainBoss[i < remainBoss.Count ? i : 0];
             stages[i].bossTemp = temp;
             stages[i].stageImage.sprite = temp.stageSprite;
             stages[i].stageName.text = temp.stageName;
         }
+        _waysChoicesReady = true;
+    }
+
+    public void BackFromWays()
+    {
+        if (appearedBoss.Count != 0) return;
+        _decidedStage = -1;
+        arrow.SetActive(false);
+        waysPanel.gameObject.SetActive(false);
+        OpenEntrancePanel(false);
+    }
+
+    public BossTemp GetFinalBoss()
+    {
+        bool afterlife = currentItems.Any(i => i != null && i.id == "22")
+            && currentItems.Any(i => i != null && i.id == "23")
+            && currentUnits.Any(i => i != null && i.id == 9);
+        return afterlife ? bossDeath1 : bossKing;
     }
 
     [DebugButton]
@@ -245,6 +285,7 @@ public class BattleDisplayManager : MonoBehaviour
     {
         if (_decidedStage == i)
         {
+            _waysChoicesReady = false;
             var boss = stages[i].bossTemp;
             remainBoss.Remove(boss);
             appearedBoss.Add(boss);
