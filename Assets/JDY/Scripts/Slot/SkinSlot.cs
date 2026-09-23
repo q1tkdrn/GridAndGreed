@@ -5,15 +5,6 @@ using UnityEngine.UI;
 
 public class SkinSlot : MonoBehaviour
 {
-    public const int Price = 100;
-    public event System.Action SelectionChanged;
-    public bool HasCurrentSkin => character != null && (currentSkin switch
-    {
-        Skin.NpcSkin => character.npcSkin != null,
-        Skin.InsectSkin => character.insectSkin != null,
-        Skin.BossSkin => character.bossSkin != null,
-        _ => false
-    });
     [Header("Script")]
     [SerializeField] private CharacterManager manager;
     private int currentIndex = 0;
@@ -86,8 +77,7 @@ public class SkinSlot : MonoBehaviour
                 describeText.text = dialogs[0].text;
                 break;
         }
-        priceText.text = Price.ToString();
-        SelectionChanged?.Invoke();
+        priceText.text = character.skinPrice.ToString();
     }
 
     public void LeftButton()

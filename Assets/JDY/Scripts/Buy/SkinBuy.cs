@@ -8,8 +8,6 @@ public class SkinBuy : MonoBehaviour
     [Header("UI")]
     [SerializeField] private TMP_Text soulText;
     [SerializeField] private Button button;
-    private void OnEnable() => skinSlot.SelectionChanged += IsBuy;
-    private void OnDisable() => skinSlot.SelectionChanged -= IsBuy;
     void Start()
     {
         SetBuy();
@@ -17,18 +15,15 @@ public class SkinBuy : MonoBehaviour
     }
     public void IsBuy()
     {
-        button.interactable = skinSlot.HasCurrentSkin && InventoryManager.Instance != null
-            && !InventoryManager.Instance.HasSkin(skinSlot.character.id, skinSlot.currentSkin);
+        button.interactable = !InventoryManager.Instance.HasSkin(skinSlot.character.id, skinSlot.currentSkin);
     }
     public void BuyButton()
     {
-        if (!skinSlot.HasCurrentSkin || InventoryManager.Instance == null
-            || InventoryManager.Instance.HasSkin(skinSlot.character.id, skinSlot.currentSkin)) return;
         try
         {
-            if (InventoryManager.Instance.GetSoul() >= SkinSlot.Price)
+            if (InventoryManager.Instance.GetSoul() >= skinSlot.character.skinPrice)
             {
-                InventoryManager.Instance.RemoveSoul(SkinSlot.Price);
+                InventoryManager.Instance.RemoveSoul(skinSlot.character.skinPrice);
                 InventoryManager.Instance.UnlockSkin(skinSlot.character.id, skinSlot.currentSkin);
                 IsBuy();
                 SetBuy();
