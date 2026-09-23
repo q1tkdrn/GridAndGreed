@@ -21,9 +21,9 @@ public class SkinBuy : MonoBehaviour
     {
         try
         {
-            if (InventoryManager.Instance.GetSoul() >= skinSlot.character.price)
+            if (InventoryManager.Instance.GetSoul() >= skinSlot.character.skinPrice)
             {
-                InventoryManager.Instance.RemoveSoul(skinSlot.character.price);
+                InventoryManager.Instance.RemoveSoul(skinSlot.character.skinPrice);
                 InventoryManager.Instance.UnlockSkin(skinSlot.character.id, skinSlot.currentSkin);
                 IsBuy();
                 SetBuy();

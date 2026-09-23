@@ -47,6 +47,7 @@ public class CharacterCSVImporter
             string npcSkinName = values[7];
             string insectSkinName = values[8];
             string bossSkinName = values[9];
+            string skinPriceText = values[10].Trim();
             if (string.IsNullOrEmpty(id))
             {
                 Debug.LogError($"{i + 1}번째 줄 ID 누락");
@@ -67,7 +68,11 @@ public class CharacterCSVImporter
                 Debug.LogError($"{i + 1}번째 줄 price 오류");
                 continue;
             }
-
+            if (!int.TryParse(skinPriceText, out int skinPrice))
+            {
+                Debug.LogError($"{i + 1}번째 줄 price 오류");
+                continue;
+            }
             string assetPath = savePath + "Character_" + id + ".asset";
 
             CharacterData characterData = AssetDatabase.LoadAssetAtPath<CharacterData>(assetPath);
@@ -92,6 +97,7 @@ public class CharacterCSVImporter
             characterData.npcSkinName = npcSkinName;
             characterData.insectSkinName = insectSkinName;
             characterData.bossSkinName = bossSkinName;
+            characterData.skinPrice = skinPrice;
             string iconPath = $"Assets/JDY/Data/Characters/Icons/{characterName}.png";
             string npcSkinPath = $"Assets/JDY/Data/Characters/NpcSkins/{characterName}.png";
             string insectSkinPath = $"Assets/JDY/Data/Characters/InsectSkins/{characterName}_스킨3.png";

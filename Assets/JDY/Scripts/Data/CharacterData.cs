@@ -15,6 +15,7 @@ public class CharacterData : ScriptableObject
     public string npcSkinName;
     public string insectSkinName;
     public string bossSkinName;
+    public int skinPrice;
     [TextArea]
     public string description;
 }

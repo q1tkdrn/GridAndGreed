@@ -77,7 +77,7 @@ public class SkinSlot : MonoBehaviour
                 describeText.text = dialogs[0].text;
                 break;
         }
-        priceText.text = character.price.ToString();
+        priceText.text = character.skinPrice.ToString();
     }
 
     public void LeftButton()
