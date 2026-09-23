@@ -84,6 +84,8 @@ public class BattleDisplayManager : MonoBehaviour
     
     [Space]
     [SerializeField] private GameObject victoryPanel;
+    [Header("Victory Reward")]
+    [SerializeField, Min(0)] private int victorySoulReward = 50;
     [SerializeField] private GameObject defeatPanel;
     [SerializeField] private Image waysPanel;
     [SerializeField] private GameObject waysBackButton;
@@ -100,6 +102,10 @@ public class BattleDisplayManager : MonoBehaviour
     [SerializeField] private GameObject arrow;
     private int _decidedStage = -1;
     private bool _formationLoaded;
+    private bool _victoryRewardClaimed;
+    private GameObject _victoryContinueButton;
+    private Button _soulRewardButton;
+    private TextMeshProUGUI _soulRewardText;
 
     private UnitTemp[] FormationRoster() => unitBuildingPanel.GetComponentInChildren<UnitBuildingPanel>(true)
         .cards.Where(card => card != null).Select(card => card.unitTemp).Concat(currentUnits).Where(unit => unit != null).Distinct().ToArray();
@@ -202,8 +208,98 @@ public class BattleDisplayManager : MonoBehaviour
     [DebugButton]
     public void ShowVictoryPanel()
     {
+        SetupVictoryReward();
+        _victoryRewardClaimed = false;
+        if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
+        if (_soulRewardButton != null) _soulRewardButton.interactable = true;
+        if (_soulRewardText != null) _soulRewardText.text = $"소울 {victorySoulReward}";
         victoryPanel.SetActive(true);
         if(appearedBoss.Count > 0) ClearBoss(appearedBoss[^1]);
+    }
+
+    private void SetupVictoryReward()
+    {
+        if (victoryPanel == null || _soulRewardButton != null) return;
+
+        // The victory illustration already contains four hand-painted reward bubbles.
+        // Turn them into the requested reward UI while preserving the scene artwork.
+        Transform rewards = victoryPanel.transform.Find("Rewards");
+        if (rewards == null || rewards.childCount < 2)
+        {
+            Debug.LogWarning("Victory/Rewards 오브젝트를 찾을 수 없어 전리품 UI를 만들지 못했습니다.", this);
+            return;
+        }
+
+        TMP_FontAsset font = victoryPanel.GetComponentInChildren<TextMeshProUGUI>(true)?.font;
+        AddRewardText(rewards.GetChild(0), "보상", font, 42);
+
+        Transform soulBubble = rewards.GetChild(1);
+        _soulRewardText = AddRewardText(soulBubble, $"소울 {victorySoulReward}", font, 44);
+        _soulRewardButton = soulBubble.gameObject.GetComponent<Button>();
+        if (_soulRewardButton == null) _soulRewardButton = soulBubble.gameObject.AddComponent<Button>();
+        _soulRewardButton.targetGraphic = soulBubble.GetComponent<Graphic>();
+        _soulRewardButton.onClick.AddListener(ClaimVictorySoul);
+
+        // HP is reset for each normal battle; keep the heal bubble hidden.
+        for (int i = 2; i < rewards.childCount; i++) rewards.GetChild(i).gameObject.SetActive(false);
+
+        if (rewards.childCount > 3)
+        {
+            Transform skipBubble = rewards.GetChild(3);
+            skipBubble.gameObject.SetActive(true);
+            AddRewardText(skipBubble, "상관없음", font, 44);
+            var skipButton = skipBubble.gameObject.GetComponent<Button>();
+            if (skipButton == null) skipButton = skipBubble.gameObject.AddComponent<Button>();
+            skipButton.targetGraphic = skipBubble.GetComponent<Graphic>();
+            // Match the existing victory arrow: continue to the next stage selection.
+            skipButton.onClick.AddListener(ShowWaysPanel);
+        }
+
+        _victoryContinueButton = victoryPanel.transform.childCount > 0
+            ? victoryPanel.transform.GetChild(0).gameObject
+            : null;
+    }
+
+    private static TextMeshProUGUI AddRewardText(Transform parent, string value, TMP_FontAsset font, float fontSize)
+    {
+        var textObject = new GameObject(value, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
+        textObject.layer = parent.gameObject.layer;
+        textObject.transform.SetParent(parent, false);
+        var rect = (RectTransform)textObject.transform;
+        rect.anchorMin = Vector2.zero;
+        rect.anchorMax = Vector2.one;
+        rect.offsetMin = Vector2.zero;
+        rect.offsetMax = Vector2.zero;
+
+        var label = textObject.GetComponent<TextMeshProUGUI>();
+        label.text = value;
+        label.font = font;
+        label.fontSize = fontSize;
+        label.color = Color.black;
+        label.alignment = TextAlignmentOptions.Center;
+        label.raycastTarget = false;
+        return label;
+    }
+
+    public void ClaimVictorySoul()
+    {
+        if (_victoryRewardClaimed) return;
+        _victoryRewardClaimed = true;
+
+        if (InventoryManager.Instance != null)
+        {
+            InventoryManager.Instance.AddSoul(victorySoulReward);
+        }
+        else
+        {
+            // Allows the battle scene's standalone editor test to exercise the reward.
+            PlayerPrefs.SetInt("Soul", PlayerPrefs.GetInt("Soul", 0) + victorySoulReward);
+            PlayerPrefs.Save();
+        }
+
+        if (_soulRewardButton != null) _soulRewardButton.interactable = false;
+        if (_soulRewardText != null) _soulRewardText.text = $"소울 {victorySoulReward} 획득";
+        if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
     }
 
     [DebugButton]
