@@ -27,10 +27,25 @@ public class ItemBuildingPanel : MonoBehaviour
 
     public void Init()
     {
+        var display = BattleDisplayManager.GetInstance();
+        display.EnsureFormationLoaded();
         for (int i = 0; i < items.Length; i++)
         {
             items[i].itemData = ItemManager.Instance.GetItemData(items[i].id.ToString());
+            items[i].isEquip = Array.Exists(display.currentItems, item => item != null && item == items[i].itemData);
             items[i].Init();
+        }
+        for (int i = 0; i < slots.Length; i++)
+        {
+            var item = display.currentItems[i];
+            bool equipped = item != null;
+            slots[i].itemId = equipped ? int.Parse(item.id) : 0;
+            slots[i].name.text = equipped ? item.itemName : "";
+            slots[i].description.text = equipped ? item.description : "";
+            slots[i].image.sprite = equipped ? item.icon : null;
+            slots[i].name.gameObject.SetActive(equipped);
+            slots[i].description.gameObject.SetActive(equipped);
+            slots[i].image.gameObject.SetActive(equipped);
         }
     }
 
@@ -49,6 +64,7 @@ public class ItemBuildingPanel : MonoBehaviour
 
     public void OnItemClick(int id)
     {
+        if (id < 1 || id > items.Length || !items[id - 1].unlock) return;
         var item = items[id - 1];
         if (!item.isEquip)
         {
@@ -73,7 +89,8 @@ public class ItemBuildingPanel : MonoBehaviour
             for (int i = 0; i < slots.Length; i++)
             {
                 var slot = slots[i];
-                if (slot.name.text != item.itemData.name) continue;
+                if (slot.itemId != id) continue;
+                slots[i].itemId = 0;
                 slot.name.text = "";
                 slot.name.gameObject.SetActive(false);
                 slot.description.gameObject.SetActive(false);
@@ -83,10 +100,12 @@ public class ItemBuildingPanel : MonoBehaviour
                 break;
             }
         }
+        BattleDisplayManager.GetInstance().SaveFormation();
     }
 
     public void UnEquipItemInSlot(int i)
     {
+        if (i < 0 || i >= slots.Length) return;
         if(!slots[i].name.gameObject.activeSelf) return;
         if(!items[slots[i].itemId - 1].isEquip) return;
         items[slots[i].itemId - 1].isEquip = false;
@@ -95,6 +114,7 @@ public class ItemBuildingPanel : MonoBehaviour
         slots[i].description.gameObject.SetActive(false);
         slots[i].image.gameObject.SetActive(false);
         BattleDisplayManager.GetInstance().currentItems[i] = null;
-        items[slots[i].itemId - 1].isEquip = false;
+        slots[i].itemId = 0;
+        BattleDisplayManager.GetInstance().SaveFormation();
     }
 }

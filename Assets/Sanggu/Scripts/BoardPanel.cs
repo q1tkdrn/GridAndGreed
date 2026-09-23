@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -46,6 +46,10 @@ public class BoardPanel : MonoBehaviour
     private List<GameObject> _actionPointsList = new List<GameObject>();
     
     private static readonly int EnableGlitch = Shader.PropertyToID("_EnableGlitch");
+    private Material[] _unitMaterials;
+    private Vector2[] _unitSizes;
+    private Coroutine[] _moveAnimations;
+    private Coroutine[] _hitAnimations;
 
     [Serializable]
     private struct Unit
@@ -74,7 +78,92 @@ public class BoardPanel : MonoBehaviour
 
     private bool _isWin = false;
     private bool _isLose = false; 
+    public bool IsBattleOver => _isWin || _isLose;
+    public ItemBattleState ItemEffects { get; private set; } = new ItemBattleState(null);
+    private BossPassiveState _bossPassives = new BossPassiveState(null);
+    public bool IsSanctuary(Vector2Int cell) => _bossPassives.IsSanctuary(cell.x, cell.y);
+    public TMP_FontAsset UiFont => turnTextUI.font;
+    private int _nextTurnActionPenalty;
+    [SerializeField] private AfterlifePassiveRules.PhaseOneEffect afterlifeTurnPassive;
+
+    private void BeginBossTurn()
+    {
+        _bossPassives.StartTurn(turnCount, UnityEngine.Random.Range);
+        battleManagerTemp.RefreshSanctuary();
+        afterlifeTurnPassive = boss.bossId == "death1"
+            ? (AfterlifePassiveRules.PhaseOneEffect)UnityEngine.Random.Range(1, 4)
+            : AfterlifePassiveRules.PhaseOneEffect.None;
+        ItemEffects.StartTurn();
+        int maximum = AfterlifePassiveRules.GetActionPointMaximum(afterlifeTurnPassive) + ItemEffects.ActionPointBonus;
+        UpdateActionPoint(Mathf.Max(0, maximum - _nextTurnActionPenalty));
+        _nextTurnActionPenalty = 0;
+        foreach (var item in items) item.OnTurnStart();
+        // Turn-start healing precedes tobacco's HP cost; each change uses normal HP limits.
+        HealReaper(ItemEffects.TurnHealing);
+        if (ItemEffects.TurnHpCost > 0) UpdateReaperHp(reaperCurrentHp - ItemEffects.TurnHpCost);
+        if (IsBattleOver) return;
+        AttackBoss(ItemEffects.TurnDamage(UnityEngine.Random.Range));
+        if (boss.bossId == "death1")
+        {
+            string effect = afterlifeTurnPassive switch
+            {
+                AfterlifePassiveRules.PhaseOneEffect.LimitActions => "최대 행동력 4",
+                AfterlifePassiveRules.PhaseOneEffect.JudgmentWeakness => "심판 피해 +2 / 힘 자동 공격 면역",
+                _ => "턴 종료 시 보스 HP 4 회복"
+            };
+            PrintText("[저승 1페이즈 패시브] " + effect);
+        }
+        else if (boss.bossId == "death2")
+            PrintText("[저승 2페이즈 패시브] 받는 피해 0 / 턴 종료 HP -1 / 아군 사망 시 의지력 +1");
+        else if (boss.bossId == "pope")
+            PrintText("[성역] 금색으로 표시된 40칸 위 캐릭터가 주는 모든 피해 무효");
+        else if (boss.bossId == "secretary")
+            PrintText(turnCount % 2 == 1 ? "[서고] 홀수 턴: 받는 모든 피해를 1로 감소" : "[서고] 짝수 턴: 정상 피해");
+        else if (turnCount == 1)
+        {
+            if (boss.bossId == "fusion") PrintText("[광장] 아군이 심판을 사용할 때마다 의지력 +1");
+            if (boss.bossId == "door") PrintText("[왕실 연구소] 심판 피해를 받으면 사용한 아군을 무작위 빈칸으로 이동");
+            if (boss.bossId == "subject") PrintText("[지하실] 아군 사망마다 의지력 +1");
+            if (boss.bossId == "instructor") PrintText("[훈련장] 힘 공격 피해 1 / 최초 피격 시 반격 3(전투당 1회) / 심판 피해 2배");
+        }
+    }
+
+    private void EndBossTurn()
+    {
+        if (IsBattleOver) return;
+        // 자신의 턴 종료 HP 변화는 받는 피해가 아니므로 피해 면역을 거치지 않는다.
+        UpdateBossHp(AfterlifePassiveRules.GetTurnEndHp(boss.bossId, afterlifeTurnPassive, bossCurrentHp, bossMaxHp));
+        // A defeated boss cannot deal turn-end damage. Use the usual HP path for the contract.
+        if (!IsBattleOver && willPower > 0)
+        {
+            PrintText($"[의지력] 플레이어 HP -{willPower}");
+            UpdateReaperHp(reaperCurrentHp - willPower);
+        }
+    }
+
+    public void OnAllyDeath()
+    {
+        if (!IsBattleOver)
+        {
+            int willGain = boss.bossId == "death2" ? 1 : _bossPassives.AllyDeathWillGain;
+            if (willGain > 0) UpdateBossWillPower(willPower + willGain);
+        }
+        HealReaper(ItemEffects.DeathHealing);
+        AttackBoss(ItemEffects.DeathDamage);
+    }
+
+    public void SpendAction(bool judgment = false)
+    {
+        if (IsBattleOver) return;
+        UpdateActionPoint(ItemEffects.SpendAction(actionPoint, judgment, UnityEngine.Random.Range));
+    }
+
+    public void ReduceNextTurnActionPoints(int amount)
+    {
+        _nextTurnActionPenalty += Mathf.Max(0, amount);
+    }
     private bool _isResolvingBossPattern;
+    private Coroutine _bossPatternCoroutine;
 
     public enum ETurn
     {
@@ -87,10 +176,39 @@ public class BoardPanel : MonoBehaviour
         End = 6
     }
 
+    private void OnDisable()
+    {
+        StopAllCoroutines();
+        _bossPatternCoroutine = null;
+        _isResolvingBossPattern = false;
+        _isPrinting = false;
+        _textQueue.Clear();
+        if (battleManagerTemp != null) battleManagerTemp.ClearBossPatternPreview();
+    }
+
     private void OnEnable()
     {
+        if (_unitMaterials == null)
+        {
+            _unitMaterials = new Material[units.Length];
+            _unitSizes = new Vector2[units.Length];
+            _moveAnimations = new Coroutine[units.Length];
+            _hitAnimations = new Coroutine[units.Length];
+            for (int i = 0; i < units.Length; i++)
+            {
+                _unitMaterials[i] = Instantiate(units[i].unit.material);
+                units[i].unit.material = _unitMaterials[i];
+                _unitSizes[i] = units[i].unit.rectTransform.sizeDelta;
+            }
+        }
+        bossHp.textWrappingMode = TextWrappingModes.NoWrap;
+        bossHp.enableAutoSizing = true;
+        bossHp.fontSizeMin = 18;
+        bossHp.fontSizeMax = 40;
         for(int i=0;i<3;i++)
         {
+            var selectedUnit = BattleDisplayManager.GetInstance().currentUnits[i];
+            if (!selectedUnit.IsSkinUnlocked(selectedUnit.currentSkin)) selectedUnit.currentSkin = 0;
             units[i].image.sprite = BattleDisplayManager.GetInstance().currentUnits[i].currentSkin switch
             {
                 0 => BattleDisplayManager.GetInstance().currentUnits[i].defaultSkin,
@@ -101,14 +219,35 @@ public class BoardPanel : MonoBehaviour
             };
             units[i].nameText.text = BattleDisplayManager.GetInstance().currentUnits[i].unitName;
             units[i].descriptionText.text = BattleDisplayManager.GetInstance().currentUnits[i].abilityText;
+            units[i].descriptionText.enableAutoSizing = true;
+            units[i].descriptionText.fontSizeMin = 20;
+            units[i].descriptionText.fontSizeMax = 36;
             
             items[i].itemData = BattleDisplayManager.GetInstance().currentItems[i];
             items[i].Init();
-            var mat = Instantiate(units[i].unit.material);
-            units[i].unit.material = mat;
-            units[i].unit.material.SetFloat(EnableGlitch, 0);
-            units[i].isAnimPlaying = false;
         }
+        ResetUnitVisuals();
+    }
+
+    private void ResetUnitVisuals()
+    {
+        if (_unitMaterials == null) return;
+        for (int i = 0; i < units.Length; i++)
+        {
+            if (_moveAnimations[i] != null) StopCoroutine(_moveAnimations[i]);
+            if (_hitAnimations[i] != null) StopCoroutine(_hitAnimations[i]);
+            _moveAnimations[i] = _hitAnimations[i] = null;
+            units[i].unit.material.SetFloat(EnableGlitch, 0);
+            units[i].unit.rectTransform.sizeDelta = _unitSizes[i];
+            units[i].isAnimPlaying = false;
+            units[i].popUp.SetActive(false);
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (_unitMaterials == null) return;
+        foreach (var material in _unitMaterials) Destroy(material);
     }
 
     public void ShowCutScene()
@@ -141,42 +280,51 @@ public class BoardPanel : MonoBehaviour
 
     public void Init()
     {
-        foreach (var item in items)
-        {
-            item.OnTurnStart();
-        }
+        ResetUnitVisuals();
+        _bossPassives = new BossPassiveState(boss.bossId);
+        if (_bossPatternCoroutine != null) StopCoroutine(_bossPatternCoroutine);
+        _bossPatternCoroutine = null;
+        // The two afterlife phases are one battle: do not refill the contract in phase two.
+        if (boss.bossId != "death2")
+            ItemEffects = new ItemBattleState(BattleDisplayManager.GetInstance().currentItems
+                .Where(item => item != null).Select(item => item.id));
         _isLose = _isWin = false;
+        _nextTurnActionPenalty = 0;
         _isResolvingBossPattern = false;
         bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
         if (boss.bossId != "death2")
         {
             reaperCurrentHp = reaperMaxHp;
         }
+        // 각 보스 에셋의 스탯을 새로 읽어 이전 페이즈 HP/의지력이 남지 않도록 한다.
+        bossMaxHp = Mathf.Max(1, boss.maxHp);
+        willPower = Mathf.Max(0, boss.initialWillPower - ItemEffects.WillPowerReduction);
+        willPowerText.text = $"의지력: {willPower}";
+        // 기존 OnPhaseChange의 0 기반 규약: 0 = 1페이즈, 1 = 2페이즈.
+        phase = boss.bossId == "death2" ? 1 : 0;
         bossCurrentHp = bossMaxHp;
         UpdateBossHp(bossCurrentHp);
         UpdateReaperHp(reaperCurrentHp);
-        UpdateActionPoint(7);
         textBox.text = "";
         PrintText(boss.battleStart);
         PrintText(GetBossText(boss.turnStart, 0));
         turnCount = 1;
         turn = ETurn.Start;
+        BeginBossTurn();
+        if (IsBattleOver) return;
         battleManagerTemp.Init();
     }
 
     [DebugButton("다음 턴")]
     public void NextTurn(int i = 1)
     {
+        if (IsBattleOver) return;
         if (_isResolvingBossPattern) return;
         turn += i;
         if(turn > ETurn.End) 
         {
             turn = ETurn.Start;
             turnCount++;
-            foreach (var item in items)
-            {
-                item.OnTurnStart();
-            }
             PrintText(GetBossText(boss.turnStart, turnCount / 5));
         }
 
@@ -188,16 +336,19 @@ public class BoardPanel : MonoBehaviour
         {
             case ETurn.Start:
                 turnText = "턴 시작";
-                UpdateActionPoint(7);
+                BeginBossTurn();
+                if (IsBattleOver) return;
                 break;
             case ETurn.Place:
                 turnText = "유닛 배치";
                 break;
             case ETurn.BossReady:
                 turnText = "보스 공격 준비";
+                battleManagerTemp.PrepareBossPattern(boss, turnCount);
                 break;
             case ETurn.Player:
                 turnText = "행동";
+                battleManagerTemp.PrepareBossPattern(boss, turnCount);
                 break;
             case ETurn.Attack:
                 turnText = "공격";
@@ -205,10 +356,13 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.BossPattern:
                 turnText = "보스 공격";
-                StartCoroutine(ResolveBossPattern());
+                _bossPatternCoroutine = StartCoroutine(ResolveBossPattern());
                 break;
             case ETurn.End:
                 turnText = "턴 종료";
+                battleManagerTemp.OnTurnEnd();
+                EndBossTurn();
+                if (IsBattleOver) return;
                 nt = true;
                 break;
         }
@@ -255,8 +409,10 @@ public class BoardPanel : MonoBehaviour
             yield return new WaitForSeconds(0.1f);
             if (boss.bossId == "death1")
             {
+                // 1페이즈에서는 승리 화면/보상을 표시하지 않고 다음 보스 데이터로 전환한다.
                 boss = BattleDisplayManager.GetInstance().bossDeath2;
                 BattleDisplayManager.GetInstance().appearedBoss.Add(boss);
+                BattleDisplayManager.GetInstance().PlayBGM(boss.bgmLoop, boss.bgmStart);
                 Init();
             }
             else
@@ -291,14 +447,11 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("플레이어 HP 업데이트")]
     public void UpdateReaperHp(int hp)
     {
-        if(reaperCurrentHp == 0) return;
-        reaperCurrentHp = hp;
+        if (IsBattleOver) return;
+        reaperCurrentHp = ItemEffects.ResolveHp(hp, reaperMaxHp);
         if (reaperCurrentHp <= 0)
         {
-            PrintText(boss.lose);
-            _isLose = true;
-            reaperCurrentHp = 0;
-
+            LoseBattle();
         }
         reaperHp.text = $"{reaperCurrentHp} / {reaperMaxHp}";
         reaperSlider.value = (float) reaperCurrentHp / reaperMaxHp;
@@ -306,11 +459,11 @@ public class BoardPanel : MonoBehaviour
     
     public void UpdateBossHp(int hp)
     {
-        if(bossCurrentHp == 0) return;
+        if (IsBattleOver) return;
         bossCurrentHp = hp;
         if (bossCurrentHp <= 0)
         {
-            PrintText(boss.win);
+            PrintText(string.IsNullOrWhiteSpace(boss.win) ? "승리" : boss.win);
             bossCurrentHp = 0;
             _isWin = true;
         }
@@ -321,14 +474,79 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("보스 심판")]
     public void JudgeBoss(int dmg)
     {
+        JudgeBossFromUnit(dmg, -1);
+    }
+
+    public void JudgeBossFromUnit(int dmg, int unitIndex)
+    {
+        if (IsBattleOver) return;
+        if (_bossPassives.JudgmentWillGain > 0)
+            UpdateBossWillPower(willPower + _bossPassives.JudgmentWillGain);
         PrintText(GetBossText(boss.attackedAP, turnCount / 5));
-        UpdateBossHp(bossCurrentHp-dmg);
+        int damage = ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.Judgment, unitIndex);
+        if (!IsBattleOver && _bossPassives.RelocatesJudgmentUser(damage))
+            battleManagerTemp.RelocateJudgmentUser(unitIndex);
     }
     
     [DebugButton("보스 공격")]
     public void AttackBoss(int dmg)
     {
-        UpdateBossHp(bossCurrentHp-dmg);
+        ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.Other);
+    }
+
+    public void AutomaticAttackBoss(int dmg)
+    {
+        ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.AutomaticAttack);
+    }
+
+    public void AttackBossFromUnit(int dmg, int unitIndex)
+    {
+        ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.Other, unitIndex);
+    }
+
+    public void AutomaticAttackBossFromUnit(int dmg, int unitIndex)
+    {
+        ApplyBossDamage(dmg, AfterlifePassiveRules.DamageSource.AutomaticAttack, unitIndex);
+    }
+
+    private int ApplyBossDamage(int dmg, AfterlifePassiveRules.DamageSource source, int unitIndex = -1)
+    {
+        if (IsBattleOver) return 0;
+        int damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, dmg);
+        damage = _bossPassives.ResolveDamage(source, damage, battleManagerTemp.IsUnitOnSanctuary(unitIndex));
+        if (damage <= 0) return 0;
+        UpdateBossHp(bossCurrentHp - damage);
+        // Once the boss is defeated, do not apply a post-victory counterattack.
+        if (!IsBattleOver)
+        {
+            int counter = _bossPassives.ConsumeCounterDamage(source, damage);
+            if (counter > 0)
+            {
+                PrintText($"[훈련장 반격] 플레이어 HP -{counter}");
+                UpdateReaperHp(reaperCurrentHp - counter);
+            }
+        }
+        return damage;
+    }
+
+    public void HealReaper(int amount)
+    {
+        if (amount <= 0 || IsBattleOver) return;
+        UpdateReaperHp(reaperCurrentHp + amount);
+    }
+
+    public void HealBoss(int amount)
+    {
+        if (amount <= 0 || IsBattleOver) return;
+        UpdateBossHp(Mathf.Min(bossCurrentHp + amount, bossMaxHp));
+    }
+
+    public void LoseBattle()
+    {
+        if (IsBattleOver) return;
+        // HP를 강제로 0으로 만들지 않아도 꼬마 사신 사망으로 패배할 수 있다.
+        PrintText(string.IsNullOrWhiteSpace(boss.lose) ? "패배" : boss.lose);
+        _isLose = true;
     }
 
     public void OnBossAttack(int dmg)
@@ -340,6 +558,7 @@ public class BoardPanel : MonoBehaviour
     [DebugButton("보스 의지력 업데이트")]
     public void UpdateBossWillPower(int value)
     {
+        value = Mathf.Max(0, value);
         if (value == 0)
         {
             PrintText(GetBossText(boss.willZero, turnCount / 5));
@@ -370,7 +589,7 @@ public class BoardPanel : MonoBehaviour
             image.sprite = actionPointsList[i % actionPointsList.Length];
         }
         
-        if(actionPoint <= 0)
+        if(actionPoint <= 0 && turn == ETurn.Player && !_isWin && !_isLose)
         {
             NextTurn();
             battleManagerTemp.Attack();
@@ -381,8 +600,15 @@ public class BoardPanel : MonoBehaviour
     private IEnumerator ResolveBossPattern()
     {
         _isResolvingBossPattern = true;
-        yield return battleManagerTemp.PlayBossPattern(boss, turnCount);
-        _isResolvingBossPattern = false;
+        try
+        {
+            yield return battleManagerTemp.PlayBossPattern(boss, turnCount);
+        }
+        finally
+        {
+            _isResolvingBossPattern = false;
+            _bossPatternCoroutine = null;
+        }
 
         if (!_isWin && !_isLose)
         {
@@ -392,7 +618,21 @@ public class BoardPanel : MonoBehaviour
 
     public void OnMouseEnterUnit(int i)
     {
+        RefreshUnitDescription(i);
         units[i].popUp.SetActive(true);
+    }
+
+    private void LateUpdate()
+    {
+        for (int i = 0; i < units.Length; i++)
+            if (units[i].popUp.activeInHierarchy) RefreshUnitDescription(i);
+    }
+
+    private void RefreshUnitDescription(int i)
+    {
+        var selectedUnit = BattleDisplayManager.GetInstance().currentUnits[i];
+        units[i].descriptionText.text = $"<color=#FFB080>힘 {battleManagerTemp.GetPower(i)}</color>    "
+            + $"<color=#88CEFF>지능 {battleManagerTemp.GetIntelligence(i)}</color>\n{selectedUnit.abilityText}";
     }
 
     public void OnMouseExitUnit(int i)
@@ -415,9 +655,11 @@ public class BoardPanel : MonoBehaviour
     }
 
     [DebugButton("유닛 처치")]
-    public void HitAttack(int i)
+    public Coroutine HitAttack(int i)
     {
-        StartCoroutine(SetGlitch(i));
+        if (i < 0 || i >= units.Length || units[i].unit == null) return null;
+        _hitAnimations[i] = StartCoroutine(SetGlitch(i));
+        return _hitAnimations[i];
     }
 
     public void OnUnitRevived(int i)
@@ -431,6 +673,12 @@ public class BoardPanel : MonoBehaviour
     {
         units[i].unit.material.SetFloat(EnableGlitch, 1);
         yield return new WaitForSeconds(1f);
+        if (boss != null && boss.bossId == "king")
+        {
+            // 왕의 공격은 캐릭터를 사망시키지 않고 사신의 공유 HP만 감소시킨다.
+            units[i].unit.material.SetFloat(EnableGlitch, 0);
+            yield break;
+        }
         battleManagerTemp.OnHit(i);
     }
 
@@ -438,18 +686,20 @@ public class BoardPanel : MonoBehaviour
     public void PlayAttackAnim(int i)
     {
         if(units[i].isAnimPlaying) return;
+        GameSfx.PlayAttack();
         units[i].isAnimPlaying = true;
         
-        StartCoroutine(MoveUI(i, new Vector2(0, 50f), 0.2f, 0.1f));
+        _moveAnimations[i] = StartCoroutine(MoveUI(i, new Vector2(0, 50f), 0.2f, 0.1f));
     }
     
     [DebugButton("심판 실행")]
     public void PlayJudgeAnim(int i)
     {
         if(units[i].isAnimPlaying) return;
+        GameSfx.PlayJudgment();
         units[i].isAnimPlaying = true;
         
-        StartCoroutine(MoveUI(i, new Vector2(0, -10f), 0.2f, 0.1f, new Vector2(100f, 60f)));
+        _moveAnimations[i] = StartCoroutine(MoveUI(i, new Vector2(0, -10f), 0.2f, 0.1f, new Vector2(100f, 60f)));
     }
     
     public bool IsAnimPlaying(int i)
