@@ -24,5 +24,4 @@ MonoBehaviour:
   npcSkinName: "\uC720(\uC0AC\uC81C)"
   insectSkinName: "\uAFC0\uBC8C (\uC0AC\uC81C)"
   bossSkinName: "\uAD50\uD669(\uC0AC\uC81C)"
-  skinPrice: 100
-  description: "\uC2EC\uD310 \uD6C4, \uD50C\uB808\uC774\uC5B4\uC758 HP 3 \uD68C\uBCF5"
+  description: "\uD134 \uC885\uB8CC \uC2DC, \uD50C\uB808\uC774\uC5B4\uC758 HP 3 \uD68C\uBCF5"
