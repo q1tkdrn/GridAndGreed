@@ -16,7 +16,7 @@ MonoBehaviour:
   id: 1
   power: 6
   intelligence: 1
-  reviveCool: 2
+  reviveCool: 3
   abilityText: "\uD53C\uD574 1\uD68C \uBB34\uD6A8\uD654(\uC0AC\uB9DD \uC2DC \uCD08\uAE30\uD654)"
   illustration: {fileID: 21300000, guid: 3c4f684ce7f0d32418c86fbb4e2fcf6e, type: 3}
   defaultSkin: {fileID: 21300000, guid: 366cdeb7f22f48549927ab26adff1d18, type: 3}

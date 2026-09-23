@@ -72,6 +72,22 @@ public static class AfterlifePatternTests
         Mask(P.AfterlifePhase2B1, sides); Mask(P.AfterlifePhase2B2, checker);
         Mask(P.AfterlifePhase2B3, sides); Mask(P.AfterlifePhase2B4, inverse);
         Mask(P.AfterlifePhase2C1, top); Mask(P.AfterlifePhase2C2, full);
+        // Audience chamber reference: # is bright/attacked, . is dark/safe.
+        // Explicit masks also catch incorrect stripe widths and the hollow safe ring in A2.
+        Mask(P.KingA1, "...###.../...###.../...###.../...###.../...###.../...###.../...###.../...###.../...###...");
+        Mask(P.KingA2, "#########/#.......#/#.#####.#/#.#####.#/#.#####.#/#.#####.#/#.#####.#/#.......#/#########");
+        Mask(P.KingA3, "##.....##/##.....##/##.....##/##.....##/##.....##/##.....##/##.....##/##.....##/##.....##");
+        Mask(P.KingB1, "#.......#/.#.....#./..#...#../...#.#.../....#..../...#.#.../..#...#../.#.....#./#.......#");
+        Mask(P.KingB2, "....#..../....#..../....#..../....#..../#########/....#..../....#..../....#..../....#....");
+        Mask(P.KingB3, "#########/#########/#########/###...###/###...###/###...###/#########/#########/#########");
+        Mask(P.KingC1, ".###.###./.###.###./.###.###./.###.###./.###.###./.###.###./.###.###./.###.###./.###.###.");
+        Mask(P.KingC2, "........./#########/#########/#########/........./#########/#########/#########/.........");
+        Mask(P.KingC3, "........./........./..#####../..#####../..#####../..#####../..#####../........./.........");
+        Mask(P.KingC4, full);
+        Sequence(new BattlePatternRules.KingSequence(), new[] {
+            new[] { P.KingA1, P.KingA2, P.KingA3 },
+            new[] { P.KingB1, P.KingB2, P.KingB3 },
+            new[] { P.KingC1, P.KingC2, P.KingC3, P.KingC4 }});
         Sequence(new BattlePatternRules.AfterlifePhase1Sequence(), new[] {
             new[] { P.AfterlifePhase1A1, P.AfterlifePhase1A2, P.AfterlifePhase1A3 },
             new[] { P.AfterlifePhase1B1, P.AfterlifePhase1B2, P.AfterlifePhase1B3 },
@@ -89,6 +105,9 @@ public static class AfterlifePatternTests
             var expectedEffect = red.Contains(pattern) ? BattlePatternRules.ColorEffect.Relocate
                 : green.Contains(pattern) ? BattlePatternRules.ColorEffect.ReduceNextActionPoints
                 : yellow.Contains(pattern) ? BattlePatternRules.ColorEffect.DamageBossOnDodge
+                : pattern == P.KingB3 ? BattlePatternRules.ColorEffect.IncreaseKingWillPower
+                : pattern == P.KingA2 ? BattlePatternRules.ColorEffect.HealKing
+                : pattern == P.KingC4 ? BattlePatternRules.ColorEffect.RelocateKingTargets
                 : BattlePatternRules.ColorEffect.None;
             Check(BattlePatternRules.GetColorEffect(pattern) == expectedEffect);
         }
@@ -103,6 +122,6 @@ public static class AfterlifePatternTests
         var allCells = BattlePatternRules.PickRelocationCells(81, new HashSet<UnityEngine.Vector2Int>());
         Check(allCells.Count == 81 && new HashSet<UnityEngine.Vector2Int>(allCells).Count == 81);
         Check(BattlePatternRules.PickRelocationCells(3, new HashSet<UnityEngine.Vector2Int>(allCells)).Count == 0);
-        Console.WriteLine("PASS: " + checks + " coordinate and sequence assertions (19 patterns)");
+        Console.WriteLine("PASS: " + checks + " coordinate and sequence assertions (29 patterns)");
     }
 }

@@ -32,6 +32,7 @@ public class UnitBuildingPanel : MonoBehaviour
 
     private void OnEnable()
     {
+        BattleDisplayManager.GetInstance().EnsureFormationLoaded();
         currentUnits = BattleDisplayManager.GetInstance().currentUnits;
         Init();
     }
@@ -130,6 +131,7 @@ public class UnitBuildingPanel : MonoBehaviour
             currentUnits[_currentUnitIndex] = cards[i].unitTemp;
 
             Init();
+            BattleDisplayManager.GetInstance().SaveFormation();
             return;
         }
 
@@ -157,25 +159,25 @@ public class UnitBuildingPanel : MonoBehaviour
 
     private void InitSkin()
     {
-        skins[0].sprite = cards[_currentCardIndex].unitTemp.skin1;
-        skins[1].sprite = cards[_currentCardIndex].unitTemp.skin2;
-        skins[2].sprite = cards[_currentCardIndex].unitTemp.skin3;
-
-        skinTexts[0].text = cards[_currentCardIndex].unitTemp.isSkin1Unlocked ? "해금됨" : "잠금됨";
-        skinTexts[1].text = cards[_currentCardIndex].unitTemp.isSkin2Unlocked ? "해금됨" : "잠금됨";
-        skinTexts[2].text = cards[_currentCardIndex].unitTemp.isSkin3Unlocked ? "해금됨" : "잠금됨";
-        
-        if(cards[_currentCardIndex].unitTemp.currentSkin == 0) return;
-        skinTexts[cards[_currentCardIndex].unitTemp.currentSkin - 1].text = "장착됨";
+        var unit = cards[_currentCardIndex].unitTemp;
+        if (!unit.IsSkinUnlocked(unit.currentSkin)) unit.currentSkin = 0;
+        for (int i = 0; i < skins.Length; i++)
+        {
+            var sprite = unit.GetSkin(i + 1);
+            skins[i].sprite = sprite;
+            skins[i].gameObject.SetActive(sprite != null);
+            skinTexts[i].gameObject.SetActive(sprite != null);
+            skinTexts[i].text = unit.currentSkin == i + 1 ? "장착됨"
+                : unit.IsSkinUnlocked(i + 1) ? "해금됨" : "잠금됨";
+        }
     }
 
     public void OnSkinClick(int i)
     {
-        if (i == 1 && !cards[_currentCardIndex].unitTemp.isSkin1Unlocked) return;
-        if (i == 2 && !cards[_currentCardIndex].unitTemp.isSkin2Unlocked) return;
-        if (i == 3 && !cards[_currentCardIndex].unitTemp.isSkin3Unlocked) return;
+        if (i < 1 || i > 3 || !cards[_currentCardIndex].unitTemp.IsSkinUnlocked(i)) return;
         if(cards[_currentCardIndex].unitTemp.currentSkin == i) cards[_currentCardIndex].unitTemp.currentSkin = 0;
         else cards[_currentCardIndex].unitTemp.currentSkin = i;
+        BattleDisplayManager.GetInstance().SaveFormation();
         InitSkin();
     }
 }

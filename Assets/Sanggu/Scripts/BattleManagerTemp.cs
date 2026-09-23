@@ -7,6 +7,7 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.Serialization;
 using UnityEngine.UI;
+using TMPro;
 
 public class BattleManagerTemp : MonoBehaviour
 {
@@ -30,6 +31,7 @@ public class BattleManagerTemp : MonoBehaviour
     [SerializeField] private Sprite attackPreviewSprite;
     private readonly Dictionary<Vector2Int, Image> _attackPreviewPlates = new();
     private readonly Dictionary<Vector2Int, Image> _attackPlates = new();
+    private readonly Dictionary<Vector2Int, GameObject> _sanctuaryMarkers = new();
     private int _patternRevision;
     private HashSet<Vector2Int> _preparedDangerCells;
     private BossTemp _preparedBoss;
@@ -59,9 +61,11 @@ public class BattleManagerTemp : MonoBehaviour
     //활성하시 클릭 가능한 칸 생성
     public void Init()
     {
+        StopAllCoroutines();
         ClearBossPatternPreview();
         _attackPreviewPlates.Clear();
         _attackPlates.Clear();
+        _sanctuaryMarkers.Clear();
         if (attackPreviewSprite == null)
         {
             attackPreviewSprite = Resources.Load<Sprite>("공격 예상");
@@ -141,6 +145,34 @@ public class BattleManagerTemp : MonoBehaviour
                 attackImage.raycastTarget = false;
                 attackImage.enabled = false;
                 _attackPlates[new Vector2Int(x, y)] = attackImage;
+
+                // A separate gold label stays visible over attack/movement overlays.
+                var marker = new GameObject($"Sanctuary{x},{y}", typeof(RectTransform), typeof(Image));
+                marker.layer = go.layer;
+                var markerRect = (RectTransform)marker.transform;
+                markerRect.SetParent(go.transform, false);
+                markerRect.anchorMin = markerRect.anchorMax = new Vector2(0.5f, 0f);
+                markerRect.pivot = new Vector2(0.5f, 0f);
+                markerRect.sizeDelta = new Vector2(52f, 22f);
+                markerRect.anchoredPosition = new Vector2(0f, 3f);
+                var markerImage = marker.GetComponent<Image>();
+                markerImage.color = new Color(0.32f, 0.23f, 0.04f, 0.95f);
+                markerImage.raycastTarget = false;
+                var labelObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
+                labelObject.layer = go.layer;
+                labelObject.transform.SetParent(marker.transform, false);
+                var label = labelObject.GetComponent<TextMeshProUGUI>();
+                label.font = boardPanel.UiFont;
+                label.text = "성역";
+                label.fontSize = 16;
+                label.color = new Color(1f, 0.85f, 0.35f);
+                label.alignment = TextAlignmentOptions.Center;
+                label.raycastTarget = false;
+                label.rectTransform.anchorMin = Vector2.zero;
+                label.rectTransform.anchorMax = Vector2.one;
+                label.rectTransform.offsetMin = label.rectTransform.offsetMax = Vector2.zero;
+                marker.SetActive(false);
+                _sanctuaryMarkers[new Vector2Int(x, y)] = marker;
             }
         }
         
@@ -155,6 +187,7 @@ public class BattleManagerTemp : MonoBehaviour
             units[i].unitOnWaiting.GetComponent<Image>().color = new Color(1, 1, 1, 1);
         }
         
+        RefreshSanctuary();
         boardPanel.NextTurn();
     }
 
@@ -301,9 +334,10 @@ public class BattleManagerTemp : MonoBehaviour
         {
             units[_currentMoveIndex].unit.GetComponent<RectTransform>().anchoredPosition = target.Value.GetComponent<RectTransform>().anchoredPosition;
             units[_currentMoveIndex].pos = target.Key;
+            GameSfx.PlayMove();
             var passive = units[_currentMoveIndex].passive;
             passive.Move();
-            boardPanel.AttackBoss(passive.MoveDamage + boardPanel.ItemEffects.MoveDamage);
+            boardPanel.AttackBossFromUnit(passive.MoveDamage + boardPanel.ItemEffects.MoveDamage, _currentMoveIndex);
             boardPanel.HealReaper(passive.MoveHealing);
             OnPointerExit(_currentMoveIndex);
             OnPointerEnter(_currentMoveIndex);
@@ -328,9 +362,7 @@ public class BattleManagerTemp : MonoBehaviour
         {
             Debug.Log("db");
             var passive = units[i].passive;
-            boardPanel.JudgeBoss(units[i].unitTemp.intelligence + passive.IntelligenceBonus
-                + boardPanel.ItemEffects.IntelligenceBonus(units[i].unitTemp.id, boardPanel.reaperCurrentHp));
-            boardPanel.HealReaper(passive.JudgeHealing);
+            boardPanel.JudgeBossFromUnit(GetIntelligence(i), i);
             passive.AfterJudge();
             boardPanel.PlayJudgeAnim(i);
             boardPanel.SpendAction(judgment: true);
@@ -350,13 +382,29 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void Attack()
     {
-        foreach (var unit in units.Where(x => x.isPlaced && x.reviveRemainTurn <= 0).ToList())
+        for (int i = 0; i < units.Length; i++)
         {
             if (boardPanel.IsBattleOver) break;
-            boardPanel.AutomaticAttackBoss(unit.unitTemp.power + unit.passive.PowerBonus
-                + boardPanel.ItemEffects.PowerBonus(unit.unitTemp.id, boardPanel.reaperCurrentHp));
-            boardPanel.PlayAttackAnim(units.ToList().IndexOf(unit));
+            if (!units[i].isPlaced || units[i].reviveRemainTurn > 0) continue;
+            boardPanel.AutomaticAttackBossFromUnit(GetPower(i), i);
+            boardPanel.PlayAttackAnim(i);
         }
+    }
+
+    public int GetPower(int i)
+    {
+        var unit = units[i];
+        if (unit.unitTemp == null) return 0;
+        return unit.unitTemp.power + (unit.passive?.PowerBonus ?? 0)
+            + boardPanel.ItemEffects.PowerBonus(unit.unitTemp.id, boardPanel.reaperCurrentHp);
+    }
+
+    public int GetIntelligence(int i)
+    {
+        var unit = units[i];
+        if (unit.unitTemp == null) return 0;
+        return unit.unitTemp.intelligence + (unit.passive?.IntelligenceBonus ?? 0)
+            + boardPanel.ItemEffects.IntelligenceBonus(unit.unitTemp.id, boardPanel.reaperCurrentHp);
     }
 
     public void OnHit(int i)
@@ -385,12 +433,41 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnTurnEnd()
     {
-        foreach (var unit in units)
+        for (int i = 0; i < units.Length; i++)
         {
             if (boardPanel.IsBattleOver) break;
+            var unit = units[i];
             if (unit.isPlaced && unit.reviveRemainTurn <= 0)
-                boardPanel.AttackBoss(unit.passive.TurnEndDamage);
+            {
+                boardPanel.AttackBossFromUnit(unit.passive.TurnEndDamage, i);
+                boardPanel.HealReaper(unit.passive.TurnEndHealing);
+            }
         }
+    }
+
+    public void RefreshSanctuary()
+    {
+        foreach (var marker in _sanctuaryMarkers)
+            if (marker.Value != null) marker.Value.SetActive(boardPanel.IsSanctuary(marker.Key));
+    }
+
+    public bool IsUnitOnSanctuary(int i)
+    {
+        return i >= 0 && i < units.Length && units[i].isPlaced && boardPanel.IsSanctuary(units[i].pos);
+    }
+
+    public void RelocateJudgmentUser(int i)
+    {
+        if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
+        // Include the caster's old cell and revival reservations: always move without stacking units.
+        var occupied = new HashSet<Vector2Int>(units.Where(u => u.isPlaced).Select(u => u.pos));
+        var destinations = BattlePatternRules.PickRelocationCells(1, occupied);
+        if (destinations.Count == 0) return;
+        OnPointerExit(i);
+        units[i].pos = destinations[0];
+        units[i].unit.rectTransform.anchoredPosition = _blankPos[destinations[0]].GetComponent<RectTransform>().anchoredPosition;
+        _currentMoveIndex = -1;
+        // Forced movement costs no extra action and does not trigger character/item movement effects.
     }
 
     public void PrepareBossPattern(BossTemp boss, int turnCount)

@@ -11,7 +11,7 @@ public sealed class CharacterPassiveState
     public int IntelligenceBonus { get; private set; }
     public int MoveDamage => characterId == 3 ? 3 : 0;
     public int MoveHealing => characterId == 5 ? 1 : 0;
-    public int JudgeHealing => characterId == 4 ? 3 : 0;
+    public int TurnEndHealing => characterId == 4 ? 3 : 0;
     public int TurnEndDamage => characterId == 2 && !moved ? 5 : 0;
     public bool LosesBattleOnDeath => characterId == 9;
 
@@ -30,7 +30,8 @@ public sealed class CharacterPassiveState
 
     public void AfterJudge()
     {
-        if (characterId == 7) IntelligenceBonus++;
+        // Wizard's base intelligence is 4; judgment can raise it to 6 this turn.
+        if (characterId == 7 && IntelligenceBonus < 2) IntelligenceBonus++;
     }
 
     public bool TryBlockHit()
