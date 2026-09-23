@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class SkinSlot : MonoBehaviour
 {
-    public const int Price = 100;
+    public const int Price = 400;
     public event System.Action SelectionChanged;
     public bool HasCurrentSkin => character != null && (currentSkin switch
     {

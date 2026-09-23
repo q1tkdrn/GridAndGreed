@@ -49,6 +49,9 @@ public class AchievementManager : MonoBehaviour
         if (!IsCompleted(id) || IsRewarded(id))
             return;
 
+        // Start screen has no inventory yet; leave the reward pending until it loads.
+        if (InventoryManager.Instance == null) return;
+
         foreach (AchievementData data in achievements)
         {
             if (data.id != id)

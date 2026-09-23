@@ -32,6 +32,14 @@ public class InventoryManager : MonoBehaviour
         LoadItems();
         LoadCharacters();
         LoadMemorials();
+        // Credits may have been viewed on the start screen before inventory existed.
+        var achievements = AchievementManager.Instance;
+        if (achievements != null && achievements.achievements != null)
+        {
+            foreach (var achievement in achievements.achievements)
+                if (achievement != null) achievements.GetReward(achievement.id);
+            PlayerPrefs.Save();
+        }
     }
     // Soul
     private void LoadSoul()

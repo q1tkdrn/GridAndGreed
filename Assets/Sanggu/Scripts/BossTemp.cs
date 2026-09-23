@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 
 [CreateAssetMenu(fileName = "Boss", menuName = "Boss")]
 public class BossTemp : ScriptableObject
@@ -42,10 +42,54 @@ public class BossTemp : ScriptableObject
     [Min(0.1f)] public float patternPreviewSeconds = 1f;
 }
 
+// One-use HP gates. Reaching a gate arms it; only completion of the current
+// pattern group releases it. Healing never restores an already released gate.
+public sealed class BossPatternHpGate
+{
+    public static bool IsEnabled(string bossId, bool hasPattern) => hasPattern && bossId != "death2";
+    private readonly int maximum;
+    private int released;
+    public bool IsWaiting { get; private set; }
+    public int Floor => released == 0 ? (int)((maximum * 50L + 99) / 100)
+        : released == 1 ? (int)((maximum * 30L + 99) / 100) : 0;
+
+    public BossPatternHpGate(int maximum, bool enabled = true)
+    {
+        this.maximum = System.Math.Max(1, maximum);
+        released = enabled ? 0 : 2;
+    }
+
+    public int ResolveHp(int current, int requested)
+    {
+        if (requested >= current || released >= 2) return requested;
+        int floor = Floor;
+        if (requested <= floor)
+        {
+            IsWaiting = true;
+            return System.Math.Min(current, floor);
+        }
+        return requested;
+    }
+
+    public bool CompleteGroup()
+    {
+        if (!IsWaiting) return false;
+        released++;
+        IsWaiting = false;
+        return true;
+    }
+}
+
 public static class AfterlifePassiveRules
 {
     public enum PhaseOneEffect { None, LimitActions, JudgmentWeakness, Regenerate }
     public enum DamageSource { AutomaticAttack, Judgment, Other }
+
+    public static bool PreventsAllyDeathFromBossAttack(string bossId)
+        => bossId == "death1" || bossId == "death2";
+
+    public static int GetBossAttackDamage(string bossId, int damage)
+        => PreventsAllyDeathFromBossAttack(bossId) ? 3 : damage;
 
     public static int ResolveDamage(string bossId, PhaseOneEffect effect, DamageSource source, int damage)
     {

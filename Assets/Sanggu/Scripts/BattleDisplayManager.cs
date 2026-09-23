@@ -85,7 +85,7 @@ public class BattleDisplayManager : MonoBehaviour
     [Space]
     [SerializeField] private GameObject victoryPanel;
     [Header("Victory Reward")]
-    [SerializeField, Min(0)] private int victorySoulReward = 50;
+    [SerializeField, Min(0)] private int victorySoulReward = 500;
     [SerializeField] private GameObject defeatPanel;
     [SerializeField] private Image waysPanel;
     [SerializeField] private GameObject waysBackButton;
@@ -333,6 +333,9 @@ public class BattleDisplayManager : MonoBehaviour
         }
         
         waysPanel.gameObject.SetActive(true);
+        foreach (var stage in stages)
+            if (stage.stageImage != null) UIHoverScale.Attach(stage.stageImage.gameObject, 1.03f);
+        UIHoverScale.Attach(waysBackButton);
         if (waysBackButton != null) waysBackButton.SetActive(appearedBoss.Count == 0);
         if (_waysChoicesReady) return;
         remainBoss.Shuffle();

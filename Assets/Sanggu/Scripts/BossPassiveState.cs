@@ -13,6 +13,7 @@ public sealed class BossPassiveState
     public BossPassiveState(string bossId) => this.bossId = bossId;
     public int JudgmentWillGain => bossId == "fusion" ? 1 : 0;
     public int AllyDeathWillGain => bossId == "subject" ? 1 : 0;
+    public int AllyMoveHealing => bossId == "noble" ? 2 : 0;
     public int SanctuaryCount => sanctuary.Count;
 
     public void StartTurn(int turnNumber, Func<int, int, int> randomRange)

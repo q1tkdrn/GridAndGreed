@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class MainManager : MonoBehaviour
 {
@@ -8,11 +9,58 @@ public class MainManager : MonoBehaviour
 
     [SerializeField] private GameObject leftButton;
     [SerializeField] private GameObject rightButton;
+    [Header("Main screen light")]
+    [SerializeField] private bool ambientLightEnabled = true;
+    [SerializeField, Range(0f, 1f)] private float ambientLightIntensity = 0.55f;
+    [SerializeField, Range(0f, 1f)] private float ambientLightMotion = 0.35f;
+    private Material ambientLightMaterial;
     private int currentIndex = 1;
     void Start()
     {
+        foreach (var button in GetComponentsInChildren<Button>(true))
+            UIHoverScale.Attach(button.gameObject);
+        CreateAmbientLight();
         currentIndex = PlayerPrefs.GetInt("mainCurrentIndex", 1);
         SetMain();
+    }
+
+    private void CreateAmbientLight()
+    {
+        if (!ambientLightEnabled) return;
+        // Resources keeps the UI shader available in player builds as well as the editor.
+        var shader = Resources.Load<Shader>("MainMenuAmbientLight");
+        if (shader == null || !shader.isSupported) return;
+        ambientLightMaterial = new Material(shader) { name = "Main menu ambient light" };
+        UpdateAmbientLight();
+        foreach (var panel in main)
+        {
+            if (panel == null) continue;
+            var overlay = new GameObject("Ambient Light", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
+            overlay.layer = panel.layer;
+            var rect = (RectTransform)overlay.transform;
+            rect.SetParent(panel.transform, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.offsetMin = rect.offsetMax = Vector2.zero;
+            rect.SetAsLastSibling();
+            var graphic = overlay.GetComponent<Image>();
+            graphic.raycastTarget = false;
+            graphic.material = ambientLightMaterial;
+        }
+    }
+
+    private void OnValidate() => UpdateAmbientLight();
+
+    private void UpdateAmbientLight()
+    {
+        if (ambientLightMaterial == null) return;
+        ambientLightMaterial.SetFloat("_Intensity", ambientLightEnabled ? ambientLightIntensity : 0f);
+        ambientLightMaterial.SetFloat("_Motion", ambientLightMotion);
+    }
+
+    private void OnDestroy()
+    {
+        if (ambientLightMaterial != null) Destroy(ambientLightMaterial);
     }
     private void SetMain()
     {

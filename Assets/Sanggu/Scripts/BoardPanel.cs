@@ -81,6 +81,11 @@ public class BoardPanel : MonoBehaviour
     public bool IsBattleOver => _isWin || _isLose;
     public ItemBattleState ItemEffects { get; private set; } = new ItemBattleState(null);
     private BossPassiveState _bossPassives = new BossPassiveState(null);
+    private BossPatternHpGate _bossHpGate;
+    private bool _bossPatternGroupCompleted;
+
+    public void OnBossPatternGroupCompleted() => _bossPatternGroupCompleted = true;
+    public void OnAllyMoved() => HealBoss(_bossPassives.AllyMoveHealing);
     public bool IsSanctuary(Vector2Int cell) => _bossPassives.IsSanctuary(cell.x, cell.y);
     public TMP_FontAsset UiFont => turnTextUI.font;
     private int _nextTurnActionPenalty;
@@ -88,6 +93,7 @@ public class BoardPanel : MonoBehaviour
 
     private void BeginBossTurn()
     {
+        _bossPatternGroupCompleted = false;
         _bossPassives.StartTurn(turnCount, UnityEngine.Random.Range);
         battleManagerTemp.RefreshSanctuary();
         afterlifeTurnPassive = boss.bossId == "death1"
@@ -111,16 +117,21 @@ public class BoardPanel : MonoBehaviour
                 AfterlifePassiveRules.PhaseOneEffect.JudgmentWeakness => "심판 피해 +2 / 힘 자동 공격 면역",
                 _ => "턴 종료 시 보스 HP 4 회복"
             };
-            PrintText("[저승 1페이즈 패시브] " + effect);
+            PrintText("[저승 공통 패시브] 아군은 보스 공격으로 사망하지 않음 / 아군 피격 시 패턴당 플레이어 HP -3");
+            PrintText("[저승 페이즈 1 패시브] " + effect);
         }
         else if (boss.bossId == "death2")
-            PrintText("[저승 2페이즈 패시브] 받는 피해 0 / 턴 종료 HP -1 / 아군 사망 시 의지력 +1");
+        {
+            PrintText("[저승 공통 패시브] 아군은 보스 공격으로 사망하지 않음 / 아군 피격 시 패턴당 플레이어 HP -3");
+            PrintText("[저승 페이즈 2 패시브] 받는 피해 0 / 턴 종료 HP -1 / 아군 사망 시 의지력 +1");
+        }
         else if (boss.bossId == "pope")
             PrintText("[성역] 금색으로 표시된 40칸 위 캐릭터가 주는 모든 피해 무효");
         else if (boss.bossId == "secretary")
             PrintText(turnCount % 2 == 1 ? "[서고] 홀수 턴: 받는 모든 피해를 1로 감소" : "[서고] 짝수 턴: 정상 피해");
         else if (turnCount == 1)
         {
+            if (boss.bossId == "noble") PrintText("[영생 귀족] 아군이 이동할 때마다 보스 HP 2 회복");
             if (boss.bossId == "fusion") PrintText("[광장] 아군이 심판을 사용할 때마다 의지력 +1");
             if (boss.bossId == "door") PrintText("[왕실 연구소] 심판 피해를 받으면 사용한 아군을 무작위 빈칸으로 이동");
             if (boss.bossId == "subject") PrintText("[지하실] 아군 사망마다 의지력 +1");
@@ -133,6 +144,9 @@ public class BoardPanel : MonoBehaviour
         if (IsBattleOver) return;
         // 자신의 턴 종료 HP 변화는 받는 피해가 아니므로 피해 면역을 거치지 않는다.
         UpdateBossHp(AfterlifePassiveRules.GetTurnEndHp(boss.bossId, afterlifeTurnPassive, bossCurrentHp, bossMaxHp));
+        // Include final-step effects and turn-end HP loss before releasing this group.
+        if (_bossPatternGroupCompleted && _bossHpGate.CompleteGroup())
+            PrintText("[보스] 패턴 묶음 종료: HP 하한 해제");
         // A defeated boss cannot deal turn-end damage. Use the usual HP path for the contract.
         if (!IsBattleOver && willPower > 0)
         {
@@ -298,6 +312,7 @@ public class BoardPanel : MonoBehaviour
         }
         // 각 보스 에셋의 스탯을 새로 읽어 이전 페이즈 HP/의지력이 남지 않도록 한다.
         bossMaxHp = Mathf.Max(1, boss.maxHp);
+        _bossHpGate = new BossPatternHpGate(bossMaxHp, BossPatternHpGate.IsEnabled(boss.bossId, battleManagerTemp.HasBossPattern(boss)));
         willPower = Mathf.Max(0, boss.initialWillPower - ItemEffects.WillPowerReduction);
         willPowerText.text = $"의지력: {willPower}";
         // 기존 OnPhaseChange의 0 기반 규약: 0 = 1페이즈, 1 = 2페이즈.
@@ -460,7 +475,10 @@ public class BoardPanel : MonoBehaviour
     public void UpdateBossHp(int hp)
     {
         if (IsBattleOver) return;
-        bossCurrentHp = hp;
+        bool wasWaiting = _bossHpGate != null && _bossHpGate.IsWaiting;
+        bossCurrentHp = _bossHpGate != null ? _bossHpGate.ResolveHp(bossCurrentHp, hp) : hp;
+        if (!wasWaiting && _bossHpGate != null && _bossHpGate.IsWaiting)
+            PrintText($"[보스] 패턴 묶음이 끝날 때까지 HP {_bossHpGate.Floor} 미만으로 감소하지 않음");
         if (bossCurrentHp <= 0)
         {
             PrintText(string.IsNullOrWhiteSpace(boss.win) ? "승리" : boss.win);
@@ -515,7 +533,9 @@ public class BoardPanel : MonoBehaviour
         int damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, dmg);
         damage = _bossPassives.ResolveDamage(source, damage, battleManagerTemp.IsUnitOnSanctuary(unitIndex));
         if (damage <= 0) return 0;
+        int previousHp = bossCurrentHp;
         UpdateBossHp(bossCurrentHp - damage);
+        damage = previousHp - bossCurrentHp;
         // Once the boss is defeated, do not apply a post-victory counterattack.
         if (!IsBattleOver)
         {
@@ -673,9 +693,9 @@ public class BoardPanel : MonoBehaviour
     {
         units[i].unit.material.SetFloat(EnableGlitch, 1);
         yield return new WaitForSeconds(1f);
-        if (boss != null && boss.bossId == "king")
+        if (boss != null && (boss.bossId == "king" || AfterlifePassiveRules.PreventsAllyDeathFromBossAttack(boss.bossId)))
         {
-            // 왕의 공격은 캐릭터를 사망시키지 않고 사신의 공유 HP만 감소시킨다.
+            // 왕과 저승의 공격은 캐릭터를 사망시키지 않고 사신의 공유 HP만 감소시킨다.
             units[i].unit.material.SetFloat(EnableGlitch, 0);
             yield break;
         }

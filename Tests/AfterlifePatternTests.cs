@@ -42,11 +42,17 @@ public static class AfterlifePatternTests
         for (int g = 0; g < groups.Length; g++)
         {
             sequence.Reset();
+            Check(!sequence.IsLastStep);
             UnityEngine.Random.Group = g;
             Check(sequence.Next() == groups[g][0]);
+            Check(sequence.IsLastStep == (groups[g].Length == 1));
             // Changing the next lottery must not change an in-progress group.
             UnityEngine.Random.Group = (g + 1) % groups.Length;
-            for (int i = 1; i < groups[g].Length; i++) Check(sequence.Next() == groups[g][i]);
+            for (int i = 1; i < groups[g].Length; i++)
+            {
+                Check(sequence.Next() == groups[g][i]);
+                Check(sequence.IsLastStep == (i == groups[g].Length - 1));
+            }
             Check(sequence.Next() == groups[(g + 1) % groups.Length][0]);
             sequence.Reset();
             Check(sequence.Next() == groups[(g + 1) % groups.Length][0]);

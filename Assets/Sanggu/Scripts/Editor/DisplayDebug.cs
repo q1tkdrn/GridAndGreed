@@ -1,4 +1,4 @@
-﻿
+
 using UnityEditor;
 using UnityEngine;
 using System.Linq;
@@ -33,8 +33,8 @@ public class DisplayDebug: Editor
     {
         string name = boss.bossId switch
         {
-            "death1" => "저승 1페이즈",
-            "death2" => "저승 2페이즈",
+            "death1" => "저승 페이즈 1",
+            "death2" => "저승 페이즈 2",
             _ => string.IsNullOrWhiteSpace(boss.stageName)
                 ? boss.bossName : $"{boss.stageName} · {boss.bossName}"
         };

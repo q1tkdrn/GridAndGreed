@@ -749,6 +749,9 @@ public static class BattlePatternRules
         private int group = -1;
         private int step;
 
+        // Next() selects a step; this becomes true before that final step is executed.
+        public bool IsLastStep => group >= 0 && step == Groups[group].Length;
+
         public void Reset()
         {
             group = -1;

@@ -56,6 +56,7 @@ public class BattleManagerTemp : MonoBehaviour
     private readonly BattlePatternRules.AfterlifePhase1Sequence _afterlifePhase1Sequence = new();
     private readonly BattlePatternRules.AfterlifePhase2Sequence _afterlifePhase2Sequence = new();
     private readonly BattlePatternRules.KingSequence _kingSequence = new();
+    private bool _preparedLastStep;
     [SerializeField] private float doubleClickDelay = 0.1f;
 
     //활성하시 클릭 가능한 칸 생성
@@ -337,6 +338,7 @@ public class BattleManagerTemp : MonoBehaviour
             GameSfx.PlayMove();
             var passive = units[_currentMoveIndex].passive;
             passive.Move();
+            boardPanel.OnAllyMoved();
             boardPanel.AttackBossFromUnit(passive.MoveDamage + boardPanel.ItemEffects.MoveDamage, _currentMoveIndex);
             boardPanel.HealReaper(passive.MoveHealing);
             OnPointerExit(_currentMoveIndex);
@@ -502,6 +504,7 @@ public class BattleManagerTemp : MonoBehaviour
         _preparedBoss = null;
         _preparedTurn = -1;
         _preparedEffect = BattlePatternRules.ColorEffect.None;
+        _preparedLastStep = false;
         foreach (var attack in _attackPlates.Values)
         {
             if (attack != null) attack.enabled = false;
@@ -520,7 +523,11 @@ public class BattleManagerTemp : MonoBehaviour
         {
             if (preview != null) preview.enabled = false;
         }
-        if (dangerCells.Count == 0) yield break;
+        if (dangerCells.Count == 0)
+        {
+            if (_preparedLastStep) boardPanel.OnBossPatternGroupCompleted();
+            yield break;
+        }
 
         foreach (var cell in dangerCells)
         {
@@ -538,6 +545,7 @@ public class BattleManagerTemp : MonoBehaviour
         if (revision != _patternRevision) yield break;
 
         var damage = boss != null && boss.patternDamage > 0 ? boss.patternDamage : 5;
+        damage = AfterlifePassiveRules.GetBossAttackDamage(boss != null ? boss.bossId : null, damage);
         var hitUnits = new List<int>();
         var hitAnimations = new List<Coroutine>();
         for (int i = 0; i < units.Length; i++)
@@ -597,55 +605,42 @@ public class BattleManagerTemp : MonoBehaviour
             }
         }
         // 다음 턴의 Prepare 호출까지 확정 좌표를 유지한다.
+        if (_preparedLastStep) boardPanel.OnBossPatternGroupCompleted();
     }
+
+    private BattlePatternRules.PatternSequence GetSequence(BossTemp boss) => boss?.bossId switch
+    {
+        "death1" => _afterlifePhase1Sequence,
+        "death2" => _afterlifePhase2Sequence,
+        "king" => _kingSequence,
+        "noble" => _mansionSequence,
+        "fusion" => _plazaSequence,
+        "door" => _doorSequence,
+        "subject" => _basementSequence,
+        "secretary" => _librarySequence,
+        "instructor" => _trainingSequence,
+        "pope" => _cathedralSequence,
+        _ => null
+    };
+
+    public bool HasBossPattern(BossTemp boss)
+        => GetSequence(boss) != null || (boss?.patterns != null && boss.patterns.Length > 0);
 
     private BattlePatternRules.Pattern GetPattern(BossTemp boss, int turnCount)
     {
-        // 기존 저승 2연전 전환에 대응한다. 페이즈별 보스 패시브는 별도로 적용한다.
-        if (boss != null && boss.bossId == "death1") return _afterlifePhase1Sequence.Next();
-        if (boss != null && boss.bossId == "death2") return _afterlifePhase2Sequence.Next();
-        if (boss != null && boss.bossId == "king") return _kingSequence.Next();
-        // 대저택의 A/B/C는 대저택 전투에서만 사용한다.
-        if (boss != null && boss.bossId == "noble")
+        var sequence = GetSequence(boss);
+        if (sequence != null)
         {
-            return _mansionSequence.Next();
-        }
-
-        // Fusion.asset은 광장 스테이지다. 배열 순환 대신 A/B/C 묶음을 진행한다.
-        if (boss != null && boss.bossId == "fusion")
-        {
-            return _plazaSequence.Next();
-        }
-
-        if (boss != null && boss.bossId == "door")
-        {
-            return _doorSequence.Next();
-        }
-
-        if (boss != null && boss.bossId == "subject")
-        {
-            return _basementSequence.Next();
-        }
-
-        if (boss != null && boss.bossId == "secretary")
-        {
-            return _librarySequence.Next();
-        }
-
-        if (boss != null && boss.bossId == "instructor")
-        {
-            return _trainingSequence.Next();
+            var pattern = sequence.Next();
+            _preparedLastStep = sequence.IsLastStep;
+            return pattern;
         }
 
         var patterns = boss?.patterns;
-        // Pope.asset은 성당 스테이지다. 다른 스테이지와 진행 상태를 공유하지 않는다.
-        if (boss != null && boss.bossId == "pope")
-        {
-            return _cathedralSequence.Next();
-        }
-
         if (patterns != null && patterns.Length > 0)
         {
+            // Custom arrays are treated as one complete pattern group.
+            _preparedLastStep = turnCount % patterns.Length == 0;
             return patterns[(turnCount - 1) % patterns.Length];
         }
 

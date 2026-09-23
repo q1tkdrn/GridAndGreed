@@ -93,6 +93,9 @@ public static class BossPassiveStateTests
         Check(new BossPassiveState("death2").ResolveDamage(Source.Judgment,
             AfterlifePassiveRules.ResolveDamage("death2", AfterlifePassiveRules.PhaseOneEffect.None, Source.Judgment, 20), false) == 0,
             "Existing afterlife immunity remains effective in the combined pipeline");
+        Check(new BossPassiveState("noble").AllyMoveHealing == 2, "Noble heals two per ally movement");
+        foreach (string id in new[] { "king", "death1", "death2", "door", "fusion", "pope", "subject", "secretary", "instructor" })
+            Check(new BossPassiveState(id).AllyMoveHealing == 0, "Movement healing is exclusive to noble");
         Console.WriteLine($"PASS: {checks} boss passive assertions");
     }
 }

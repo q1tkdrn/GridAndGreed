@@ -15,5 +15,5 @@ MonoBehaviour:
   itemName: "\uC548\uACBD"
   id: 14
   icon: {fileID: 21300000, guid: 81b636455aaccf54cad6681562b1a425, type: 3}
-  price: 100
+  price: 300
   description: "\uC544\uAD70 \uC9C0\uB2A5 1 \uC99D\uAC00"

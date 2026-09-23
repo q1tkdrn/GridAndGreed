@@ -12,6 +12,17 @@ public static class AfterlifePassiveTests
     }
     public static void Main()
     {
+        foreach (string bossId in new[] { "death1", "death2" })
+        {
+            Equal(1, AfterlifePassiveRules.PreventsAllyDeathFromBossAttack(bossId) ? 1 : 0);
+            foreach (int damage in new[] { 1, 5, 10 })
+                Equal(3, AfterlifePassiveRules.GetBossAttackDamage(bossId, damage));
+        }
+        foreach (string bossId in new[] { "noble", "king", "", null })
+        {
+            Equal(0, AfterlifePassiveRules.PreventsAllyDeathFromBossAttack(bossId) ? 1 : 0);
+            Equal(5, AfterlifePassiveRules.GetBossAttackDamage(bossId, 5));
+        }
         Equal(0, AfterlifePassiveRules.ResolveDamage("death1", E.JudgmentWeakness, D.AutomaticAttack, 6));
         Equal(6, AfterlifePassiveRules.ResolveDamage("death1", E.JudgmentWeakness, D.Judgment, 4));
         Equal(3, AfterlifePassiveRules.ResolveDamage("death1", E.JudgmentWeakness, D.Other, 3));

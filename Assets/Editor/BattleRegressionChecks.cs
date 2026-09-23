@@ -55,6 +55,13 @@ public static class BattleRegressionChecks
 
     private static void CheckBossPassives(BoardPanel board)
     {
+        Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Noble.asset"), 15, 0);
+        board.bossCurrentHp = 55;
+        board.OnAllyMoved();
+        Check(board.bossCurrentHp == 57, "Noble heals two on ally movement");
+        board.OnAllyMoved();
+        board.OnAllyMoved();
+        Check(board.bossCurrentHp == 60, "Movement healing is capped at maximum HP");
         Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Fusion.asset"), 15, 5);
         board.JudgeBoss(4);
         board.JudgeBoss(5);
@@ -258,13 +265,13 @@ public static class BattleRegressionChecks
                 "The watch still reduces the new cooldown by one");
         }
         for (int i = 1; i <= 8; i++)
-            Check(Asset<CharacterData>($"Assets/JDY/Data/Characters/Character_{i}.asset").price == 150, "Unit price is 150");
+            Check(Asset<CharacterData>($"Assets/JDY/Data/Characters/Character_{i}.asset").price == 500, "Unit price is 500");
         foreach (var guid in AssetDatabase.FindAssets("t:ItemData"))
         {
             var item = Asset<ItemData>(AssetDatabase.GUIDToAssetPath(guid));
-            Check(item.price == -1 || item.price == 100, "Shop items cost 100; reward items stay unlisted");
+            Check(item.price == -1 || item.price == 300, "Shop items cost 300; reward items stay unlisted");
         }
-        Check(SkinSlot.Price == 100, "Skin price is independent of unit price");
+        Check(SkinSlot.Price == 400, "Skin price is independent of unit price");
         var scythe = Asset<ItemData>("Assets/JDY/Data/Items/Item_22.asset");
         var contract = Asset<ItemData>("Assets/JDY/Data/Items/Item_23.asset");
         var reaper = Asset<UnitTemp>("Assets/Sanggu/ScriptableObjects/Units/9.Reaper.asset");
