@@ -517,7 +517,10 @@ public static class BattlePatternRules
         AfterlifePhase2C1, AfterlifePhase2C2,
         KingA1, KingA2, KingA3,
         KingB1, KingB2, KingB3,
-        KingC1, KingC2, KingC3, KingC4
+        KingC1, KingC2, KingC3, KingC4,
+        BellkeeperA1, BellkeeperA2, BellkeeperA3,
+        BellkeeperB1, BellkeeperB2, BellkeeperB3,
+        BellkeeperC1, BellkeeperC2, BellkeeperC3
     }
 
     public static HashSet<Vector2Int> GetDangerCells(Pattern pattern)
@@ -618,6 +621,17 @@ public static class BattlePatternRules
                     Pattern.KingC2 => y % 4 != 0,
                     Pattern.KingC3 => x is >= 2 and <= 6 && y is >= 2 and <= 6,
                     Pattern.KingC4 => true,
+                    // Three tolls: inward echoes, swinging chain, then a funeral cross.
+                    Pattern.BellkeeperA1 => x < 2 || x > 6 || y < 2 || y > 6,
+                    Pattern.BellkeeperA2 => x >= 2 && x <= 6 && y >= 2 && y <= 6
+                        && (x == 2 || x == 6 || y == 2 || y == 6),
+                    Pattern.BellkeeperA3 => x >= 3 && x <= 5 && y >= 3 && y <= 5,
+                    Pattern.BellkeeperB1 => x < 3,
+                    Pattern.BellkeeperB2 => x > 5,
+                    Pattern.BellkeeperB3 => x >= 3 && x <= 5,
+                    Pattern.BellkeeperC1 => System.Math.Abs(x - y) <= 1,
+                    Pattern.BellkeeperC2 => System.Math.Abs(x + y - 8) <= 1,
+                    Pattern.BellkeeperC3 => x == 4 || y == 4,
                     _ => false
                 };
 
@@ -734,6 +748,17 @@ public static class BattlePatternRules
             new[] { Pattern.KingA1, Pattern.KingA2, Pattern.KingA3 },
             new[] { Pattern.KingB1, Pattern.KingB2, Pattern.KingB3 },
             new[] { Pattern.KingC1, Pattern.KingC2, Pattern.KingC3, Pattern.KingC4 }
+        }) { }
+    }
+
+    public sealed class BellkeeperSequence : PatternSequence
+    {
+        // Every group has three steps, keeping the opening aligned with turn % 3.
+        public BellkeeperSequence() : base(new[]
+        {
+            new[] { Pattern.BellkeeperA1, Pattern.BellkeeperA2, Pattern.BellkeeperA3 },
+            new[] { Pattern.BellkeeperB1, Pattern.BellkeeperB2, Pattern.BellkeeperB3 },
+            new[] { Pattern.BellkeeperC1, Pattern.BellkeeperC2, Pattern.BellkeeperC3 }
         }) { }
     }
 

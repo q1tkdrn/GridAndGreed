@@ -14458,6 +14458,7 @@ MonoBehaviour:
   - {fileID: 11400000, guid: 4c0430282c8e22747b043367cf849ea1, type: 2}
   - {fileID: 11400000, guid: 86b3093238252744b8a9ae07d9411a99, type: 2}
   - {fileID: 11400000, guid: 9f6b651cac75526488ef40c35d7f1ce5, type: 2}
+  - {fileID: 11400000, guid: a28b329ec0e144edb663c4a46bb0b891, type: 2}
   appearedBoss: []
   bossKing: {fileID: 11400000, guid: bf0854fa532623149b8c4f05a4a36cc5, type: 2}
   bossDeath1: {fileID: 11400000, guid: 92bc060d5841ed940b36050246ba5ca3, type: 2}

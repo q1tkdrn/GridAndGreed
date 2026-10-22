@@ -1,0 +1,71 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5c2e1a687b6b43e586ded7e13e879765, type: 3}
+  m_Name: Bellkeeper
+  m_EditorClassIdentifier: Assembly-CSharp::BossTemp
+  bossName: "장송의 종지기"
+  bossId: bellkeeper
+  bossSprite: {fileID: 21300000, guid: 78ad15ca75854ddc86dc9b3aaf466d84, type: 3}
+  maxHp: 60
+  initialWillPower: 4
+  battleStart: "첫 번째는 산 자를 위해. 두 번째는 죽은 자를 위해. 세 번째는… 너를 위해."
+  turnStart:
+  - "(아무도 매달리지 않은 사슬이 팽팽해진다.)"
+  - "아직 네 이름은 부르지 않았다."
+  - "(종 안쪽에서 수많은 숨소리가 새어 나온다.)"
+  - "돌아갈 곳이 있다면, 지금 돌아가라."
+  willDecline:
+  - "(종소리가 한 박자 어긋난다.)"
+  - "아직… 보내지 못한 자들이 있다."
+  - "(사슬을 잡은 손이 떨린다.)"
+  - "이 종이 멎으면, 누가 그들을 기억하지?"
+  willZero:
+  - "(종을 흔들어도 소리가 나지 않는다.)"
+  - "이제… 들리지 않는구나."
+  - "(침묵 속에서 사슬만 부딪힌다.)"
+  - "한 번만 더 울릴 수 있다면."
+  phaseTwo:
+  - "(종의 균열 사이로 흰 재가 쏟아진다.)"
+  - "누구도 마지막 종을 피할 수 없다."
+  - "(찢어진 수의가 바람 없이 펄럭인다.)"
+  - "아직 장례는 끝나지 않았다."
+  phaseThree:
+  - "(종 안에서 자신의 이름이 들린다.)"
+  - "이번에는… 나를 위한 종인가."
+  - "(사슬이 끊어질 듯 울부짖는다.)"
+  - "마지막까지, 들어다오."
+  attackedAP:
+  - "그 소리… 종 안까지 닿는구나."
+  - "(청동 아래 감춰진 혼이 흔들린다.)"
+  - "산 자의 뜻이 이토록 무겁다니."
+  - "(균열이 마침내 종의 꼭대기에 닿는다.)"
+  attackedAD:
+  - "(무딘 울림이 종루를 타고 번진다.)"
+  - "청동은 고통을 기억하지 않는다."
+  - "(사슬 몇 마디가 바닥에 떨어진다.)"
+  - "아직… 울릴 수 있다."
+  attack:
+  - "들어라."
+  - "(보드 위로 종의 잔향이 번진다.)"
+  - "너의 침묵에도 이름을 붙여주마."
+  - "세 번째다."
+  win: "(부서진 종에서 마지막 숨이 빠져나간다. 이번에는, 아무도 죽음을 알리지 않는다.)"
+  lose: "이름은 잊혀도, 종소리는 남는다."
+  distinctText:
+  - "(두 번의 울림 뒤, 종의 균열이 열린다. 세 번째 종에 심판을 내리자.)"
+  stageName: "종루"
+  stageSprite: {fileID: 21300000, guid: 78ad15ca75854ddc86dc9b3aaf466d84, type: 3}
+  bgmStart: {fileID: 8300000, guid: 17144ffc8f06ff34eb4c48e768e036a6, type: 3}
+  bgmLoop: {fileID: 8300000, guid: a69a5293fbcb856429261a4768b5fc47, type: 3}
+  patterns: []
+  patternDamage: 4
+  patternPreviewSeconds: 1.2

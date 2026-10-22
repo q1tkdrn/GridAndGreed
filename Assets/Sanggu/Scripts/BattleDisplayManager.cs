@@ -19,7 +19,7 @@ public struct Stage
 public class BattleDisplayManager : MonoBehaviour
 {
 #if UNITY_EDITOR
-    public enum DebugStartStage { Normal, AfterlifePhase1, AfterlifePhase2, King }
+    public enum DebugStartStage { Normal, AfterlifePhase1, AfterlifePhase2, King, Bellkeeper }
     [Header("Editor Play Test")]
     [Tooltip("BattleTemp 씬에서 Play할 때 지정한 보스로 바로 진입합니다. 실행 중에는 Debug의 보스별 버튼으로도 시작할 수 있습니다.")]
     public DebugStartStage debugStartStage;
@@ -29,6 +29,8 @@ public class BattleDisplayManager : MonoBehaviour
         if (debugStartStage == DebugStartStage.AfterlifePhase1) DebugEnterAfterlife(1);
         else if (debugStartStage == DebugStartStage.AfterlifePhase2) DebugEnterAfterlife(2);
         else if (debugStartStage == DebugStartStage.King) DebugEnterKing();
+        else if (debugStartStage == DebugStartStage.Bellkeeper)
+            DebugEnterBoss(remainBoss.FirstOrDefault(boss => boss != null && boss.bossId == "bellkeeper"));
     }
 
     public void DebugEnterAfterlife(int phaseNumber)

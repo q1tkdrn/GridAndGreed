@@ -129,6 +129,10 @@ public class BoardPanel : MonoBehaviour
             PrintText("[성역] 금색으로 표시된 40칸 위 캐릭터가 주는 모든 피해 무효");
         else if (boss.bossId == "secretary")
             PrintText(turnCount % 2 == 1 ? "[서고] 홀수 턴: 받는 모든 피해를 1로 감소" : "[서고] 짝수 턴: 정상 피해");
+        else if (boss.bossId == "bellkeeper")
+            PrintText(turnCount % 3 == 0
+                ? "[세 번째 종 · 균열] 피해 감소 해제 / 받는 심판 피해 +3. 지금이 반격할 때다."
+                : $"[{(turnCount % 3 == 1 ? "첫" : "두")} 번째 종 · 청동 수의] 받는 피해 -2 (최소 1) / 세 번째 종에 심판 약점 노출");
         else if (turnCount == 1)
         {
             if (boss.bossId == "noble") PrintText("[영생 귀족] 아군이 이동할 때마다 보스 HP 2 회복");

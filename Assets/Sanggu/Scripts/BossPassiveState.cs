@@ -43,6 +43,12 @@ public sealed class BossPassiveState
         if (damage <= 0) return 0;
         if (bossId == "pope" && sourceOnSanctuary) return 0;
         if (bossId == "secretary" && turn % 2 == 1) return 1;
+        if (bossId == "bellkeeper")
+        {
+            // Two guarded tolls, then a predictable opening on every third turn.
+            if (turn % 3 != 0) return Math.Max(1, damage - 2);
+            return source == Source.Judgment ? damage + 3 : damage;
+        }
         if (bossId == "instructor")
         {
             if (source == Source.AutomaticAttack) return 1;

@@ -36,7 +36,7 @@ public class BossTemp : ScriptableObject
     public AudioClip bgmLoop;
 
     [Header("Battle Pattern")]
-    [Tooltip("대저택, 광장, 성당, 문, 지하실, 서고, 훈련장은 전용 A/B/C 묶음을 사용합니다. 저승은 death1/death2에 따라 1/2페이즈 묶음을 사용합니다. 다른 보스는 이 배열을 순환하며, 비어 있으면 패턴 공격을 하지 않습니다.")]
+    [Tooltip("대저택, 광장, 성당, 문, 지하실, 서고, 훈련장, 종루는 전용 A/B/C 묶음을 사용합니다. 저승은 death1/death2에 따라 1/2페이즈 묶음을 사용합니다. 다른 보스는 이 배열을 순환하며, 비어 있으면 패턴 공격을 하지 않습니다.")]
     public BattlePatternRules.Pattern[] patterns;
     [Min(1)] public int patternDamage = 5;
     [Min(0.1f)] public float patternPreviewSeconds = 1f;

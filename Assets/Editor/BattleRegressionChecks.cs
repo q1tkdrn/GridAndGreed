@@ -30,12 +30,73 @@ public static class BattleRegressionChecks
         var display = UnityEngine.Object.FindFirstObjectByType<BattleDisplayManager>(FindObjectsInactive.Include);
         var board = display.boardPanel;
         Check(board != null, "Battle scene must bind its board");
+        CheckPlacementSelection(board);
         CheckTurnEnd(board, display);
         CheckBossPassives(board);
         CheckVisualReset(board);
         CheckSkins();
         CheckAssetsAndRoute(display);
+        var bellkeeper = Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Bellkeeper.asset");
+        Check(bellkeeper != null && bellkeeper.bossId == "bellkeeper", "Bellkeeper asset imports");
+        Check(bellkeeper.bossSprite != null && bellkeeper.stageSprite != null, "Bellkeeper sprite references resolve");
+        Check(display.remainBoss.Contains(bellkeeper), "Bellkeeper is available in the journey pool");
+        Check(bellkeeper.bgmLoop != null, "Bellkeeper has battle music");
+        var battle = UnityEngine.Object.FindFirstObjectByType<BattleManagerTemp>(FindObjectsInactive.Include);
+        Check(battle.HasBossPattern(bellkeeper), "Bellkeeper uses its dedicated pattern sequence");
         Debug.Log($"PASS: {checks} battle regression assertions");
+    }
+
+    private static void CheckPlacementSelection(BoardPanel board)
+    {
+        var battle = (BattleManagerTemp)Get(board, "battleManagerTemp");
+        var originalUnits = (Array)Get(battle, "units");
+        var testUnits = (Array)originalUnits.Clone();
+        var originalTurn = board.turn;
+        var originalWin = Get(board, "_isWin");
+        var originalLose = Get(board, "_isLose");
+        var originalSelection = Get(battle, "_currentMoveIndex");
+        try
+        {
+            Set(battle, "units", testUnits);
+            Set(board, "_isWin", false);
+            Set(board, "_isLose", false);
+            board.turn = BoardPanel.ETurn.Place;
+            for (int i = 0; i < testUnits.Length; i++)
+            {
+                var unit = testUnits.GetValue(i);
+                unit.GetType().GetField("isPlaced").SetValue(unit, false);
+                unit.GetType().GetField("reviveRemainTurn").SetValue(unit, 0);
+                testUnits.SetValue(unit, i);
+            }
+
+            battle.OnUnitInReadyClicked(0);
+            battle.OnUnitInReadyClicked(1);
+            battle.OnUnitInReadyClicked(0);
+            Check((int)Get(battle, "_currentMoveIndex") == 0,
+                "Switching placement selection must allow selecting the first unit again");
+            var selected = testUnits.GetValue(0);
+            Check((int)selected.GetType().GetField("reviveRemainTurn").GetValue(selected) == 0,
+                "Selecting a waiting unit must not consume its placement eligibility");
+            battle.OnUnitInReadyClicked(-1);
+            battle.OnUnitInReadyClicked(testUnits.Length);
+            Check((int)Get(battle, "_currentMoveIndex") == 0, "Invalid selection leaves the current unit intact");
+
+            board.turn = BoardPanel.ETurn.Player;
+            battle.OnUnitInReadyClicked(1);
+            Check((int)Get(battle, "_currentMoveIndex") == 0, "Waiting icons cannot hijack movement outside placement");
+            board.turn = BoardPanel.ETurn.Place;
+            Set(board, "_isWin", true);
+            battle.OnUnitInReadyClicked(1);
+            Check((int)Get(battle, "_currentMoveIndex") == 0, "Finished battles cannot change placement selection");
+        }
+        finally
+        {
+            Set(battle, "units", originalUnits);
+            board.turn = originalTurn;
+            Set(board, "_isWin", originalWin);
+            Set(board, "_isLose", originalLose);
+            Set(battle, "_currentMoveIndex", originalSelection);
+        }
     }
 
     private static void Prepare(BoardPanel board, BossTemp boss, int hp, int will, ItemBattleState items = null)

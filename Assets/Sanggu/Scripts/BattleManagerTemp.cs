@@ -56,6 +56,7 @@ public class BattleManagerTemp : MonoBehaviour
     private readonly BattlePatternRules.AfterlifePhase1Sequence _afterlifePhase1Sequence = new();
     private readonly BattlePatternRules.AfterlifePhase2Sequence _afterlifePhase2Sequence = new();
     private readonly BattlePatternRules.KingSequence _kingSequence = new();
+    private readonly BattlePatternRules.BellkeeperSequence _bellkeeperSequence = new();
     private bool _preparedLastStep;
     [SerializeField] private float doubleClickDelay = 0.1f;
 
@@ -81,6 +82,7 @@ public class BattleManagerTemp : MonoBehaviour
         _afterlifePhase1Sequence.Reset();
         _afterlifePhase2Sequence.Reset();
         _kingSequence.Reset();
+        _bellkeeperSequence.Reset();
         foreach (var blank in _blankPos.ToList())
         {
             Destroy(blank.Value);
@@ -221,11 +223,12 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnUnitInReadyClicked(int i)
     {
+        if (boardPanel.IsBattleOver || boardPanel.turn != BoardPanel.ETurn.Place) return;
         if (i < 0 || i >= units.Length) return;
         if (!units[i].isPlaced && units[i].reviveRemainTurn == 0)
         {
+            // Selection is reversible; only placement changes the unit's lifecycle state.
             _currentMoveIndex = i;
-            units[i].reviveRemainTurn = -1;
         }
     }
 
@@ -620,6 +623,7 @@ public class BattleManagerTemp : MonoBehaviour
         "secretary" => _librarySequence,
         "instructor" => _trainingSequence,
         "pope" => _cathedralSequence,
+        "bellkeeper" => _bellkeeperSequence,
         _ => null
     };
 

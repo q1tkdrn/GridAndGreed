@@ -90,6 +90,19 @@ public static class AfterlifePatternTests
         Mask(P.KingC2, "........./#########/#########/#########/........./#########/#########/#########/.........");
         Mask(P.KingC3, "........./........./..#####../..#####../..#####../..#####../..#####../........./.........");
         Mask(P.KingC4, full);
+        Mask(P.BellkeeperA1, "#########/#########/##.....##/##.....##/##.....##/##.....##/##.....##/#########/#########");
+        Mask(P.BellkeeperA2, "........./........./..#####../..#...#../..#...#../..#...#../..#####../........./.........");
+        Mask(P.BellkeeperA3, "........./........./........./...###.../...###.../...###.../........./........./.........");
+        Mask(P.BellkeeperB1, "###....../###....../###....../###....../###....../###....../###....../###....../###......");
+        Mask(P.BellkeeperB2, "......###/......###/......###/......###/......###/......###/......###/......###/......###");
+        Mask(P.BellkeeperB3, "...###.../...###.../...###.../...###.../...###.../...###.../...###.../...###.../...###...");
+        Mask(P.BellkeeperC1, "##......./###....../.###...../..###..../...###.../....###../.....###./......###/.......##");
+        Mask(P.BellkeeperC2, ".......##/......###/.....###./....###../...###.../..###..../.###...../###....../##.......");
+        Mask(P.BellkeeperC3, "....#..../....#..../....#..../....#..../#########/....#..../....#..../....#..../....#....");
+        Sequence(new BattlePatternRules.BellkeeperSequence(), new[] {
+            new[] { P.BellkeeperA1, P.BellkeeperA2, P.BellkeeperA3 },
+            new[] { P.BellkeeperB1, P.BellkeeperB2, P.BellkeeperB3 },
+            new[] { P.BellkeeperC1, P.BellkeeperC2, P.BellkeeperC3 }});
         Sequence(new BattlePatternRules.KingSequence(), new[] {
             new[] { P.KingA1, P.KingA2, P.KingA3 },
             new[] { P.KingB1, P.KingB2, P.KingB3 },
@@ -128,6 +141,6 @@ public static class AfterlifePatternTests
         var allCells = BattlePatternRules.PickRelocationCells(81, new HashSet<UnityEngine.Vector2Int>());
         Check(allCells.Count == 81 && new HashSet<UnityEngine.Vector2Int>(allCells).Count == 81);
         Check(BattlePatternRules.PickRelocationCells(3, new HashSet<UnityEngine.Vector2Int>(allCells)).Count == 0);
-        Console.WriteLine("PASS: " + checks + " coordinate and sequence assertions (29 patterns)");
+        Console.WriteLine("PASS: " + checks + " coordinate and sequence assertions");
     }
 }

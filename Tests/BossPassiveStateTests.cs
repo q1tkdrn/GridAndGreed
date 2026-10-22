@@ -65,6 +65,23 @@ public static class BossPassiveStateTests
             }
         }
 
+        var bellkeeper = new BossPassiveState("bellkeeper");
+        for (int turn = 1; turn <= 9; turn++)
+        {
+            bellkeeper.StartTurn(turn, random.Next);
+            foreach (Source source in Enum.GetValues(typeof(Source)))
+            {
+                Check(bellkeeper.ResolveDamage(source, 0, false) == 0, "Silence cannot create damage");
+                Check(bellkeeper.ResolveDamage(source, -2, false) == 0, "Negative damage stays zero");
+                int expected = turn % 3 != 0 ? 5 : source == Source.Judgment ? 10 : 7;
+                Check(bellkeeper.ResolveDamage(source, 7, false) == expected, "Third toll opens only judgment weakness");
+                Check(bellkeeper.ResolveDamage(source, 1, false) ==
+                    (turn % 3 == 0 && source == Source.Judgment ? 4 : 1), "Armor leaves at least one damage");
+            }
+        }
+        Check(new BossPassiveState("bellkeeper").ResolveDamage(Source.Judgment, 7, false) == 5,
+            "New bellkeeper battles start with bronze armor");
+
         var instructor = new BossPassiveState("instructor");
         Check(instructor.ResolveDamage(Source.AutomaticAttack, 20, false) == 1, "Strength attacks deal one");
         Check(instructor.ResolveDamage(Source.Judgment, 6, false) == 12, "Judgment is doubled");
