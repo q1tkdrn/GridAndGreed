@@ -13,10 +13,13 @@ public class AchievementUI : MonoBehaviour
     [Header("Image")]
     [SerializeField] private Image NPC;
     [SerializeField] private Sprite[] NPCImages;
+    [SerializeField] private Image NPCNameplate;
+    [SerializeField] private Sprite[] NPCNameplates;
     void Start()
     {
         CreateAchievementSlots();
         NPC.sprite = achievementDialog.currentPhase == 2 ? NPCImages[1] : NPCImages[0];
+        NPCNameplate.sprite = achievementDialog.currentPhase == 2 ? NPCNameplates[1] : NPCNameplates[0];
     }
     public void CreateAchievementSlots()
     {

@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -6,22 +7,45 @@ public class MainManager : MonoBehaviour
 {
     [Header("UI")]
     [SerializeField] private GameObject[] main;
+    [SerializeField] private GameObject[] nameplateGroups;
 
     [SerializeField] private GameObject leftButton;
     [SerializeField] private GameObject rightButton;
+    [Header("Town nameplates")]
+    [SerializeField] private RectTransform townBanner;
+    [SerializeField] private Image townBannerImage;
+    [SerializeField] private Sprite[] townBannerSprites;
+    [SerializeField] private Image achievementNameplate;
+    [SerializeField] private Sprite[] achievementNameplateSprites;
+    [Header("Town transition")]
+    [SerializeField] private CanvasGroup transitionOverlay;
+    [SerializeField, Min(0f)] private float fadeOutDuration = 0.2f;
+    [SerializeField, Min(0f)] private float darkHoldDuration = 0.08f;
+    [SerializeField, Min(0f)] private float fadeInDuration = 0.25f;
+    [SerializeField, Min(0f)] private float bannerSlideDuration = 0.4f;
+    [SerializeField, Min(0f)] private float bannerHoldDuration = 2f;
     [Header("Main screen light")]
     [SerializeField] private bool ambientLightEnabled = true;
     [SerializeField, Range(0f, 1f)] private float ambientLightIntensity = 0.55f;
     [SerializeField, Range(0f, 1f)] private float ambientLightMotion = 0.35f;
     private Material ambientLightMaterial;
     private int currentIndex = 1;
+    private bool isTransitioning;
+    private Coroutine bannerRoutine;
+
     void Start()
     {
         foreach (var button in GetComponentsInChildren<Button>(true))
             UIHoverScale.Attach(button.gameObject);
         CreateAmbientLight();
-        currentIndex = PlayerPrefs.GetInt("mainCurrentIndex", 1);
+        currentIndex = Mathf.Clamp(PlayerPrefs.GetInt("mainCurrentIndex", 1), 0, main.Length - 1);
+        achievementNameplate.sprite = achievementNameplateSprites[PlayerPrefs.GetInt("IsEnding", 0) == 2 ? 1 : 0];
         SetMain();
+        townBannerImage.sprite = townBannerSprites[currentIndex];
+        townBanner.anchoredPosition = new Vector2(-townBanner.rect.width, 0f);
+        transitionOverlay.alpha = 0f;
+        transitionOverlay.blocksRaycasts = false;
+        bannerRoutine = StartCoroutine(AnimateBanner());
     }
 
     private void CreateAmbientLight()
@@ -66,10 +90,9 @@ public class MainManager : MonoBehaviour
     {
         for (int i = 0; i < main.Length; i++)
         {
-            main[i].SetActive(false);
+            main[i].SetActive(i == currentIndex);
+            nameplateGroups[i].SetActive(i == currentIndex);
         }
-
-        main[currentIndex].SetActive(true);
         PlayerPrefs.SetInt("mainCurrentIndex", currentIndex);
 
         leftButton.SetActive(currentIndex > 0);
@@ -77,17 +100,76 @@ public class MainManager : MonoBehaviour
     }
     public void LeftButton()
     {
-        if (currentIndex <= 0) return;
-
-        currentIndex--;
-        SetMain();
+        if (isTransitioning || currentIndex <= 0) return;
+        StartCoroutine(ChangeMain(currentIndex - 1));
     }
     public void RightButton()
     {
-        if (currentIndex >= main.Length - 1) return;
+        if (isTransitioning || currentIndex >= main.Length - 1) return;
+        StartCoroutine(ChangeMain(currentIndex + 1));
+    }
 
-        currentIndex++;
+    private IEnumerator ChangeMain(int nextIndex)
+    {
+        isTransitioning = true;
+        if (bannerRoutine != null) StopCoroutine(bannerRoutine);
+        transitionOverlay.blocksRaycasts = true;
+
+        yield return FadeTo(1f, fadeOutDuration);
+        currentIndex = nextIndex;
         SetMain();
+        townBannerImage.sprite = townBannerSprites[currentIndex];
+        townBanner.anchoredPosition = new Vector2(-townBanner.rect.width, 0f);
+        yield return new WaitForSecondsRealtime(darkHoldDuration);
+        yield return FadeTo(0f, fadeInDuration);
+
+        transitionOverlay.blocksRaycasts = false;
+        bannerRoutine = StartCoroutine(AnimateBanner());
+        isTransitioning = false;
+    }
+
+    private IEnumerator FadeTo(float targetAlpha, float duration)
+    {
+        float startAlpha = transitionOverlay.alpha;
+        if (duration <= 0f)
+        {
+            transitionOverlay.alpha = targetAlpha;
+            yield break;
+        }
+
+        for (float elapsed = 0f; elapsed < duration; elapsed += Time.unscaledDeltaTime)
+        {
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / duration));
+            transitionOverlay.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+            yield return null;
+        }
+        transitionOverlay.alpha = targetAlpha;
+    }
+
+    private IEnumerator AnimateBanner()
+    {
+        float hiddenX = -townBanner.rect.width;
+        yield return MoveBanner(hiddenX, 0f);
+        yield return new WaitForSecondsRealtime(bannerHoldDuration);
+        yield return MoveBanner(0f, hiddenX);
+        bannerRoutine = null;
+    }
+
+    private IEnumerator MoveBanner(float fromX, float toX)
+    {
+        if (bannerSlideDuration <= 0f)
+        {
+            townBanner.anchoredPosition = new Vector2(toX, 0f);
+            yield break;
+        }
+
+        for (float elapsed = 0f; elapsed < bannerSlideDuration; elapsed += Time.unscaledDeltaTime)
+        {
+            float t = Mathf.SmoothStep(0f, 1f, Mathf.Clamp01(elapsed / bannerSlideDuration));
+            townBanner.anchoredPosition = new Vector2(Mathf.Lerp(fromX, toX, t), 0f);
+            yield return null;
+        }
+        townBanner.anchoredPosition = new Vector2(toX, 0f);
     }
     public void ItemShopButton()
     {
