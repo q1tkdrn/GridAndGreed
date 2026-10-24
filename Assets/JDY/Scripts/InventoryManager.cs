@@ -41,6 +41,17 @@ public class InventoryManager : MonoBehaviour
             PlayerPrefs.Save();
         }
     }
+    // Called after the save is wiped (new game) so cached values cannot be written back.
+    public void ReloadFromSave()
+    {
+        ownedItems.Clear();
+        ownedCharacters.Clear();
+        ownedMemorials.Clear();
+        LoadSoul();
+        if (ItemManager.Instance != null) LoadItems();
+        LoadCharacters();
+        LoadMemorials();
+    }
     // Soul
     private void LoadSoul()
     {

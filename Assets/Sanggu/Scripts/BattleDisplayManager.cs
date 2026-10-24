@@ -24,7 +24,7 @@ public class BattleDisplayManager : MonoBehaviour
     [Tooltip("BattleTemp 씬에서 Play할 때 지정한 보스로 바로 진입합니다. 실행 중에는 Debug의 보스별 버튼으로도 시작할 수 있습니다.")]
     public DebugStartStage debugStartStage;
 
-    private void Start()
+    private void StartEditorDebugStage()
     {
         if (debugStartStage == DebugStartStage.AfterlifePhase1) DebugEnterAfterlife(1);
         else if (debugStartStage == DebugStartStage.AfterlifePhase2) DebugEnterAfterlife(2);
@@ -76,6 +76,19 @@ public class BattleDisplayManager : MonoBehaviour
         boardPanel.ShowCutScene();
     }
 #endif
+
+    private void Start()
+    {
+        // 마을에서 "여정 이어가기" 또는 ESC 메뉴의 "보스전 다시 시작하기"로 들어온 경우.
+        if (RunSave.ConsumeResumeRequest())
+        {
+            ResumeRun();
+            return;
+        }
+#if UNITY_EDITOR
+        StartEditorDebugStage();
+#endif
+    }
 
     [Header("Panel")]
     public EntrancePanel entrancePanel;
@@ -216,8 +229,16 @@ public class BattleDisplayManager : MonoBehaviour
         if (_soulRewardButton != null) _soulRewardButton.interactable = true;
         if (_soulRewardText != null) _soulRewardText.text = $"소울 {victorySoulReward}";
         victoryPanel.SetActive(true);
-        if(appearedBoss.Count > 0) ClearBoss(appearedBoss[^1]);
+        if (appearedBoss.Count > 0)
+        {
+            var boss = appearedBoss[^1];
+            ClearBoss(boss);
+            if (IsEndingBoss(boss)) RunSave.Delete();   // 엔딩까지 끝낸 여정은 이어할 것이 없다.
+            else RunSave.MarkCurrentCleared();         // 보상 받기 전에 꺼도 승리 화면부터 이어한다.
+        }
     }
+
+    private static bool IsEndingBoss(BossTemp boss) => boss != null && boss.bossId is "king" or "death2";
 
     private void SetupVictoryReward()
     {
@@ -287,6 +308,7 @@ public class BattleDisplayManager : MonoBehaviour
     {
         if (_victoryRewardClaimed) return;
         _victoryRewardClaimed = true;
+        RunSave.ClearRewardPending(); // 보상은 여정당 한 번만 받는다.
 
         if (InventoryManager.Instance != null)
         {
@@ -308,6 +330,8 @@ public class BattleDisplayManager : MonoBehaviour
     public void ShowDefeatPanel()
     {
         defeatPanel.SetActive(true);
+        // 패배하면 여정은 끝난다. 다음 출격은 새 여정이다.
+        RunSave.Delete();
         RecordAchievement("ACH-7", 100);
         
     }
@@ -327,19 +351,20 @@ public class BattleDisplayManager : MonoBehaviour
             boardPanel.boss = boss;
             waysPanel.gameObject.SetActive(false);
             _decidedStage = -1;
+            RunSave.SetCurrentBoss(boss);
             boardPanel.ShowCutScene();
-            
-            PlayerPrefs.SetInt("currentPhase", appearedBoss.Count);
-            PlayerPrefs.Save();
             return;
         }
         
+        // 승리 화면을 떠났으므로 보상 대기 상태를 해제한다("상관없음" 선택 포함).
+        RunSave.ClearRewardPending();
         waysPanel.gameObject.SetActive(true);
         foreach (var stage in stages)
             if (stage.stageImage != null) UIHoverScale.Attach(stage.stageImage.gameObject, 1.03f);
         UIHoverScale.Attach(waysBackButton);
         if (waysBackButton != null) waysBackButton.SetActive(appearedBoss.Count == 0);
         if (_waysChoicesReady) return;
+        if (TryRestoreSavedChoices()) return;
         remainBoss.Shuffle();
         for (int i = 0; i < 3; i++)
         {
@@ -355,6 +380,24 @@ public class BattleDisplayManager : MonoBehaviour
             stages[i].stageName.text = temp.stageName;
         }
         _waysChoicesReady = true;
+        // 껐다 켜서 경로 후보를 다시 뽑는 것을 막는다. 첫 경로는 여정 시작 전이라 저장되지 않는다.
+        RunSave.SaveChoices(stages.Select(stage => stage.bossTemp));
+    }
+
+    private bool TryRestoreSavedChoices()
+    {
+        var ids = RunSave.ChoiceIds;
+        if (ids.Count != stages.Length) return false;
+        var choices = ids.Select(id => remainBoss.FirstOrDefault(b => b != null && b.bossId == id)).ToArray();
+        if (choices.Any(b => b == null)) return false;
+        for (int i = 0; i < stages.Length; i++)
+        {
+            stages[i].bossTemp = choices[i];
+            stages[i].stageImage.sprite = choices[i].stageSprite;
+            stages[i].stageName.text = choices[i].stageName;
+        }
+        _waysChoicesReady = true;
+        return true;
     }
 
     public void BackFromWays()
@@ -374,6 +417,86 @@ public class BattleDisplayManager : MonoBehaviour
         return afterlife ? bossDeath1 : bossKing;
     }
 
+    /// <summary>저장된 체크포인트에서 여정을 복원한다. 입구/편성 화면을 거치지 않으므로 편성은 바뀌지 않는다.</summary>
+    private void ResumeRun()
+    {
+        EnsureFormationLoaded();
+        ApplySavedFormation();
+
+        var catalog = remainBoss.Concat(new[] { bossKing, bossDeath1, bossDeath2 })
+            .Where(b => b != null).GroupBy(b => b.bossId).ToDictionary(g => g.Key, g => g.First());
+        BossTemp Find(string id) => id != null && catalog.TryGetValue(id, out var boss) ? boss : null;
+
+        appearedBoss.Clear();
+        foreach (var id in RunSave.ClearedBossIds)
+        {
+            var boss = Find(id);
+            if (boss == null) { Debug.LogWarning($"저장된 보스 '{id}'를 찾지 못해 건너뜁니다.", this); continue; }
+            appearedBoss.Add(boss);
+            remainBoss.Remove(boss);
+        }
+
+        entrancePanel.gameObject.SetActive(false);
+        unitBuildingPanel.SetActive(false);
+        itemBuildingPanel.gameObject.SetActive(false);
+        victoryPanel.SetActive(false);
+        defeatPanel.SetActive(false);
+        waysPanel.gameObject.SetActive(false);
+        arrow.SetActive(false);
+        _decidedStage = -1;
+        _waysChoicesReady = false;
+
+        var current = Find(RunSave.CurrentBossId);
+        if (RunSave.HasCurrentBattle && current == null)
+            Debug.LogWarning($"저장된 보스 '{RunSave.CurrentBossId}'를 찾지 못해 경로 선택부터 이어합니다.", this);
+
+        boardPanel.gameObject.SetActive(true);
+        if (current != null)
+        {
+            // 고른 보스와의 전투를 등장 장면부터 다시 시작한다.
+            remainBoss.Remove(current);
+            appearedBoss.Add(current);
+            boardPanel.boss = current;
+            boardPanel.ShowCutScene();
+        }
+        else if (RunSave.RewardPending && appearedBoss.Count > 0)
+        {
+            // 보상을 받기 전에 나간 경우: 업적/처치 기록은 이미 남았으므로 승리 화면만 다시 연다.
+            boardPanel.boss = appearedBoss[^1];
+            SetupVictoryReward();
+            _victoryRewardClaimed = false;
+            if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
+            if (_soulRewardButton != null) _soulRewardButton.interactable = true;
+            if (_soulRewardText != null) _soulRewardText.text = $"소울 {victorySoulReward}";
+            victoryPanel.SetActive(true);
+        }
+        else
+        {
+            ShowWaysPanel();
+        }
+    }
+
+    private void ApplySavedFormation()
+    {
+        var roster = FormationRoster();
+        var unitIds = RunSave.UnitIds;
+        if (unitIds.Count == currentUnits.Length)
+        {
+            var units = unitIds.Select(id => roster.FirstOrDefault(u => u.id == id)).ToArray();
+            if (units.All(u => u != null) && units.Distinct().Count() == units.Length)
+                for (int i = 0; i < units.Length; i++) currentUnits[i] = units[i];
+            else Debug.LogWarning("저장된 여정 편성을 복원하지 못해 마지막 편성을 사용합니다.", this);
+        }
+
+        var itemIds = RunSave.ItemIds;
+        var catalog = ItemManager.Instance != null ? ItemManager.Instance.items : null;
+        if (catalog != null && itemIds.Count == currentItems.Length)
+            for (int i = 0; i < currentItems.Length; i++)
+                currentItems[i] = string.IsNullOrEmpty(itemIds[i])
+                    ? null
+                    : catalog.FirstOrDefault(item => item != null && item.id == itemIds[i]);
+    }
+
     [DebugButton]
     public void ShowCutScene(string cutsceneName)
     {
@@ -388,10 +511,11 @@ public class BattleDisplayManager : MonoBehaviour
         {
             _waysChoicesReady = false;
             var boss = stages[i].bossTemp;
+            // 첫 보스를 고른 순간 여정이 시작되고, 이때의 편성으로 여정 끝까지 고정된다.
+            if (appearedBoss.Count == 0) RunSave.Begin(currentUnits, currentItems);
             remainBoss.Remove(boss);
             appearedBoss.Add(boss);
-            PlayerPrefs.SetInt("currentPhase", appearedBoss.Count);
-            PlayerPrefs.Save();
+            RunSave.SetCurrentBoss(boss);
             boardPanel.boss = boss;
             arrow.SetActive(false);
             waysPanel.color = new Color(255, 255, 255, 250);

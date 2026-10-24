@@ -35,6 +35,10 @@ public class MainManager : MonoBehaviour
 
     void Start()
     {
+        // 마을에 한 번이라도 도착했다면 타이틀의 "이어하기"를 활성화한다.
+        // 아래 UI 초기화에서 예외가 나도 저장 여부는 기록되도록 가장 먼저 둔다.
+        SaveData.MarkStarted();
+        PlayerPrefs.Save();
         foreach (var button in GetComponentsInChildren<Button>(true))
             UIHoverScale.Attach(button.gameObject);
         CreateAmbientLight();
@@ -197,8 +201,54 @@ public class MainManager : MonoBehaviour
     }
     public void DoorButton()
     {
+        if (!RunSave.HasRun)
+        {
+            EnterBattle(resume: false);
+            return;
+        }
+
+        // 진행 중인 여정이 있으면 이어갈지, 포기하고 새로 떠날지 고른다.
+        int cleared = RunSave.ClearedBossIds.Count;
+        string next = RunSave.HasCurrentBattle ? $"\n{WithParticle(RunSave.CurrentBossName, "과", "와")}의 전투부터 다시 시작해요." 
+            : RunSave.RewardPending ? "\n받지 않은 승리 보상부터 이어가요."
+            : "\n다음 길을 고르는 곳부터 이어가요.";
+        ModalDialog.Show("여정",
+            "진행 중인 여정이 있어요",
+            $"처치한 보스 {cleared}명{next}",
+            null,
+            new ModalDialog.Option("여정 이어가기", () => EnterBattle(resume: true)),
+            new ModalDialog.Option("새 여정 시작", ConfirmAbandonRun),
+            new ModalDialog.Option("돌아가기", null));
+    }
+
+    private void ConfirmAbandonRun()
+    {
+        ModalDialog.Show("여정",
+            "지금 여정을 포기할까요?",
+            "처치한 보스 기록이 사라지고 편성부터 다시 시작해요.\n소울과 구매한 것은 그대로 남아요.",
+            DoorButton,
+            new ModalDialog.Option("포기하고 새로 시작", () =>
+            {
+                RunSave.Delete();
+                EnterBattle(resume: false);
+            }),
+            new ModalDialog.Option("돌아가기", DoorButton));
+    }
+
+    // 받침 유무에 따라 조사를 고른다. 한글이 아니면 받침 없는 쪽을 쓴다.
+    private static string WithParticle(string word, string withBatchim, string withoutBatchim)
+    {
+        if (string.IsNullOrEmpty(word)) return "보스" + withoutBatchim;
+        char last = word[word.Length - 1];
+        bool batchim = last >= '\uAC00' && last <= '\uD7A3' && (last - 0xAC00) % 28 != 0;
+        return word + (batchim ? withBatchim : withoutBatchim);
+    }
+
+    private static void EnterBattle(bool resume)
+    {
+        if (resume) RunSave.RequestResume();
         SceneManager.LoadScene("BattleTemp");
-        AchievementManager.Instance.AddProgress("ACH-1", 1);
+        if (AchievementManager.Instance != null) AchievementManager.Instance.AddProgress("ACH-1", 1);
     }
     public void InitPlay()
     {

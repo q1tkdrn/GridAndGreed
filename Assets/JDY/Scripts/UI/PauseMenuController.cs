@@ -119,6 +119,8 @@ public sealed class PauseMenuController : MonoBehaviour
         if (escapeHeld) return;
         escapeHeld = true;
         if (SceneManager.GetActiveScene().name == TitleScene) return;
+        // 확인 팝업이 열려 있으면 ESC는 팝업을 닫는 데만 쓴다.
+        if (ModalDialog.BlocksEscape) return;
 
         if (!isOpen) Open();
         else if (restartConfirmation.activeSelf) ShowActions();
@@ -155,7 +157,7 @@ public sealed class PauseMenuController : MonoBehaviour
 
     private void AskToRestart()
     {
-        if (SceneManager.GetActiveScene().name != BattleScene) return;
+        if (!CanRestartBattle()) return;
         actions.SetActive(false);
         restartConfirmation.SetActive(true);
     }
@@ -165,7 +167,8 @@ public sealed class PauseMenuController : MonoBehaviour
         bool isBattle = sceneName == BattleScene;
         bool isMain = sceneName == MainScene;
 
-        restartButton.gameObject.SetActive(isBattle);
+        // 보스와 싸우는 중일 때만 표시한다. (경로 선택/승리 화면/패배 후에는 다시 시작할 전투가 없다)
+        restartButton.gameObject.SetActive(isBattle && RunSave.HasCurrentBattle);
         heading.text = isBattle ? "여정 일시 정지" : "잠시 멈춤";
         destinationLabel.text = isMain ? "시작 화면으로" : "메인으로 나가기";
 
@@ -195,13 +198,17 @@ public sealed class PauseMenuController : MonoBehaviour
         LeaveForScene(target);
     }
 
+    private static bool CanRestartBattle() =>
+        SceneManager.GetActiveScene().name == BattleScene && RunSave.HasCurrentBattle;
+
+    /// <summary>
+    /// 현재 보스전만 등장 장면부터 다시 시작한다. 처치한 보스, 편성, 소울은 그대로다.
+    /// 씬을 다시 불러와 체크포인트에서 복원하므로 전투 도중 상태가 남지 않는다.
+    /// </summary>
     private void RestartJourney()
     {
-        if (SceneManager.GetActiveScene().name != BattleScene) return;
-
-        // Only the current battle run is reset. Purchases, unlocks and settings remain.
-        PlayerPrefs.SetInt("currentPhase", 0);
-        PlayerPrefs.Save();
+        if (!CanRestartBattle()) return;
+        RunSave.RequestResume();
         LeaveForScene(BattleScene);
     }
 
