@@ -80,6 +80,9 @@ public class BoardPanel : MonoBehaviour
     private bool _isLose = false; 
     public bool IsBattleOver => _isWin || _isLose;
     public ItemBattleState ItemEffects { get; private set; } = new ItemBattleState(null);
+    // 전투 개정안 시험 규칙(종지기 전투에서만). null이면 기존 규칙 그대로.
+    public BellkeeperTrial Trial { get; private set; }
+    private int _baseReaperMaxHp = -1;
     private BossPassiveState _bossPassives = new BossPassiveState(null);
     private BossPatternHpGate _bossHpGate;
     private bool _bossPatternGroupCompleted;
@@ -94,6 +97,11 @@ public class BoardPanel : MonoBehaviour
     private void BeginBossTurn()
     {
         _bossPatternGroupCompleted = false;
+        if (Trial != null)
+        {
+            Trial.BeginTurn(turnCount);
+            return;
+        }
         _bossPassives.StartTurn(turnCount, UnityEngine.Random.Range);
         battleManagerTemp.RefreshSanctuary();
         afterlifeTurnPassive = boss.bossId == "death1"
@@ -145,6 +153,8 @@ public class BoardPanel : MonoBehaviour
 
     private void EndBossTurn()
     {
+        if (IsBattleOver) return;
+        Trial?.EndTurn();
         if (IsBattleOver) return;
         // 자신의 턴 종료 HP 변화는 받는 피해가 아니므로 피해 면역을 거치지 않는다.
         UpdateBossHp(AfterlifePassiveRules.GetTurnEndHp(boss.bossId, afterlifeTurnPassive, bossCurrentHp, bossMaxHp));
@@ -300,12 +310,18 @@ public class BoardPanel : MonoBehaviour
     {
         ResetUnitVisuals();
         _bossPassives = new BossPassiveState(boss.bossId);
+        Trial?.Dispose();
+        if (_baseReaperMaxHp < 0) _baseReaperMaxHp = reaperMaxHp;
+        Trial = BellkeeperTrial.IsTrialBoss(boss) ? new BellkeeperTrial(this, battleManagerTemp) : null;
+        reaperMaxHp = Trial != null ? BellkeeperTrial.PlayerMaxHp : _baseReaperMaxHp;
         if (_bossPatternCoroutine != null) StopCoroutine(_bossPatternCoroutine);
         _bossPatternCoroutine = null;
         // The two afterlife phases are one battle: do not refill the contract in phase two.
         if (boss.bossId != "death2")
             ItemEffects = new ItemBattleState(BattleDisplayManager.GetInstance().currentItems
                 .Where(item => item != null).Select(item => item.id));
+        // 시험 규칙에서는 아이템 효과를 끈다.
+        if (Trial != null) ItemEffects = new ItemBattleState(null);
         _isLose = _isWin = false;
         _nextTurnActionPenalty = 0;
         _isResolvingBossPattern = false;
@@ -315,9 +331,9 @@ public class BoardPanel : MonoBehaviour
             reaperCurrentHp = reaperMaxHp;
         }
         // 각 보스 에셋의 스탯을 새로 읽어 이전 페이즈 HP/의지력이 남지 않도록 한다.
-        bossMaxHp = Mathf.Max(1, boss.maxHp);
-        _bossHpGate = new BossPatternHpGate(bossMaxHp, BossPatternHpGate.IsEnabled(boss.bossId, battleManagerTemp.HasBossPattern(boss)));
-        willPower = Mathf.Max(0, boss.initialWillPower - ItemEffects.WillPowerReduction);
+        bossMaxHp = Trial != null ? BellkeeperTrial.BossMaxHp : Mathf.Max(1, boss.maxHp);
+        _bossHpGate = new BossPatternHpGate(bossMaxHp, Trial == null && BossPatternHpGate.IsEnabled(boss.bossId, battleManagerTemp.HasBossPattern(boss)));
+        willPower = Trial != null ? BellkeeperTrial.StartWillPower : Mathf.Max(0, boss.initialWillPower - ItemEffects.WillPowerReduction);
         willPowerText.text = $"의지력: {willPower}";
         // 기존 OnPhaseChange의 0 기반 규약: 0 = 1페이즈, 1 = 2페이즈.
         phase = boss.bossId == "death2" ? 1 : 0;
@@ -327,6 +343,7 @@ public class BoardPanel : MonoBehaviour
         textBox.text = "";
         PrintText(boss.battleStart);
         PrintText(GetBossText(boss.turnStart, 0));
+        Trial?.OnBattleStart();
         turnCount = 1;
         turn = ETurn.Start;
         BeginBossTurn();
@@ -442,6 +459,7 @@ public class BoardPanel : MonoBehaviour
         else if(_isLose)
         {
             yield return new WaitForSeconds(0.1f);
+            Trial?.ShowDefeatReport();
             BattleDisplayManager.GetInstance().ShowDefeatPanel();
         }
     }
@@ -485,12 +503,13 @@ public class BoardPanel : MonoBehaviour
             PrintText($"[보스] 패턴 묶음이 끝날 때까지 HP {_bossHpGate.Floor} 미만으로 감소하지 않음");
         if (bossCurrentHp <= 0)
         {
-            PrintText(string.IsNullOrWhiteSpace(boss.win) ? "승리" : boss.win);
+            PrintText(Trial != null ? Trial.VictoryLine : string.IsNullOrWhiteSpace(boss.win) ? "승리" : boss.win);
             bossCurrentHp = 0;
             _isWin = true;
         }
         bossHp.text = $"{bossCurrentHp} / {bossMaxHp}";
         bossSlider.value = (float) bossCurrentHp / bossMaxHp;
+        Trial?.OnBossHpChanged();
     }
 
     [DebugButton("보스 심판")]
@@ -535,7 +554,9 @@ public class BoardPanel : MonoBehaviour
     {
         if (IsBattleOver) return 0;
         int damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, dmg);
-        damage = _bossPassives.ResolveDamage(source, damage, battleManagerTemp.IsUnitOnSanctuary(unitIndex));
+        damage = Trial != null
+            ? Trial.ResolveIncomingDamage(source, damage)
+            : _bossPassives.ResolveDamage(source, damage, battleManagerTemp.IsUnitOnSanctuary(unitIndex));
         if (damage <= 0) return 0;
         int previousHp = bossCurrentHp;
         UpdateBossHp(bossCurrentHp - damage);
@@ -655,8 +676,8 @@ public class BoardPanel : MonoBehaviour
     private void RefreshUnitDescription(int i)
     {
         var selectedUnit = BattleDisplayManager.GetInstance().currentUnits[i];
-        units[i].descriptionText.text = $"<color=#FFB080>힘 {battleManagerTemp.GetPower(i)}</color>    "
-            + $"<color=#88CEFF>지능 {battleManagerTemp.GetIntelligence(i)}</color>\n{selectedUnit.abilityText}";
+        units[i].descriptionText.text = Trial != null ? Trial.DescribeUnit(i) : $"<color=#FFB080>힘 {battleManagerTemp.GetPower(i)}</color>    "
+            + $"<color=#88CEFF>지능 {battleManagerTemp.GetIntelligence(i)}</color>\n{(Trial != null ? Trial.DescribeUnit(i) : selectedUnit.abilityText)}";
     }
 
     public void OnMouseExitUnit(int i)

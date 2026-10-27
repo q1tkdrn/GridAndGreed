@@ -23,8 +23,17 @@ public static class PlayFromStartScene
 
     static PlayFromStartScene()
     {
-        // 에디터가 켜진 직후에는 에셋 DB가 준비되지 않았을 수 있어 한 프레임 미룬다.
+        // 에디터가 켜진 직후에는 에셋 DB가 준비되지 않았을 수 있어 한 번 미뤄서 적용한다.
         EditorApplication.delayCall += Apply;
+        // 에디터가 백그라운드에 있으면 delayCall이 늦게 실행될 수 있으므로
+        // Play를 누르는 순간(에디트 모드를 벗어나기 직전)에도 반드시 다시 적용한다.
+        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
+        EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
+    }
+
+    private static void OnPlayModeStateChanged(PlayModeStateChange change)
+    {
+        if (change == PlayModeStateChange.ExitingEditMode) Apply();
     }
 
     [MenuItem(MenuPath, priority = 0)]

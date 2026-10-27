@@ -7,6 +7,7 @@ using UnityEngine.UI;
 /// <summary>
 /// ESC 메뉴(Resources/UI/PauseMenu)의 프레임과 버튼을 복제해 만드는 확인 팝업.
 /// 디자인을 ESC 메뉴와 통일하고, 씬 파일을 수정하지 않고도 어느 씬에서나 띄울 수 있다.
+/// 문구의 줄바꿈은 호출하는 쪽에서 "\n"으로 직접 넣는다. (한글은 글자 단위로 줄바꿈되어 한 글자만 남을 수 있음)
 /// </summary>
 public sealed class ModalDialog : MonoBehaviour
 {
@@ -17,7 +18,15 @@ public sealed class ModalDialog : MonoBehaviour
         public Option(string label, Action onClick) { Label = label; OnClick = onClick; }
     }
 
-    private const float ButtonSpacing = 93f;
+    // 버튼 2개: ESC 메뉴의 다시 시작 확인 화면과 같은 배치.
+    private const float TwoButtonFirstY = -83f;
+    private const float TwoButtonSpacing = 93f;
+    // 버튼 3개 이상: 마지막 버튼이 하단 구분선(-251, 본문 기준)과 겹치지 않도록 위로 올리고 간격을 좁힌다.
+    private const float ManyButtonLastY = -199f;
+    private const float ManyButtonSpacing = 86f;
+    private const float ManyQuestionY = 125f;
+    private const float ManyExplanationY = 56f;
+    private const float ManyExplanationHeight = 70f;
 
     /// <summary>팝업이 열려 있으면 ESC 메뉴가 같은 키 입력으로 열리지 않게 한다.</summary>
     public static bool IsOpen => _current != null;
@@ -62,6 +71,9 @@ public sealed class ModalDialog : MonoBehaviour
         var panel = overlay.transform.Find("Frame/Panel");
 
         SetText(panel, "Heading", heading);
+        // ESC 메뉴 전용 부제(MEMORIAL)는 확인 팝업에 어울리지 않아 숨긴다.
+        var subtitle = panel.Find("Subtitle");
+        if (subtitle != null) subtitle.gameObject.SetActive(false);
         var actions = panel.Find("Actions");
         if (actions != null) actions.gameObject.SetActive(false);
 
@@ -74,11 +86,16 @@ public sealed class ModalDialog : MonoBehaviour
         var cancelTemplate = body.Find("CancelRestartButton");
         if (cancelTemplate != null) cancelTemplate.gameObject.SetActive(false);
 
-        // 버튼이 3개 이상이면 문구를 위로 올려 하단 장식과 겹치지 않게 한다.
-        float lift = Mathf.Max(0, options.Length - 2) * 50f;
-        Nudge(body, "Question", lift);
-        Nudge(body, "Explanation", lift);
-        float firstY = ((RectTransform)template).anchoredPosition.y + lift;
+        float firstY = TwoButtonFirstY;
+        float spacing = TwoButtonSpacing;
+        if (options.Length > 2)
+        {
+            spacing = ManyButtonSpacing;
+            firstY = ManyButtonLastY + spacing * (options.Length - 1);
+            SetY(body, "Question", ManyQuestionY);
+            if (SetY(body, "Explanation", ManyExplanationY) is RectTransform explanationRect)
+                explanationRect.sizeDelta = new Vector2(explanationRect.sizeDelta.x, ManyExplanationHeight);
+        }
 
         for (int i = 0; i < options.Length; i++)
         {
@@ -86,7 +103,7 @@ public sealed class ModalDialog : MonoBehaviour
             var buttonObject = Instantiate(template.gameObject, body, false);
             buttonObject.name = "Option" + i;
             var rect = (RectTransform)buttonObject.transform;
-            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, firstY - ButtonSpacing * i);
+            rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, firstY - spacing * i);
             buttonObject.GetComponentInChildren<TMP_Text>(true).text = option.Label;
             var button = buttonObject.GetComponent<Button>();
             button.onClick.RemoveAllListeners();
@@ -111,9 +128,11 @@ public sealed class ModalDialog : MonoBehaviour
         target.gameObject.SetActive(!string.IsNullOrEmpty(value));
     }
 
-    private static void Nudge(Transform parent, string child, float dy)
+    private static RectTransform SetY(Transform parent, string child, float y)
     {
-        if (parent.Find(child) is RectTransform rect) rect.anchoredPosition += new Vector2(0, dy);
+        if (parent.Find(child) is not RectTransform rect) return null;
+        rect.anchoredPosition = new Vector2(rect.anchoredPosition.x, y);
+        return rect;
     }
 
     private void Update()

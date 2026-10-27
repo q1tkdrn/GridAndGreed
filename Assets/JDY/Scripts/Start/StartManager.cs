@@ -51,7 +51,7 @@ public class StartManager : MonoBehaviour
 
         ModalDialog.Show("새로하기",
             "처음부터 새로 시작할까요?",
-            "소울, 구매한 캐릭터, 아이템, 스킨, 업적,\n진행 중인 여정이 모두 사라져요. 설정은 유지돼요.",
+            "소울, 구매 내역, 업적, 진행 중인 여정이\n모두 사라져요. 설정은 그대로 남아요.",
             null,
             new ModalDialog.Option("모두 지우고 시작", StartNewGame),
             new ModalDialog.Option("돌아가기", null));

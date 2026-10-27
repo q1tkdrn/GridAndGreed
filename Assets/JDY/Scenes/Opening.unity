@@ -197,6 +197,7 @@ MonoBehaviour:
   - {fileID: 21300000, guid: 46ff3cd849b1d8e4daf3816d2dad8d98, type: 3}
   - {fileID: 21300000, guid: 03c82bc4dd85dba4eb2e405d4c4f89d6, type: 3}
   - {fileID: 21300000, guid: 9d9115af57584424498d29f3c4c518c0, type: 3}
+  - {fileID: 21300000, guid: 6128ecab4113d1048992179811ecc168, type: 3}
   text: {fileID: 418254418}
   content:
   - "\uC61B\uB0A0 \uC5B4\uB290 \uC655\uAD6D\uC5D0 \uD55C \uC655\uC774 \uC788\uC5C8\uC2B5\uB2C8\uB2E4. "
@@ -224,6 +225,8 @@ MonoBehaviour:
     \uC784\uBB34\uC600\uC2B5\uB2C8\uB2E4. "
   - "\uC900\uBE44\uB97C \uB9C8\uCE5C \uC5B4\uB9B0 \uC0AC\uC2E0\uC740 \n\uB5A8\uB9AC\uB294
     \uB9C8\uC74C\uC73C\uB85C \uBB38 \uC55E\uC5D0 \uC130\uC2B5\uB2C8\uB2E4. "
+  - "\uADF8\uB54C, \uBB38 \uB108\uBA38\uC5D0\uC11C \uC885\uC774 \uC6B8\uB838\uC2B5\uB2C8\uB2E4.\n\uB0AE\uACE0
+    \uBB34\uAC70\uC6B4, \uC7A5\uC1A1\uC758 \uC885\uC18C\uB9AC\uC600\uC2B5\uB2C8\uB2E4."
   nextButton: {fileID: 1619843747}
 --- !u!114 &87003307
 MonoBehaviour:

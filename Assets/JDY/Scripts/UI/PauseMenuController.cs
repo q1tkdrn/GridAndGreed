@@ -43,7 +43,8 @@ public sealed class PauseMenuController : MonoBehaviour
         instance = null;
     }
 
-    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
+    // ESC 메뉴는 EscMenu(JSW/Script/EscMenu.cs)로 교체되었다. 이 프리팹은 ModalDialog(확인 팝업)의 디자인 원본으로만 쓰이므로
+    // 더 이상 자동으로 생성하지 않는다. 다시 쓰려면 아래 줄에 RuntimeInitializeOnLoadMethod(AfterSceneLoad)를 붙인다.
     private static void CreateMenu()
     {
         if (instance != null) return;

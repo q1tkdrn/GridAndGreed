@@ -225,7 +225,7 @@ public class MainManager : MonoBehaviour
     {
         ModalDialog.Show("여정",
             "지금 여정을 포기할까요?",
-            "처치한 보스 기록이 사라지고 편성부터 다시 시작해요.\n소울과 구매한 것은 그대로 남아요.",
+            "보스 처치 기록이 사라지고 편성부터 다시 해요.\n소울과 구매한 것은 그대로 남아요.",
             DoorButton,
             new ModalDialog.Option("포기하고 새로 시작", () =>
             {

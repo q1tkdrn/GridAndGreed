@@ -341,9 +341,10 @@ public class BattleManagerTemp : MonoBehaviour
             GameSfx.PlayMove();
             var passive = units[_currentMoveIndex].passive;
             passive.Move();
+            boardPanel.Trial?.OnUnitMoved(_currentMoveIndex);
             boardPanel.OnAllyMoved();
             boardPanel.AttackBossFromUnit(passive.MoveDamage + boardPanel.ItemEffects.MoveDamage, _currentMoveIndex);
-            boardPanel.HealReaper(passive.MoveHealing);
+            if (boardPanel.Trial == null) boardPanel.HealReaper(passive.MoveHealing);
             OnPointerExit(_currentMoveIndex);
             OnPointerEnter(_currentMoveIndex);
             boardPanel.SpendAction();
@@ -367,7 +368,15 @@ public class BattleManagerTemp : MonoBehaviour
         {
             Debug.Log("db");
             var passive = units[i].passive;
-            boardPanel.JudgeBossFromUnit(GetIntelligence(i), i);
+            int damage = GetIntelligence(i);
+            // 시험 규칙: 심판 횟수 제한, 치명타, 캐릭터 보너스를 적용한다.
+            if (boardPanel.Trial != null && !boardPanel.Trial.TryPrepareJudgment(i, ref damage))
+            {
+                _isClicked = false;
+                _currentClickIndex = -1;
+                return;
+            }
+            boardPanel.JudgeBossFromUnit(damage, i);
             passive.AfterJudge();
             boardPanel.PlayJudgeAnim(i);
             boardPanel.SpendAction(judgment: true);
@@ -387,6 +396,8 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void Attack()
     {
+        // 시험 규칙: 턴 끝 총 공격 없음.
+        if (boardPanel.Trial != null) return;
         for (int i = 0; i < units.Length; i++)
         {
             if (boardPanel.IsBattleOver) break;
@@ -416,13 +427,27 @@ public class BattleManagerTemp : MonoBehaviour
     {
         if (boardPanel.IsBattleOver) return;
         if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
+        var trial = boardPanel.Trial;
+        if (trial != null && !trial.RegisterHit(i))
+        {
+            // 시험 규칙: 첫 피격은 부상만. 판에 남는다.
+            boardPanel.OnUnitRevived(i);
+            return;
+        }
         units[i].unit.gameObject.SetActive(false);
-        units[i].reviveRemainTurn = boardPanel.ItemEffects.ReviveTurns(units[i].unitTemp.reviveCool);
+        units[i].reviveRemainTurn = trial != null
+            ? int.MaxValue / 2 // 시험 규칙: 이번 전투에서 부활하지 않는다.
+            : boardPanel.ItemEffects.ReviveTurns(units[i].unitTemp.reviveCool);
         units[i].passive.OnDeath();
         // 전투 내 누적 효과는 자신이 사망/부활해도 유지한다.
         foreach (var unit in units) unit.passive.OnAllyDeath();
         boardPanel.OnAllyDeath();
         if (units[i].passive.LosesBattleOnDeath) boardPanel.LoseBattle();
+        if (trial != null)
+        {
+            trial.OnUnitDown(i);
+            return;
+        }
         // The watch can reduce a one-turn revival to zero, after death effects resolve.
         if (!boardPanel.IsBattleOver && units[i].reviveRemainTurn == 0)
         {
@@ -433,11 +458,17 @@ public class BattleManagerTemp : MonoBehaviour
 
     public bool TryBlockHit(int i)
     {
-        return units[i].passive.TryBlockHit();
+        // 시험 규칙: 캐릭터 특성(기사 피해 무효 등)을 끈다.
+        return boardPanel.Trial == null && units[i].passive.TryBlockHit();
     }
 
     public void OnTurnEnd()
     {
+        if (boardPanel.Trial != null)
+        {
+            boardPanel.Trial.OnUnitTurnEnd();
+            return;
+        }
         for (int i = 0; i < units.Length; i++)
         {
             if (boardPanel.IsBattleOver) break;
@@ -481,9 +512,18 @@ public class BattleManagerTemp : MonoBehaviour
         if (_preparedDangerCells != null && _preparedBoss == boss && _preparedTurn == turnCount) return;
 
         ClearBossPatternPreview();
-        var pattern = GetPattern(boss, turnCount);
-        _preparedEffect = BattlePatternRules.GetColorEffect(pattern);
-        _preparedDangerCells = BattlePatternRules.GetDangerCells(pattern);
+        if (boardPanel.Trial != null)
+        {
+            _preparedEffect = BattlePatternRules.ColorEffect.None;
+            _preparedDangerCells = boardPanel.Trial.BuildDangerCells(turnCount);
+            _preparedLastStep = false;
+        }
+        else
+        {
+            var pattern = GetPattern(boss, turnCount);
+            _preparedEffect = BattlePatternRules.GetColorEffect(pattern);
+            _preparedDangerCells = BattlePatternRules.GetDangerCells(pattern);
+        }
         _preparedBoss = boss;
         _preparedTurn = turnCount;
         foreach (var cell in _preparedDangerCells)
@@ -491,7 +531,8 @@ public class BattleManagerTemp : MonoBehaviour
             if (_attackPreviewPlates.TryGetValue(cell, out var preview))
             {
                 preview.color = GetPatternColor(_preparedEffect, true);
-                preview.enabled = true;
+                // 시험 규칙: 예고는 기본적으로 숨긴다(귀 기울이기로만 공개).
+                preview.enabled = boardPanel.Trial == null || boardPanel.Trial.PreviewRevealed;
             }
         }
     }
@@ -563,7 +604,9 @@ public class BattleManagerTemp : MonoBehaviour
         }
 
         // 피격 캐릭터 수와 관계없이 이번 패턴의 공유 HP 피해는 한 번만 적용한다.
-        if (hitUnits.Count > 0) boardPanel.OnBossAttack(damage);
+        // 시험 규칙: 맞은 캐릭터 1명당 플레이어 HP를 깎는다.
+        if (hitUnits.Count > 0) boardPanel.OnBossAttack(boardPanel.Trial != null ? BellkeeperTrial.HitDamage * hitUnits.Count : damage);
+        boardPanel.Trial?.AfterBossAttack(hitUnits);
 
         if (!boardPanel.IsBattleOver)
         {
@@ -667,6 +710,26 @@ public class BattleManagerTemp : MonoBehaviour
         // 강제 이동은 아군의 이동 행동이 아니므로 이동 패시브/행동력은 발동하지 않는다.
         OnPointerExit(-1);
         _currentMoveIndex = -1;
+    }
+
+    // ───── 시험 규칙(BellkeeperTrial)용 조회 ─────
+    public bool IsUnitOnBoard(int i) => i >= 0 && i < units.Length && units[i].isPlaced && units[i].reviveRemainTurn <= 0;
+    public Vector2Int GetUnitPos(int i) => units[i].pos;
+    public int GetUnitId(int i) => units[i].unitTemp != null ? units[i].unitTemp.id : 0;
+    public string GetUnitName(int i) => units[i].unitTemp != null ? units[i].unitTemp.unitName : "";
+    public Image GetUnitImage(int i) => units[i].unit;
+    public RectTransform GetCellRect(Vector2Int cell) => _blankPos.TryGetValue(cell, out var go) ? (RectTransform)go.transform : null;
+    public bool IsPreparedDanger(Vector2Int cell) => _preparedDangerCells != null && _preparedDangerCells.Contains(cell);
+
+    public void RevealPreparedPreview()
+    {
+        if (_preparedDangerCells == null) return;
+        foreach (var cell in _preparedDangerCells)
+            if (_attackPreviewPlates.TryGetValue(cell, out var preview) && preview != null)
+            {
+                preview.color = GetPatternColor(_preparedEffect, true);
+                preview.enabled = true;
+            }
     }
 
     private static Color GetPatternColor(BattlePatternRules.ColorEffect effect, bool preview)
