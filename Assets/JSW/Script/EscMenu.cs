@@ -120,6 +120,8 @@ public sealed class EscMenu : MonoBehaviour
 
         // 확인 팝업이 열려 있으면 ESC는 팝업을 닫는 데만 쓴다.
         if (ModalDialog.BlocksEscape) return;
+        // 여정 지도가 떠 있으면 ESC는 지도를 닫는다. (JourneyMap)
+        if (JourneyMap.IsOpen) { JourneyMap.Close(); return; }
 
         if (_isOpen)
         {

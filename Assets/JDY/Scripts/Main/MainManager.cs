@@ -203,6 +203,13 @@ public class MainManager : MonoBehaviour
     }
     public void DoorButton()
     {
+        // 여정 지도 (JSW/Script/JourneyMap.cs). 지도에서 건물을 고르는 기능이 생기기 전까지는 지도만 보여 준다.
+        JourneyMap.Open();
+    }
+
+    // 예전 문 동작 (바로 전투 장면으로). 지도에서 입장하는 기능을 만들 때 다시 쓴다.
+    private void OpenJourneyLegacy()
+    {
         if (SceneFade.IsFading) return; // 여정으로 넘어가는 중
         if (!RunSave.HasRun)
         {
