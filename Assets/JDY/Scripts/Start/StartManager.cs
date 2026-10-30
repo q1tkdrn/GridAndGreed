@@ -13,6 +13,8 @@ public class StartManager : MonoBehaviour
     void Start()
     {
         settingPanel.SetActive(false);
+        // 랜덤 오프닝 배경, 가운데 로고와 메뉴 배치 (JSW/Script/TitleScreenLayout.cs)
+        TitleScreenLayout.Setup(gameObject);
         RefreshContinueButton();
     }
 

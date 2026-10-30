@@ -269,6 +269,7 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnPointerEnter(int i)
     {
+        boardPanel.ShowJudgmentPreview(i);
         if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
         var pos = units[i].pos;
@@ -291,6 +292,7 @@ public class BattleManagerTemp : MonoBehaviour
 
     public void OnPointerExit(int i)
     {
+        boardPanel.HideJudgmentPreview(i);
         foreach (var blank in _movableBlank)
         {
             blank.GetComponent<Image>().color = new Color(1, 1, 1, 0);
@@ -339,6 +341,7 @@ public class BattleManagerTemp : MonoBehaviour
             units[_currentMoveIndex].unit.GetComponent<RectTransform>().anchoredPosition = target.Value.GetComponent<RectTransform>().anchoredPosition;
             units[_currentMoveIndex].pos = target.Key;
             GameSfx.PlayMove();
+            UnitMotion.For(units[_currentMoveIndex].unit).Hop();
             var passive = units[_currentMoveIndex].passive;
             passive.Move();
             boardPanel.Trial?.OnUnitMoved(_currentMoveIndex);
@@ -502,6 +505,7 @@ public class BattleManagerTemp : MonoBehaviour
         OnPointerExit(i);
         units[i].pos = destinations[0];
         units[i].unit.rectTransform.anchoredPosition = _blankPos[destinations[0]].GetComponent<RectTransform>().anchoredPosition;
+        UnitMotion.For(units[i].unit).Hop();
         _currentMoveIndex = -1;
         // Forced movement costs no extra action and does not trigger character/item movement effects.
     }
@@ -706,6 +710,7 @@ public class BattleManagerTemp : MonoBehaviour
             int i = hitUnits[n];
             units[i].pos = destinations[n];
             units[i].unit.rectTransform.anchoredPosition = _blankPos[destinations[n]].GetComponent<RectTransform>().anchoredPosition;
+            UnitMotion.For(units[i].unit).Hop();
         }
         // 강제 이동은 아군의 이동 행동이 아니므로 이동 패시브/행동력은 발동하지 않는다.
         OnPointerExit(-1);

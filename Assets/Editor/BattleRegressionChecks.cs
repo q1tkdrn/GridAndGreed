@@ -110,6 +110,7 @@ public static class BattleRegressionChecks
         Set(board, "_isWin", false);
         Set(board, "_isLose", false);
         Set(board, "_isPrinting", true); // Queue logs without starting edit-mode coroutines.
+        Set(board, "_isBossPrinting", true);
         Set(board, "<ItemEffects>k__BackingField", items ?? new ItemBattleState(null));
         Set(board, "_bossPassives", new BossPassiveState(boss.bossId));
     }

@@ -41,6 +41,8 @@ public class MainManager : MonoBehaviour
         PlayerPrefs.Save();
         foreach (var button in GetComponentsInChildren<Button>(true))
             UIHoverScale.Attach(button.gameObject);
+        // NPC는 조각을 묶어 함께 커지게 하고, 마우스를 올리면 색이 채워지게 한다 (문·화살표 등은 제외).
+        NpcHoverEffect.Setup(gameObject);
         CreateAmbientLight();
         currentIndex = Mathf.Clamp(PlayerPrefs.GetInt("mainCurrentIndex", 1), 0, main.Length - 1);
         achievementNameplate.sprite = achievementNameplateSprites[PlayerPrefs.GetInt("IsEnding", 0) == 2 ? 1 : 0];
@@ -201,6 +203,7 @@ public class MainManager : MonoBehaviour
     }
     public void DoorButton()
     {
+        if (SceneFade.IsFading) return; // 여정으로 넘어가는 중
         if (!RunSave.HasRun)
         {
             EnterBattle(resume: false);
@@ -247,8 +250,9 @@ public class MainManager : MonoBehaviour
     private static void EnterBattle(bool resume)
     {
         if (resume) RunSave.RequestResume();
-        SceneManager.LoadScene("BattleTemp");
         if (AchievementManager.Instance != null) AchievementManager.Instance.AddProgress("ACH-1", 1);
+        // 화면이 1초 동안 하얘진 뒤 여정 창이 열리고, 흰빛이 0.8초 동안 걷힌다.
+        SceneFade.LoadScene("BattleTemp", Color.white, 1f, 0.8f);
     }
     public void InitPlay()
     {

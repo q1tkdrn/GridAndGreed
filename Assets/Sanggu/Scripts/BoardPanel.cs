@@ -27,10 +27,33 @@ public class BoardPanel : MonoBehaviour
     
     [Header("Text")]
     [SerializeField] private TextMeshProUGUI textBox;
+    [Tooltip("보스가 직접 하는 말(따옴표로 시작하는 줄)을 출력할 대사창. 비워 두면 위 대사창에 모두 출력한다.")]
+    [SerializeField] private TextMeshProUGUI bossTextBox;
+    [Tooltip("보스 대사창(검은 판 + 테두리 + 글자)을 묶은 그룹. 보스가 말할 때만 나타났다가 서서히 사라진다.")]
+    [SerializeField] private CanvasGroup bossDialogGroup;
+    [SerializeField, Min(0f)] private float bossTypingDelay = 0.06f;   // 보스 대사 글자 사이 시간 (천천히)
+    [SerializeField, Min(0f)] private float bossLineHold = 2.5f;       // 다 나온 뒤 머무는 시간
+    [SerializeField, Min(0f)] private float bossFadeDuration = 0.6f;   // 사라지는 시간
+    private Coroutine _bossFadeRoutine;
+    private bool _bossTyping;        // 보스 대사 글자가 찍히는 중
+    private bool _bossSkipHold;      // 머무는 중에 새 대사가 와서 바로 넘어가야 함
+    private bool _bossInterrupt;     // 승리·패배·페이즈 대사가 와서 하던 말을 끊어야 함
+    private bool _printingImportant; // PrintImportantText 로 들어온 대사인지
     [SerializeField] private float delay = 0.1f;
     private float _delay;
     private Queue<string> _textQueue = new Queue<string>();
     private bool _isPrinting = false; 
+    private float _bossDelay;
+    private Queue<string> _bossTextQueue = new Queue<string>();
+    private bool _isBossPrinting = false;
+    private bool _isFinishingBattle;
+    // 위 기록창: 줄은 한 번에 출력하고, 새 줄은 잠깐 흐리게 나타나며 금빛으로 강조됐다가 원래 색으로 돌아온다.
+    private struct LogEntry { public string text; public float time; }
+    private readonly List<LogEntry> _logEntries = new List<LogEntry>();
+    private Coroutine _logRenderRoutine;
+    private const float LogFadeInTime = 0.15f;
+    private const float LogHighlightTime = 0.8f;
+    private static readonly Color LogHighlightColor = new Color(1f, 0.85f, 0.55f);
     
     [Space(1)]
     
@@ -50,6 +73,7 @@ public class BoardPanel : MonoBehaviour
     private Vector2[] _unitSizes;
     private Coroutine[] _moveAnimations;
     private Coroutine[] _hitAnimations;
+    private Sprite[] _shotRestoreSprites = new Sprite[3]; // 심판 동작 중 원래 그림 (중간에 끊겨도 되돌리기 위해)
 
     [Serializable]
     private struct Unit
@@ -75,6 +99,8 @@ public class BoardPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI willPowerText;
     [SerializeField] private Slider bossSlider;
     [SerializeField] private Image bossImage;
+    private BossHpBarFx _bossHpFx;        // 잔상 + 심판 미리보기 (JSW/Script/BossHpBarFx.cs)
+    private int _judgmentPreviewUnit = -1; // 마우스를 올린 캐릭터 (-1이면 없음)
 
     private bool _isWin = false;
     private bool _isLose = false; 
@@ -125,24 +151,28 @@ public class BoardPanel : MonoBehaviour
                 AfterlifePassiveRules.PhaseOneEffect.JudgmentWeakness => "심판 피해 +2 / 힘 자동 공격 면역",
                 _ => "턴 종료 시 보스 HP 4 회복"
             };
-            PrintText("[저승 공통 패시브] 아군은 보스 공격으로 사망하지 않음 / 아군 피격 시 패턴당 플레이어 HP -3");
-            PrintText("[저승 페이즈 1 패시브] " + effect);
+            // 보스 규칙은 각 전투(페이즈)의 첫 턴에 한 번만 알리고, 매 턴 바뀌는 효과만 그 턴에 짧게 알린다.
+            if (turnCount == 1) PrintText("[저승] 아군은 보스 공격으로 사망하지 않음 / 아군 피격 시 패턴당 플레이어 HP -3");
+            PrintText("[이번 턴] " + effect);
         }
         else if (boss.bossId == "death2")
         {
-            PrintText("[저승 공통 패시브] 아군은 보스 공격으로 사망하지 않음 / 아군 피격 시 패턴당 플레이어 HP -3");
-            PrintText("[저승 페이즈 2 패시브] 받는 피해 0 / 턴 종료 HP -1 / 아군 사망 시 의지력 +1");
+            if (turnCount == 1) PrintText("[저승 2페이즈] 받는 피해 0 / 턴 종료 시 HP -1 / 아군 사망 시 의지력 +1");
         }
-        else if (boss.bossId == "pope")
-            PrintText("[성역] 금색으로 표시된 40칸 위 캐릭터가 주는 모든 피해 무효");
-        else if (boss.bossId == "secretary")
-            PrintText(turnCount % 2 == 1 ? "[서고] 홀수 턴: 받는 모든 피해를 1로 감소" : "[서고] 짝수 턴: 정상 피해");
-        else if (boss.bossId == "bellkeeper")
-            PrintText(turnCount % 3 == 0
-                ? "[세 번째 종 · 균열] 피해 감소 해제 / 받는 심판 피해 +3. 지금이 반격할 때다."
-                : $"[{(turnCount % 3 == 1 ? "첫" : "두")} 번째 종 · 청동 수의] 받는 피해 -2 (최소 1) / 세 번째 종에 심판 약점 노출");
+        else if (boss.bossId == "secretary" && turnCount > 1)
+        {
+            // 피해가 1로 줄어드는 턴에만 알린다.
+            if (turnCount % 2 == 1) PrintText("[서고] 이번 턴 받는 피해 1");
+        }
+        else if (boss.bossId == "bellkeeper" && turnCount > 1)
+        {
+            if (turnCount % 3 == 0) PrintText("[세 번째 종] 피해 감소 해제, 심판 피해 +3. 지금이 반격할 때다.");
+        }
         else if (turnCount == 1)
         {
+            if (boss.bossId == "pope") PrintText("[성역] 금색 칸 위의 캐릭터가 주는 피해는 무효");
+            if (boss.bossId == "secretary") PrintText("[서고] 홀수 턴에는 받는 모든 피해가 1");
+            if (boss.bossId == "bellkeeper") PrintText("[종루] 첫·두 번째 종: 받는 피해 -2 / 세 번째 종: 피해 감소 해제, 심판 피해 +3");
             if (boss.bossId == "noble") PrintText("[영생 귀족] 아군이 이동할 때마다 보스 HP 2 회복");
             if (boss.bossId == "fusion") PrintText("[광장] 아군이 심판을 사용할 때마다 의지력 +1");
             if (boss.bossId == "door") PrintText("[왕실 연구소] 심판 피해를 받으면 사용한 아군을 무작위 빈칸으로 이동");
@@ -160,11 +190,10 @@ public class BoardPanel : MonoBehaviour
         UpdateBossHp(AfterlifePassiveRules.GetTurnEndHp(boss.bossId, afterlifeTurnPassive, bossCurrentHp, bossMaxHp));
         // Include final-step effects and turn-end HP loss before releasing this group.
         if (_bossPatternGroupCompleted && _bossHpGate.CompleteGroup())
-            PrintText("[보스] 패턴 묶음 종료: HP 하한 해제");
+            PrintText("[보스] 버티기가 풀렸다");
         // A defeated boss cannot deal turn-end damage. Use the usual HP path for the contract.
         if (!IsBattleOver && willPower > 0)
         {
-            PrintText($"[의지력] 플레이어 HP -{willPower}");
             UpdateReaperHp(reaperCurrentHp - willPower);
         }
     }
@@ -211,6 +240,16 @@ public class BoardPanel : MonoBehaviour
         _isResolvingBossPattern = false;
         _isPrinting = false;
         _textQueue.Clear();
+        _isBossPrinting = false;
+        _bossTextQueue.Clear();
+        _bossTyping = _bossSkipHold = _bossInterrupt = false;
+        _bossFadeRoutine = null;
+        if (bossDialogGroup != null) bossDialogGroup.alpha = 0f;
+        _isFinishingBattle = false;
+        _logRenderRoutine = null;
+        _judgmentPreviewUnit = -1;
+        JudgeShot.Cleanup();
+        JudgeCutIn.Abort();
         if (battleManagerTemp != null) battleManagerTemp.ClearBossPatternPreview();
     }
 
@@ -229,10 +268,13 @@ public class BoardPanel : MonoBehaviour
                 _unitSizes[i] = units[i].unit.rectTransform.sizeDelta;
             }
         }
+        // 판 위 캐릭터: 숨쉬기 · 이동 깡충 · 피격 흔들림 (JSW/Script/UnitMotion.cs)
+        for (int i = 0; i < units.Length; i++) UnitMotion.For(units[i].unit);
         bossHp.textWrappingMode = TextWrappingModes.NoWrap;
         bossHp.enableAutoSizing = true;
         bossHp.fontSizeMin = 18;
         bossHp.fontSizeMax = 40;
+        _bossHpFx = BossHpBarFx.Attach(bossSlider, bossHp, () => bossCurrentHp, () => bossMaxHp);
         for(int i=0;i<3;i++)
         {
             var selectedUnit = BattleDisplayManager.GetInstance().currentUnits[i];
@@ -265,6 +307,11 @@ public class BoardPanel : MonoBehaviour
             if (_moveAnimations[i] != null) StopCoroutine(_moveAnimations[i]);
             if (_hitAnimations[i] != null) StopCoroutine(_hitAnimations[i]);
             _moveAnimations[i] = _hitAnimations[i] = null;
+            if (i < _shotRestoreSprites.Length && _shotRestoreSprites[i] != null)
+            {
+                units[i].unit.sprite = _shotRestoreSprites[i];
+                _shotRestoreSprites[i] = null;
+            }
             units[i].unit.material.SetFloat(EnableGlitch, 0);
             units[i].unit.rectTransform.sizeDelta = _unitSizes[i];
             units[i].isAnimPlaying = false;
@@ -340,8 +387,12 @@ public class BoardPanel : MonoBehaviour
         bossCurrentHp = bossMaxHp;
         UpdateBossHp(bossCurrentHp);
         UpdateReaperHp(reaperCurrentHp);
+        _logEntries.Clear();
         textBox.text = "";
-        PrintText(boss.battleStart);
+        if (bossTextBox != null) bossTextBox.text = "";
+        HideBossDialog(instant: true);
+        // 전투 시작 서술("당신은 ~에게 달려들었다!")은 나중에 별도 연출로 보여줄 예정이라 지금은 빼고, 보스가 직접 하는 말만 남긴다.
+        PrintText(OnlyBossSpeech(boss.battleStart));
         PrintText(GetBossText(boss.turnStart, 0));
         Trial?.OnBattleStart();
         turnCount = 1;
@@ -417,32 +468,224 @@ public class BoardPanel : MonoBehaviour
     {
         if(_isLose || _isWin) return;
         if (string.IsNullOrWhiteSpace(text)) return;
-        
-        _textQueue.Enqueue(text);
 
-        if (!_isPrinting)
+        // 보스가 직접 하는 말(따옴표로 시작하는 줄)은 보스 대사창으로, 시스템·서술은 위 대사창으로 보낸다.
+        // 여러 줄이 섞인 대사는 연속된 같은 종류의 줄끼리 묶어서 순서대로 보낸다.
+        var chunk = new StringBuilder();
+        bool chunkIsBoss = false;
+        foreach (var line in text.Split('\n'))
         {
-            StartCoroutine(ProcessTextQueue());
+            bool isBoss = string.IsNullOrWhiteSpace(line) ? chunkIsBoss : IsBossSpeech(line);
+            if (isBoss != chunkIsBoss && chunk.Length > 0)
+            {
+                EnqueueText(chunk.ToString(), chunkIsBoss);
+                chunk.Clear();
+            }
+            chunkIsBoss = isBoss;
+            if (chunk.Length > 0) chunk.Append('\n');
+            chunk.Append(line);
+        }
+        EnqueueText(chunk.ToString(), chunkIsBoss);
+    }
+
+    // 승리·패배·페이즈 전환처럼 꼭 보여야 하는 대사: 보스가 말하는 중이어도 끊고 바로 출력한다.
+    public void PrintImportantText(string text)
+    {
+        _printingImportant = true;
+        try { PrintText(text); }
+        finally { _printingImportant = false; }
+    }
+
+    // 줄이 따옴표로 시작하면 보스가 직접 하는 말로 본다. ("…" “…” 「…」 『…』)
+    private static bool IsBossSpeech(string line)
+    {
+        var trimmed = line.TrimStart();
+        if (trimmed.Length == 0) return false;
+        char c = trimmed[0];
+        return c == '"' || c == '“' || c == '”' || c == '「' || c == '『';
+    }
+
+    private void EnqueueText(string text, bool toBoss)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return;
+        if (toBoss && bossTextBox != null)
+        {
+            if (_printingImportant)
+            {
+                // 승리·패배·페이즈 대사: 하던 말을 끊고 바로 말한다.
+                _bossTextQueue.Clear();
+                if (_isBossPrinting) _bossInterrupt = true;
+            }
+            else if (_bossTyping)
+            {
+                return; // 보스가 말하는 중(글자가 찍히는 중)에 들어온 새 대사는 버린다.
+            }
+            else if (_isBossPrinting)
+            {
+                _bossSkipHold = true; // 다 말하고 머무는 중이면 바로 새 대사로 넘어간다.
+            }
+            _bossTextQueue.Enqueue(text);
+            if (!_isBossPrinting) StartCoroutine(ProcessBossTextQueue());
+        }
+        else
+        {
+            _textQueue.Enqueue(text);
+            if (!_isPrinting) StartCoroutine(ProcessTextQueue());
         }
     }
 
     IEnumerator ProcessTextQueue()
     {
         _isPrinting = true;
-
         while (_textQueue.Count > 0)
         {
-            string text = _textQueue.Dequeue();
-
-            _delay = _textQueue.Count >= 5 ? 0 : delay;
-            
-            yield return StartCoroutine(TypeEffect(text));
+            AddLogEntry(_textQueue.Dequeue());
+            yield return null;
         }
-        
         _isPrinting = false;
+        yield return FinishBattleWhenTextDone();
+    }
+
+    private static string OnlyBossSpeech(string text)
+    {
+        if (string.IsNullOrWhiteSpace(text)) return text;
+        return string.Join("\n", text.Split('\n').Where(IsBossSpeech));
+    }
+
+    private void AddLogEntry(string text)
+    {
+        _logEntries.Add(new LogEntry { text = text, time = Time.unscaledTime });
+        TrimLog();
+        RenderLog();
+        if (_logRenderRoutine == null && isActiveAndEnabled) _logRenderRoutine = StartCoroutine(AnimateLog());
+    }
+
+    // 창 높이를 넘으면 가장 오래된 줄부터 통째로 지운다. (위쪽 줄이 반쯤 잘려 보이지 않게)
+    private void TrimLog()
+    {
+        var rect = textBox.rectTransform.rect;
+        float width = rect.width - textBox.margin.x - textBox.margin.z;
+        float height = rect.height - textBox.margin.y - textBox.margin.w;
+        while (_logEntries.Count > 1 && textBox.GetPreferredValues(string.Join("\n", _logEntries.Select(e => e.text)), width, 0f).y > height)
+            _logEntries.RemoveAt(0);
+    }
+
+    private void RenderLog()
+    {
+        var builder = new StringBuilder();
+        float now = Time.unscaledTime;
+        for (int i = 0; i < _logEntries.Count; i++)
+        {
+            if (i > 0) builder.Append('\n');
+            var entry = _logEntries[i];
+            float age = now - entry.time;
+            if (age >= LogHighlightTime)
+            {
+                builder.Append(entry.text);
+                continue;
+            }
+            // 새 줄: 흐리게 나타나며 금빛 → 원래 색
+            var color = Color.Lerp(LogHighlightColor, textBox.color, age / LogHighlightTime);
+            color.a = Mathf.Lerp(0.35f, 1f, Mathf.Clamp01(age / LogFadeInTime));
+            builder.Append("<color=#").Append(ColorUtility.ToHtmlStringRGBA(color)).Append('>').Append(entry.text).Append("</color>");
+        }
+        textBox.text = builder.ToString();
+    }
+
+    private IEnumerator AnimateLog()
+    {
+        while (_logEntries.Count > 0 && Time.unscaledTime - _logEntries[_logEntries.Count - 1].time < LogHighlightTime)
+        {
+            RenderLog();
+            yield return null;
+        }
+        RenderLog();
+        _logRenderRoutine = null;
+    }
+
+    // 보스 대사는 한 줄씩: 대사창이 한 번에 나타나고 → 글자가 천천히 나오고 → 잠시 머문 뒤 → 창과 글자가 함께 서서히 사라진다.
+    IEnumerator ProcessBossTextQueue()
+    {
+        _isBossPrinting = true;
+        while (_bossTextQueue.Count > 0)
+        {
+            var lines = _bossTextQueue.Dequeue().Split('\n');
+            _bossInterrupt = false;
+            for (int i = 0; i < lines.Length && !_bossInterrupt; i++)
+            {
+                var line = lines[i].Trim();
+                if (line.Length == 0) continue;
+                ShowBossDialog();
+                bossTextBox.text = "";
+                _bossDelay = _bossTextQueue.Count >= 5 ? 0 : bossTypingDelay;
+                _bossTyping = true;
+                _bossSkipHold = false;
+                foreach (char c in line)
+                {
+                    if (_bossInterrupt) break;
+                    bossTextBox.text += c;
+                    if (_bossDelay > 0f) yield return new WaitForSeconds(_bossDelay);
+                }
+                _bossTyping = false;
+                if (_bossInterrupt) break;
+                // 다 말한 뒤 머문다. 같은 대사의 다음 줄이 남았으면 짧게, 새 대사가 들어오면 바로 넘어간다.
+                float hold = i < lines.Length - 1 ? bossLineHold * 0.5f : bossLineHold;
+                for (float t = 0f; t < hold && !_bossSkipHold && !_bossInterrupt; t += Time.deltaTime)
+                    yield return null;
+                _bossSkipHold = false;
+            }
+        }
+        _isBossPrinting = false;
+        _bossTyping = false;
+        _bossInterrupt = false;
+        HideBossDialog();
+        yield return FinishBattleWhenTextDone();
+    }
+
+    private void ShowBossDialog()
+    {
+        if (_bossFadeRoutine != null) StopCoroutine(_bossFadeRoutine);
+        _bossFadeRoutine = null;
+        if (bossDialogGroup != null) bossDialogGroup.alpha = 1f;
+    }
+
+    private void HideBossDialog(bool instant = false)
+    {
+        if (bossDialogGroup == null) return;
+        if (_bossFadeRoutine != null) StopCoroutine(_bossFadeRoutine);
+        _bossFadeRoutine = null;
+        if (instant || bossFadeDuration <= 0f || !isActiveAndEnabled)
+        {
+            bossDialogGroup.alpha = 0f;
+            if (bossTextBox != null) bossTextBox.text = "";
+            return;
+        }
+        _bossFadeRoutine = StartCoroutine(FadeOutBossDialog());
+    }
+
+    private IEnumerator FadeOutBossDialog()
+    {
+        float from = bossDialogGroup.alpha;
+        for (float t = 0f; t < bossFadeDuration; t += Time.deltaTime)
+        {
+            bossDialogGroup.alpha = Mathf.Lerp(from, 0f, t / bossFadeDuration);
+            yield return null;
+        }
+        bossDialogGroup.alpha = 0f;
+        if (bossTextBox != null) bossTextBox.text = "";
+        _bossFadeRoutine = null;
+    }
+
+    // 두 대사창이 모두 다 출력된 뒤에 승리/패배를 처리한다.
+    IEnumerator FinishBattleWhenTextDone()
+    {
+        if (_isPrinting || _isBossPrinting || _isFinishingBattle) yield break;
+        if (!_isWin && !_isLose) yield break;
+        _isFinishingBattle = true;
+        yield return new WaitForSeconds(0.1f);
+        _isFinishingBattle = false;
         if (_isWin)
         {
-            yield return new WaitForSeconds(0.1f);
             if (boss.bossId == "death1")
             {
                 // 1페이즈에서는 승리 화면/보상을 표시하지 않고 다음 보스 데이터로 전환한다.
@@ -458,21 +701,8 @@ public class BoardPanel : MonoBehaviour
         }
         else if(_isLose)
         {
-            yield return new WaitForSeconds(0.1f);
             Trial?.ShowDefeatReport();
             BattleDisplayManager.GetInstance().ShowDefeatPanel();
-        }
-    }
-
-    IEnumerator TypeEffect(string text)
-    {
-        StringBuilder stringBuilder = new StringBuilder();
-        stringBuilder.Append(textBox.text+"\n");
-        for (int i = 0; i < text.Length; i++)
-        {
-            stringBuilder.Append(text[i]);
-            textBox.text = stringBuilder.ToString();
-            yield return new WaitForSeconds(_delay);
         }
     }
 
@@ -500,10 +730,10 @@ public class BoardPanel : MonoBehaviour
         bool wasWaiting = _bossHpGate != null && _bossHpGate.IsWaiting;
         bossCurrentHp = _bossHpGate != null ? _bossHpGate.ResolveHp(bossCurrentHp, hp) : hp;
         if (!wasWaiting && _bossHpGate != null && _bossHpGate.IsWaiting)
-            PrintText($"[보스] 패턴 묶음이 끝날 때까지 HP {_bossHpGate.Floor} 미만으로 감소하지 않음");
+            PrintText($"[보스] 이번 패턴이 끝날 때까지 HP {_bossHpGate.Floor} 아래로 내려가지 않는다");
         if (bossCurrentHp <= 0)
         {
-            PrintText(Trial != null ? Trial.VictoryLine : string.IsNullOrWhiteSpace(boss.win) ? "승리" : boss.win);
+            PrintImportantText(Trial != null ? Trial.VictoryLine : string.IsNullOrWhiteSpace(boss.win) ? "승리" : boss.win);
             bossCurrentHp = 0;
             _isWin = true;
         }
@@ -590,7 +820,7 @@ public class BoardPanel : MonoBehaviour
     {
         if (IsBattleOver) return;
         // HP를 강제로 0으로 만들지 않아도 꼬마 사신 사망으로 패배할 수 있다.
-        PrintText(string.IsNullOrWhiteSpace(boss.lose) ? "패배" : boss.lose);
+        PrintImportantText(string.IsNullOrWhiteSpace(boss.lose) ? "패배" : boss.lose);
         _isLose = true;
     }
 
@@ -661,8 +891,33 @@ public class BoardPanel : MonoBehaviour
         }
     }
 
+    // 캐릭터에 마우스를 올리면 지금 심판했을 때 깎일 보스 HP를 HP 바에 미리 보여준다.
+    public void ShowJudgmentPreview(int i) => _judgmentPreviewUnit = i;
+    public void HideJudgmentPreview(int i)
+    {
+        if (_judgmentPreviewUnit == i) _judgmentPreviewUnit = -1;
+    }
+
+    // 실제 심판(BattleManagerTemp.OnPointerClick → JudgeBossFromUnit → ApplyBossDamage)과 같은 규칙으로
+    // 깎일 HP를 계산한다. 아무 상태도 바꾸지 않는다. 지금 심판할 수 없으면 0.
+    public int PreviewJudgmentDamage(int i)
+    {
+        if (IsBattleOver || turn != ETurn.Player || actionPoint <= 0 || boss == null) return 0;
+        if (!battleManagerTemp.IsUnitOnBoard(i) || IsAnimPlaying(i)) return 0;
+        var source = AfterlifePassiveRules.DamageSource.Judgment;
+        int damage = Trial != null ? Trial.PreviewJudgment(i) : battleManagerTemp.GetIntelligence(i);
+        damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, damage);
+        damage = Trial != null
+            ? Trial.ResolveIncomingDamage(source, damage)
+            : _bossPassives.ResolveDamage(source, damage, battleManagerTemp.IsUnitOnSanctuary(i));
+        if (damage <= 0) return 0;
+        int next = _bossHpGate != null ? _bossHpGate.PreviewHp(bossCurrentHp, bossCurrentHp - damage) : bossCurrentHp - damage;
+        return bossCurrentHp - Mathf.Max(0, next);
+    }
+
     public void OnMouseEnterUnit(int i)
     {
+        ShowJudgmentPreview(i);
         RefreshUnitDescription(i);
         units[i].popUp.SetActive(true);
     }
@@ -671,6 +926,8 @@ public class BoardPanel : MonoBehaviour
     {
         for (int i = 0; i < units.Length; i++)
             if (units[i].popUp.activeInHierarchy) RefreshUnitDescription(i);
+        if (_bossHpFx != null)
+            _bossHpFx.SetPreview(_judgmentPreviewUnit >= 0 ? PreviewJudgmentDamage(_judgmentPreviewUnit) : 0);
     }
 
     private void RefreshUnitDescription(int i)
@@ -682,6 +939,7 @@ public class BoardPanel : MonoBehaviour
 
     public void OnMouseExitUnit(int i)
     {
+        HideJudgmentPreview(i);
         units[i].popUp.SetActive(false);
     }
 
@@ -696,13 +954,14 @@ public class BoardPanel : MonoBehaviour
         {
             t = GetBossText(boss.phaseThree, turnCount / 5);
         }
-        PrintText(t);
+        PrintImportantText(t);
     }
 
     [DebugButton("유닛 처치")]
     public Coroutine HitAttack(int i)
     {
         if (i < 0 || i >= units.Length || units[i].unit == null) return null;
+        UnitMotion.For(units[i].unit).Shake();
         _hitAnimations[i] = StartCoroutine(SetGlitch(i));
         return _hitAnimations[i];
     }
@@ -741,12 +1000,51 @@ public class BoardPanel : MonoBehaviour
     public void PlayJudgeAnim(int i)
     {
         if(units[i].isAnimPlaying) return;
+        if (TryPlayJudgeShot(i)) return;
         GameSfx.PlayJudgment();
         units[i].isAnimPlaying = true;
         
         _moveAnimations[i] = StartCoroutine(MoveUI(i, new Vector2(0, -10f), 0.2f, 0.1f, new Vector2(100f, 60f)));
     }
     
+    // 기본 스킨 캐릭터의 심판 연출 (JSW/Script/JudgeShot.cs, JudgeCutIn.cs)
+    // 1) 컷인: 게임이 잠시 멈추고 화면이 어두워지며 캐릭터가 왼쪽에서 크게 들어와 긴 동작을 한다 (그림이 있는 캐릭터만)
+    // 2) 판 위: 작은 캐릭터가 한 번 더 동작하고, 날아간 것이 보스에 닿는 순간 보스가 흔들리고 HP 바가 줄어든다
+    // 피해 계산은 클릭한 순간 이미 끝나 있고, 보이는 것만 닿을 때까지 미룬다.
+    private bool TryPlayJudgeShot(int i)
+    {
+        var data = BattleDisplayManager.GetInstance().currentUnits[i];
+        if (data == null || data.currentSkin != 0 || i >= _shotRestoreSprites.Length) return false;
+        var profile = JudgeShot.Find(data.id);
+        if (profile == null) return false;
+
+        units[i].isAnimPlaying = true;
+        _shotRestoreSprites[i] = units[i].unit.sprite;
+        if (_bossHpFx != null) _bossHpFx.HoldDisplay(3f);
+        _moveAnimations[i] = StartCoroutine(JudgeSequence(i, profile));
+        return true;
+    }
+
+    private IEnumerator JudgeSequence(int i, JudgeShot.Profile profile)
+    {
+        var cutFrames = JudgeShot.CutFrames(profile);
+        if (cutFrames != null)
+            yield return JudgeCutIn.Play(cutFrames, profile.cutTimes, profile.cutRelease, GameSfx.PlayJudgment);
+        yield return JudgeShot.Play(this, profile, units[i].unit, bossImage.rectTransform,
+            onRelease: cutFrames == null ? GameSfx.PlayJudgment : (Action)null,
+            onHit: index =>
+            {
+                // 여러 개가 날아가면(도적 단검 2자루) 첫 번째가 닿을 때 HP가 줄고, 닿을 때마다 보스가 흔들린다.
+                if (index == 0 && _bossHpFx != null) _bossHpFx.ReleaseDisplay();
+                HitShake.For(bossImage).Play(profile.shakeAmplitude, profile.shakeDuration);
+            },
+            onDone: () =>
+            {
+                _shotRestoreSprites[i] = null;
+                units[i].isAnimPlaying = false;
+            });
+    }
+
     public bool IsAnimPlaying(int i)
     {
         return units[i].isAnimPlaying;

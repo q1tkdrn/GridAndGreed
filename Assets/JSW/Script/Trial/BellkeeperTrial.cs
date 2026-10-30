@@ -94,13 +94,21 @@ public sealed class BellkeeperTrial
 
     // ───────────────────────── 전투 흐름 ─────────────────────────
 
+    private const string RulesSeenKey = "Trial.RulesSeen";
+
     public void OnBattleStart()
     {
         ResetUnitTint();
-        _hud = TrialHud.Create(_board);
-        _board.PrintText("[시험 규칙 v2] 힘은 0에서 시작. 힘 칸을 밟아 모으고, 더블클릭 심판으로 한 번에 터뜨린다 (5 이상 x1.5, 10 이상 x2)");
-        _board.PrintText("[욕심 칸] 공격 범위 안의 금색 칸. 밟으면 힘 +3, 종이 울릴 때까지 버티면 +5 더");
-        _board.PrintText("[피격] 맞은 캐릭터 1명당 HP -4. 1·2번째 피격은 힘 +2, 3번째 피격에 쓰러진다 (모은 힘 소멸)");
+        // 보스 일러스트 위 종소리·페이즈 신호 창은 쓰지 않는다. 같은 안내는 매 턴 위 대사창에 출력된다.
+        _hud = null;
+        // 규칙 설명은 처음 한 번만 보여준다. ('처음부터'로 저장을 지우면 다시 보인다.)
+        if (PlayerPrefs.GetInt(RulesSeenKey, 0) == 0)
+        {
+            PlayerPrefs.SetInt(RulesSeenKey, 1);
+            _board.PrintText("[시험 규칙 v2] 힘은 0에서 시작. 힘 칸을 밟아 모으고, 더블클릭 심판으로 한 번에 터뜨린다 (5 이상 x1.5, 10 이상 x2)");
+            _board.PrintText("[욕심 칸] 공격 범위 안의 금색 칸. 밟으면 힘 +3, 종이 울릴 때까지 버티면 +5 더");
+            _board.PrintText("[피격] 맞은 캐릭터 1명당 HP -4. 1·2번째 피격은 힘 +2, 3번째 피격에 쓰러진다 (모은 힘 소멸)");
+        }
     }
 
     public void BeginTurn(int turnCount)
@@ -149,7 +157,7 @@ public sealed class BellkeeperTrial
             if (!_phaseLinePrinted2)
             {
                 _phaseLinePrinted2 = true;
-                _board.PrintText("\"…종이, 너무 무거워졌어. 이번엔 내 장례까지 울려야겠군.\"");
+                _board.PrintImportantText("\"…종이, 너무 무거워졌어. 이번엔 내 장례까지 울려야겠군.\"");
                 _board.PrintText("[2페이즈] 다음 턴부터 진자 → 장례 → 균열 → 파문 순서로 울린다. 장례는 고요한 칸 다섯 곳만 안전하다.");
             }
         }
@@ -319,12 +327,10 @@ public sealed class BellkeeperTrial
                 _standing[i] = true;
                 _standCell[i] = pos;
                 _greedStepped++;
-                _board.PrintText($"[욕심 칸] {_battle.GetUnitName(i)} 힘 +{GreedStepValue} (종이 울릴 때까지 버티면 +{GreedStandValue})");
             }
             else
             {
                 _charge[i] += SafeValue;
-                _board.PrintText($"[힘 칸] {_battle.GetUnitName(i)} 힘 +{SafeValue}");
             }
         }
         RefreshMarkers();
@@ -342,13 +348,15 @@ public sealed class BellkeeperTrial
         }
         damage = ReleaseDamage(charge);
         string mult = charge >= 10 ? " x2" : charge >= 5 ? " x1.5" : "";
-        _board.PrintText($"{_battle.GetUnitName(i)} 심판: 힘 {charge}{mult} → 피해 {damage}");
         _charge[i] = 0;
         _releaseCount++;
         _bestRelease = Math.Max(_bestRelease, damage);
         RefreshChargeLabels();
         return true;
     }
+
+    /// <summary>지금 심판하면 나갈 피해 (모은 힘이 없으면 0). 상태는 바꾸지 않는다.</summary>
+    public int PreviewJudgment(int i) => _battle.IsUnitOnBoard(i) && _charge[i] > 0 ? ReleaseDamage(_charge[i]) : 0;
 
     /// <summary>시험 규칙에서는 심판만 보스에게 피해를 준다.</summary>
     public int ResolveIncomingDamage(Source source, int damage)
@@ -375,7 +383,6 @@ public sealed class BellkeeperTrial
                     bool stood = _standing[i] && _battle.GetUnitPos(i) == _standCell[i];
                     if (stood) { gain += GreedStandValue; _greedStood++; }
                     _charge[i] += gain;
-                    _board.PrintText($"[피격] {_battle.GetUnitName(i)} {_hits[i]}번째 피격: 힘 +{gain}{(stood ? " (욕심 칸에서 버팀)" : "")}");
                     var image = _battle.GetUnitImage(i);
                     if (image != null) image.color = _hits[i] == 1 ? new Color(1f, 0.8f, 0.8f, 1f) : new Color(1f, 0.55f, 0.55f, 1f);
                 }

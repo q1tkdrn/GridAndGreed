@@ -12,60 +12,68 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5c2e1a687b6b43e586ded7e13e879765, type: 3}
   m_Name: Bellkeeper
   m_EditorClassIdentifier: Assembly-CSharp::BossTemp
-  bossName: "장송의 종지기"
+  bossName: "\uC7A5\uC1A1\uC758 \uC885\uC9C0\uAE30"
   bossId: bellkeeper
   bossSprite: {fileID: 21300000, guid: 78ad15ca75854ddc86dc9b3aaf466d84, type: 3}
   maxHp: 60
   initialWillPower: 4
-  battleStart: "첫 번째는 산 자를 위해. 두 번째는 죽은 자를 위해. 세 번째는… 너를 위해."
+  battleStart: "\"\uCCAB \uBC88\uC9F8\uB294 \uC0B0 \uC790\uB97C \uC704\uD574. \uB450
+    \uBC88\uC9F8\uB294 \uC8FD\uC740 \uC790\uB97C \uC704\uD574. \uC138 \uBC88\uC9F8\uB294\u2026
+    \uB108\uB97C \uC704\uD574.\""
   turnStart:
-  - "(아무도 매달리지 않은 사슬이 팽팽해진다.)"
-  - "아직 네 이름은 부르지 않았다."
-  - "(종 안쪽에서 수많은 숨소리가 새어 나온다.)"
-  - "돌아갈 곳이 있다면, 지금 돌아가라."
+  - "(\uC544\uBB34\uB3C4 \uB9E4\uB2EC\uB9AC\uC9C0 \uC54A\uC740 \uC0AC\uC2AC\uC774
+    \uD33D\uD33D\uD574\uC9C4\uB2E4.)"
+  - "\"\uC544\uC9C1 \uB124 \uC774\uB984\uC740 \uBD80\uB974\uC9C0 \uC54A\uC558\uB2E4.\""
+  - "(\uC885 \uC548\uCABD\uC5D0\uC11C \uC218\uB9CE\uC740 \uC228\uC18C\uB9AC\uAC00
+    \uC0C8\uC5B4 \uB098\uC628\uB2E4.)"
+  - "\"\uB3CC\uC544\uAC08 \uACF3\uC774 \uC788\uB2E4\uBA74, \uC9C0\uAE08 \uB3CC\uC544\uAC00\uB77C.\""
   willDecline:
-  - "(종소리가 한 박자 어긋난다.)"
-  - "아직… 보내지 못한 자들이 있다."
-  - "(사슬을 잡은 손이 떨린다.)"
-  - "이 종이 멎으면, 누가 그들을 기억하지?"
+  - "(\uC885\uC18C\uB9AC\uAC00 \uD55C \uBC15\uC790 \uC5B4\uAE0B\uB09C\uB2E4.)"
+  - "\"\uC544\uC9C1\u2026 \uBCF4\uB0B4\uC9C0 \uBABB\uD55C \uC790\uB4E4\uC774 \uC788\uB2E4.\""
+  - "(\uC0AC\uC2AC\uC744 \uC7A1\uC740 \uC190\uC774 \uB5A8\uB9B0\uB2E4.)"
+  - "\"\uC774 \uC885\uC774 \uBA4E\uC73C\uBA74, \uB204\uAC00 \uADF8\uB4E4\uC744 \uAE30\uC5B5\uD558\uC9C0?\""
   willZero:
-  - "(종을 흔들어도 소리가 나지 않는다.)"
-  - "이제… 들리지 않는구나."
-  - "(침묵 속에서 사슬만 부딪힌다.)"
-  - "한 번만 더 울릴 수 있다면."
+  - "(\uC885\uC744 \uD754\uB4E4\uC5B4\uB3C4 \uC18C\uB9AC\uAC00 \uB098\uC9C0 \uC54A\uB294\uB2E4.)"
+  - "\"\uC774\uC81C\u2026 \uB4E4\uB9AC\uC9C0 \uC54A\uB294\uAD6C\uB098.\""
+  - "(\uCE68\uBB35 \uC18D\uC5D0\uC11C \uC0AC\uC2AC\uB9CC \uBD80\uB52A\uD78C\uB2E4.)"
+  - "\"\uD55C \uBC88\uB9CC \uB354 \uC6B8\uB9B4 \uC218 \uC788\uB2E4\uBA74.\""
   phaseTwo:
-  - "(종의 균열 사이로 흰 재가 쏟아진다.)"
-  - "누구도 마지막 종을 피할 수 없다."
-  - "(찢어진 수의가 바람 없이 펄럭인다.)"
-  - "아직 장례는 끝나지 않았다."
+  - "(\uC885\uC758 \uADE0\uC5F4 \uC0AC\uC774\uB85C \uD770 \uC7AC\uAC00 \uC3DF\uC544\uC9C4\uB2E4.)"
+  - "\"\uB204\uAD6C\uB3C4 \uB9C8\uC9C0\uB9C9 \uC885\uC744 \uD53C\uD560 \uC218 \uC5C6\uB2E4.\""
+  - "(\uCC22\uC5B4\uC9C4 \uC218\uC758\uAC00 \uBC14\uB78C \uC5C6\uC774 \uD384\uB7ED\uC778\uB2E4.)"
+  - "\"\uC544\uC9C1 \uC7A5\uB840\uB294 \uB05D\uB098\uC9C0 \uC54A\uC558\uB2E4.\""
   phaseThree:
-  - "(종 안에서 자신의 이름이 들린다.)"
-  - "이번에는… 나를 위한 종인가."
-  - "(사슬이 끊어질 듯 울부짖는다.)"
-  - "마지막까지, 들어다오."
+  - "(\uC885 \uC548\uC5D0\uC11C \uC790\uC2E0\uC758 \uC774\uB984\uC774 \uB4E4\uB9B0\uB2E4.)"
+  - "\"\uC774\uBC88\uC5D0\uB294\u2026 \uB098\uB97C \uC704\uD55C \uC885\uC778\uAC00.\""
+  - "(\uC0AC\uC2AC\uC774 \uB04A\uC5B4\uC9C8 \uB4EF \uC6B8\uBD80\uC9D6\uB294\uB2E4.)"
+  - "\"\uB9C8\uC9C0\uB9C9\uAE4C\uC9C0, \uB4E4\uC5B4\uB2E4\uC624.\""
   attackedAP:
-  - "그 소리… 종 안까지 닿는구나."
-  - "(청동 아래 감춰진 혼이 흔들린다.)"
-  - "산 자의 뜻이 이토록 무겁다니."
-  - "(균열이 마침내 종의 꼭대기에 닿는다.)"
+  - "\"\uADF8 \uC18C\uB9AC\u2026 \uC885 \uC548\uAE4C\uC9C0 \uB2FF\uB294\uAD6C\uB098.\""
+  - "(\uCCAD\uB3D9 \uC544\uB798 \uAC10\uCDB0\uC9C4 \uD63C\uC774 \uD754\uB4E4\uB9B0\uB2E4.)"
+  - "\"\uC0B0 \uC790\uC758 \uB73B\uC774 \uC774\uD1A0\uB85D \uBB34\uAC81\uB2E4\uB2C8.\""
+  - "(\uADE0\uC5F4\uC774 \uB9C8\uCE68\uB0B4 \uC885\uC758 \uAF2D\uB300\uAE30\uC5D0
+    \uB2FF\uB294\uB2E4.)"
   attackedAD:
-  - "(무딘 울림이 종루를 타고 번진다.)"
-  - "청동은 고통을 기억하지 않는다."
-  - "(사슬 몇 마디가 바닥에 떨어진다.)"
-  - "아직… 울릴 수 있다."
+  - "(\uBB34\uB518 \uC6B8\uB9BC\uC774 \uC885\uB8E8\uB97C \uD0C0\uACE0 \uBC88\uC9C4\uB2E4.)"
+  - "\"\uCCAD\uB3D9\uC740 \uACE0\uD1B5\uC744 \uAE30\uC5B5\uD558\uC9C0 \uC54A\uB294\uB2E4.\""
+  - "(\uC0AC\uC2AC \uBA87 \uB9C8\uB514\uAC00 \uBC14\uB2E5\uC5D0 \uB5A8\uC5B4\uC9C4\uB2E4.)"
+  - "\"\uC544\uC9C1\u2026 \uC6B8\uB9B4 \uC218 \uC788\uB2E4.\""
   attack:
-  - "들어라."
-  - "(보드 위로 종의 잔향이 번진다.)"
-  - "너의 침묵에도 이름을 붙여주마."
-  - "세 번째다."
-  win: "(부서진 종에서 마지막 숨이 빠져나간다. 이번에는, 아무도 죽음을 알리지 않는다.)"
-  lose: "이름은 잊혀도, 종소리는 남는다."
+  - "\"\uB4E4\uC5B4\uB77C.\""
+  - "(\uBCF4\uB4DC \uC704\uB85C \uC885\uC758 \uC794\uD5A5\uC774 \uBC88\uC9C4\uB2E4.)"
+  - "\"\uB108\uC758 \uCE68\uBB35\uC5D0\uB3C4 \uC774\uB984\uC744 \uBD99\uC5EC\uC8FC\uB9C8.\""
+  - "\"\uC138 \uBC88\uC9F8\uB2E4.\""
+  win: "(\uBD80\uC11C\uC9C4 \uC885\uC5D0\uC11C \uB9C8\uC9C0\uB9C9 \uC228\uC774 \uBE60\uC838\uB098\uAC04\uB2E4.
+    \uC774\uBC88\uC5D0\uB294, \uC544\uBB34\uB3C4 \uC8FD\uC74C\uC744 \uC54C\uB9AC\uC9C0
+    \uC54A\uB294\uB2E4.)"
+  lose: "\"\uC774\uB984\uC740 \uC78A\uD600\uB3C4, \uC885\uC18C\uB9AC\uB294 \uB0A8\uB294\uB2E4.\""
   distinctText:
-  - "(두 번의 울림 뒤, 종의 균열이 열린다. 세 번째 종에 심판을 내리자.)"
-  stageName: "종루"
+  - "(\uB450 \uBC88\uC758 \uC6B8\uB9BC \uB4A4, \uC885\uC758 \uADE0\uC5F4\uC774 \uC5F4\uB9B0\uB2E4.
+    \uC138 \uBC88\uC9F8 \uC885\uC5D0 \uC2EC\uD310\uC744 \uB0B4\uB9AC\uC790.)"
+  stageName: "\uC885\uB8E8"
   stageSprite: {fileID: 21300000, guid: 78ad15ca75854ddc86dc9b3aaf466d84, type: 3}
   bgmStart: {fileID: 8300000, guid: 17144ffc8f06ff34eb4c48e768e036a6, type: 3}
   bgmLoop: {fileID: 8300000, guid: a69a5293fbcb856429261a4768b5fc47, type: 3}
-  patterns: []
+  patterns: 
   patternDamage: 4
   patternPreviewSeconds: 1.2

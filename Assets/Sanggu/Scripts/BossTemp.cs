@@ -71,6 +71,14 @@ public sealed class BossPatternHpGate
         return requested;
     }
 
+    // ResolveHp와 같은 결과를 상태 변경 없이 계산한다 (보스 HP 미리보기용).
+    public int PreviewHp(int current, int requested)
+    {
+        if (requested >= current || released >= 2) return requested;
+        int floor = Floor;
+        return requested <= floor ? System.Math.Min(current, floor) : requested;
+    }
+
     public bool CompleteGroup()
     {
         if (!IsWaiting) return false;
