@@ -42,6 +42,6 @@ public class ItemBuy : MonoBehaviour
     }
     public void SetBuy()
     {
-        soulText.text = InventoryManager.Instance.GetSoul().ToString();
+        soulText.text = "\uC18C\uC6B8 " + InventoryManager.Instance.GetSoul().ToString("N0");
     }
 }

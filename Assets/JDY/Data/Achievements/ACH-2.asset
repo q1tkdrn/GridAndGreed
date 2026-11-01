@@ -21,3 +21,6 @@ MonoBehaviour:
   - type: 1
     rewardID: 
     amount: 200
+  - type: 4
+    rewardID: 4
+    amount: 1

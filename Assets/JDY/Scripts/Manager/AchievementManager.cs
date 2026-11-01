@@ -32,6 +32,8 @@ public class AchievementManager : MonoBehaviour
                 if (current >= data.targetValue)
                 {
                     PlayerPrefs.SetInt(id + "_Completed", 1);//ex)ACH-1_Completed = 1(달성)
+                    AchievementToast.Enqueue(data);
+                    PlayerPrefs.Save();
                     GetReward(id);
                     Debug.Log("업적 달성 : " + id);
                 }
@@ -46,11 +48,18 @@ public class AchievementManager : MonoBehaviour
     }
     public void GetReward(string id)
     {
-        if (!IsCompleted(id) || IsRewarded(id))
+        if (!IsCompleted(id))
             return;
 
         // Start screen has no inventory yet; leave the reward pending until it loads.
         if (InventoryManager.Instance == null) return;
+        // Existing saves may already have claimed the old first-victory reward.
+        if (IsRewarded(id))
+        {
+            if (id == "ACH-2" && !InventoryManager.Instance.HasMemorial("4"))
+                InventoryManager.Instance.UnlockMemorial("4");
+            return;
+        }
 
         foreach (AchievementData data in achievements)
         {

@@ -16,6 +16,7 @@ namespace UnityEngine
         public static readonly Dictionary<string, int> Values = new Dictionary<string, int>();
         public static int GetInt(string key, int fallback = 0) => Values.TryGetValue(key, out var value) ? value : fallback;
         public static void SetInt(string key, int value) => Values[key] = value;
+        public static void Save() { }
     }
 }
 
@@ -33,8 +34,16 @@ public class InventoryManager
     public int LastAmount;
     public void AddSoul(int value) { Grants++; }
     public void AddItem(string id, int amount) { Grants++; LastItem = id; LastAmount = amount; }
-    public void UnlockMemorial(string id) { Grants++; }
+    private readonly HashSet<string> memorials = new HashSet<string>();
+    public bool HasMemorial(string id) => memorials.Contains(id);
+    public void UnlockMemorial(string id) { memorials.Add(id); Grants++; }
     public void UnlockCharacter(string id) { Grants++; }
+}
+
+public static class AchievementToast
+{
+    public static int Count;
+    public static void Enqueue(AchievementData data) { Count++; }
 }
 
 public static class CreditAchievementTests
@@ -83,6 +92,26 @@ public static class CreditAchievementTests
         Check(manager.IsRewarded("ACH-10") && InventoryManager.Instance.Grants == 1, "Loading inventory delivers the pending reward");
         manager.GetReward("ACH-10");
         Check(InventoryManager.Instance.Grants == 1, "Loading inventory again does not duplicate rewards");
-        Console.WriteLine($"PASS: {checks} credit achievement assertions");
+        Check(AchievementToast.Count == 2, "Only new completions notify; reward retries and reloads do not");
+
+        UnityEngine.PlayerPrefs.Values.Clear();
+        InventoryManager.Instance = new InventoryManager();
+        manager.achievements = new[] { new AchievementData {
+            id = "ACH-2", targetValue = 1, rewards = new[] {
+                new AchievementReward { type = RewardType.Soul, amount = 200 },
+                new AchievementReward { type = RewardType.Memorial, rewardID = "4", amount = 1 }
+            }
+        } };
+        manager.AddProgress("ACH-2", 1);
+        Check(InventoryManager.Instance.Grants == 2 && InventoryManager.Instance.HasMemorial("4"), "First victory grants soul and memory");
+        manager.GetReward("ACH-2");
+        Check(InventoryManager.Instance.Grants == 2, "New first-victory rewards are not duplicated");
+        InventoryManager.Instance = new InventoryManager(); // Legacy save has already claimed soul.
+        var notifications = AchievementToast.Count;
+        manager.GetReward("ACH-2");
+        Check(InventoryManager.Instance.Grants == 1 && InventoryManager.Instance.HasMemorial("4"), "Legacy first victory receives only missing memory");
+        manager.GetReward("ACH-2");
+        Check(InventoryManager.Instance.Grants == 1 && AchievementToast.Count == notifications, "Migration neither duplicates rewards nor replays notification");
+        Console.WriteLine($"PASS: {checks} achievement assertions");
     }
 }

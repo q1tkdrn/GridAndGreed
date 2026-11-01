@@ -64,6 +64,7 @@ public class StartManager : MonoBehaviour
         float master = PlayerPrefs.GetFloat("MasterVolume", 1f);
         float bgm = PlayerPrefs.GetFloat("BGMVolume", 1f);
         float sfx = PlayerPrefs.GetFloat("SFXVolume", 1f);
+        AchievementToast.ClearPending();
         PlayerPrefs.DeleteAll();
         PlayerPrefs.SetFloat("MasterVolume", master);
         PlayerPrefs.SetFloat("BGMVolume", bgm);
