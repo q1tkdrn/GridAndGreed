@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -66,6 +66,15 @@ public class ItemBuildingPanel : MonoBehaviour
     {
         if (id < 1 || id > items.Length || !items[id - 1].unlock) return;
         var item = items[id - 1];
+        // 여정 중 정비 제한 (JSW/Script/JourneyLink.cs)
+        if (JourneyRefit.Limited)
+        {
+            var display = BattleDisplayManager.GetInstance();
+            int slot = -1;
+            for (int i = 0; i < slots.Length; i++)
+                if (item.isEquip ? slots[i].itemId == id : slots[i].name.text == "") { slot = i; break; }
+            if (slot >= 0 && !JourneyRefit.CanSetItem(display.currentUnits, display.currentItems, slot, item.isEquip ? null : item.itemData)) return;
+        }
         if (!item.isEquip)
         {
             for (int i = 0; i < slots.Length; i++)
@@ -101,6 +110,7 @@ public class ItemBuildingPanel : MonoBehaviour
             }
         }
         BattleDisplayManager.GetInstance().SaveFormation();
+        JourneyRefit.Refresh(BattleDisplayManager.GetInstance().currentUnits, BattleDisplayManager.GetInstance().currentItems);
     }
 
     public void UnEquipItemInSlot(int i)
@@ -108,6 +118,8 @@ public class ItemBuildingPanel : MonoBehaviour
         if (i < 0 || i >= slots.Length) return;
         if(!slots[i].name.gameObject.activeSelf) return;
         if(!items[slots[i].itemId - 1].isEquip) return;
+        var refitDisplay = BattleDisplayManager.GetInstance();
+        if (!JourneyRefit.CanSetItem(refitDisplay.currentUnits, refitDisplay.currentItems, i, null)) return;
         items[slots[i].itemId - 1].isEquip = false;
         slots[i].name.text = "";
         slots[i].name.gameObject.SetActive(false);
@@ -116,5 +128,6 @@ public class ItemBuildingPanel : MonoBehaviour
         BattleDisplayManager.GetInstance().currentItems[i] = null;
         slots[i].itemId = 0;
         BattleDisplayManager.GetInstance().SaveFormation();
+        JourneyRefit.Refresh(refitDisplay.currentUnits, refitDisplay.currentItems);
     }
 }

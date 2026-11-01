@@ -67,6 +67,7 @@ public class InventoryManager : MonoBehaviour
     public void RemoveSoul(int amount)
     {
         soul -= amount;
+        GameSfx.PlayPurchase();
 
         AchievementManager.Instance.AddProgress("ACH-3", amount);
         AchievementManager.Instance.AddProgress("ACH-4", amount);

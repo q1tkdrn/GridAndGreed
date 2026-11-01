@@ -17,4 +17,13 @@ MonoBehaviour:
   move: {fileID: 8300000, guid: 8708863d7ce34369ae88a706e6df4677, type: 3}
   judgment: {fileID: 8300000, guid: 3bf793bcd4e94914a416ae003d032b37, type: 3}
   attack: {fileID: 8300000, guid: d6eecfebeee9419f99511f0ddb841f2c, type: 3}
+  pickup: {fileID: 8300000, guid: 8dcd77b1ef1becc4fa6d41e8517524f6, type: 3}
+  greedPickup: {fileID: 8300000, guid: d42f4262d5567b44dac36066fabf74ca, type: 3}
+  greedStand: {fileID: 8300000, guid: 10c7dd27e001a2540bd9d3e184c7d2f8, type: 3}
+  hit: {fileID: 8300000, guid: ab21b2aefb97e1e4ba95d4293fdb5e7c, type: 3}
+  down: {fileID: 8300000, guid: 49383e61c9a074a4ea95e2134cc2580c, type: 3}
+  bigJudgment: {fileID: 8300000, guid: 7f8a6880d5c37784da6b34dbca84d436, type: 3}
+  trait: {fileID: 8300000, guid: 1c172b03726626845aff5cfb4844173d, type: 3}
+  denied: {fileID: 8300000, guid: 79c45e5c481c4734ea1b3b746a76eb0f, type: 3}
+  purchase: {fileID: 8300000, guid: 338f5746504620d4b8c60cdae2861ff3, type: 3}
   volume: 0.7

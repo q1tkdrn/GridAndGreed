@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -128,10 +128,13 @@ public class UnitBuildingPanel : MonoBehaviour
             formPanel.SetActive(true);
             changePanel.SetActive(false);
 
+            // 여정 중 정비 제한 (JSW/Script/JourneyLink.cs)
+            if (!JourneyRefit.CanSetUnit(currentUnits, BattleDisplayManager.GetInstance().currentItems, _currentUnitIndex, cards[i].unitTemp)) return;
             currentUnits[_currentUnitIndex] = cards[i].unitTemp;
 
             Init();
             BattleDisplayManager.GetInstance().SaveFormation();
+            JourneyRefit.Refresh(currentUnits, BattleDisplayManager.GetInstance().currentItems);
             return;
         }
 

@@ -52,6 +52,8 @@ public class MainManager : MonoBehaviour
         transitionOverlay.alpha = 0f;
         transitionOverlay.blocksRaycasts = false;
         bannerRoutine = StartCoroutine(AnimateBanner());
+        // 전투·편성에서 돌아온 경우 바로 여정 지도를 띄운다.
+        if (JourneyLink.ConsumeOpenMap()) JourneyMap.Open(instant: true);
     }
 
     private void CreateAmbientLight()
@@ -179,31 +181,32 @@ public class MainManager : MonoBehaviour
     }
     public void ItemShopButton()
     {
-        SceneManager.LoadScene("Item");
+        LoadingScreen.Load("Item");
     }
     public void CharacterShopButton()
     {
-        SceneManager.LoadScene("Character");
+        LoadingScreen.Load("Character");
     }
     public void AchievementButton()
     {
-        SceneManager.LoadScene("Achievement");
+        LoadingScreen.Load("Achievement");
     }
     public void MemorialButton()
     {
-        SceneManager.LoadScene("Memorial");
+        LoadingScreen.Load("Memorial");
     }
     public void MusicButton()
     {
-        SceneManager.LoadScene("Music");
+        LoadingScreen.Load("Music");
     }
     public void SkinButton()
     {
-        SceneManager.LoadScene("Skin");
+        LoadingScreen.Load("Skin");
     }
     public void DoorButton()
     {
-        // 여정 지도 (JSW/Script/JourneyMap.cs). 지도에서 건물을 고르는 기능이 생기기 전까지는 지도만 보여 준다.
+        // 여정 지도 (JSW/Script/JourneyMap.cs). 지도에서 장소를 골라 보스전에 들어간다.
+        if (AchievementManager.Instance != null) AchievementManager.Instance.AddProgress("ACH-1", 1);
         JourneyMap.Open();
     }
 

@@ -100,6 +100,24 @@ public sealed class GameSfx : MonoBehaviour
     }
 
     public static void PlayMove() { if (instance != null && instance.settings != null) instance.Play(instance.settings.move); }
-    public static void PlayJudgment() { if (instance != null && instance.settings != null) instance.Play(instance.settings.judgment); }
+    // Extra layers for the next judgment sound (played at the cut-in impact).
+    public static bool NextJudgmentBig, NextJudgmentTrait;
+    public static void PlayJudgment()
+    {
+        if (instance == null || instance.settings == null) return;
+        instance.Play(instance.settings.judgment);
+        if (NextJudgmentBig) instance.Play(instance.settings.bigJudgment);
+        if (NextJudgmentTrait) instance.Play(instance.settings.trait);
+        NextJudgmentBig = NextJudgmentTrait = false;
+    }
+    private static void PlayWith(System.Func<GameSfxSettings, AudioClip> pick) { if (instance != null && instance.settings != null) instance.Play(pick(instance.settings)); }
+    public static void PlayPickup() => PlayWith(s => s.pickup);
+    public static void PlayGreedPickup() => PlayWith(s => s.greedPickup);
+    public static void PlayGreedStand() => PlayWith(s => s.greedStand);
+    public static void PlayHit() => PlayWith(s => s.hit);
+    public static void PlayDown() => PlayWith(s => s.down);
+    public static void PlayTrait() => PlayWith(s => s.trait);
+    public static void PlayDenied() => PlayWith(s => s.denied);
+    public static void PlayPurchase() => PlayWith(s => s.purchase);
     public static void PlayAttack() { if (instance != null && instance.settings != null) instance.Play(instance.settings.attack); }
 }

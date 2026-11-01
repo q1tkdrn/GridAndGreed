@@ -12,18 +12,19 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: eceb1d28675e422f85521036b0cfaa51, type: 3}
   m_Name: 6.Scavenger
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
-  unitName: "\uC2A4\uCE90\uBE48\uC838"
+  unitName: "\uC2A4\uCE90\uBE48\uC800"
   id: 6
   power: 4
   intelligence: 2
   reviveCool: 3
-  abilityText: "\uC544\uAD70 \uCE90\uB9AD\uD130\uAC00 \uC0AC\uB9DD\uD560 \uB54C \uB9C8\uB2E4
-    \uD798 1 \uC99D\uAC00 (\uC804\uD22C \uB0B4 \uC9C0\uC18D)"
+  abilityText: "\uB2E4\uB978 \uC544\uAD70\uC774 \uB9DE\uC744 \uB54C\uB9C8\uB2E4 \uD798
+    +2"
   illustration: {fileID: 21300000, guid: 8649fcca2194cb441818f0d7ac96e449, type: 3}
   defaultSkin: {fileID: 21300000, guid: 9250aa9e5afed23439a62065377ccf51, type: 3}
   skin1: {fileID: 21300000, guid: f7dc8ca7369107a4eb07cb5e413913a2, type: 3}
   skin2: {fileID: 21300000, guid: 592ad71e30c34544caabb0915f11d133, type: 3}
   skin3: {fileID: 21300000, guid: ac9f130bc0d1c114c8171463c0332275, type: 3}
+  isSkin1Unlocked: 0
   isSkin2Unlocked: 0
   isSkin3Unlocked: 0
   currentSkin: 0

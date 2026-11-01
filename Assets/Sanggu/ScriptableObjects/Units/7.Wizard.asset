@@ -17,12 +17,14 @@ MonoBehaviour:
   power: 2
   intelligence: 4
   reviveCool: 3
-  abilityText: "매 턴 시작 시 지능 4로 초기화. 심판 후 지능 1 증가(최대 6, 아이템 보정 별도)."
+  abilityText: "\uC695\uC2EC \uCE78 \uD798\uC740 \uD53C\uD574 2.5\uBC30, \uC77C\uBC18
+    \uD798 \uCE78 \uD798\uC740 \uD53C\uD574 \uC808\uBC18"
   illustration: {fileID: 21300000, guid: ad157e4dd4b25364a99deb6e4c234497, type: 3}
   defaultSkin: {fileID: 21300000, guid: d3b7c7f109fc66c40a5f0a924550ab89, type: 3}
   skin1: {fileID: 21300000, guid: 747e8d39433bb764c86e677ea239d966, type: 3}
   skin2: {fileID: 21300000, guid: 97831ef0f031e184986a33101ed729f3, type: 3}
   skin3: {fileID: 21300000, guid: 90a93d27d8ba4e04aaa040a12e06a2c6, type: 3}
+  isSkin1Unlocked: 0
   isSkin2Unlocked: 0
   isSkin3Unlocked: 0
   currentSkin: 0

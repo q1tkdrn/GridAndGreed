@@ -24,4 +24,5 @@ MonoBehaviour:
   npcSkinName: "\uB9B4\uB9AC(\uB9C8\uBC95\uC0AC)"
   insectSkinName: "\uBC18\uB527\uBD88\uC774 (\uB9C8\uBC95\uC0AC)"
   bossSkinName: "\uBB38(\uB9C8\uBC95\uC0AC)"
-  description: "매 턴 시작 시 지능 4로 초기화. 심판 후 지능 1 증가(최대 6, 아이템 보정 별도)."
+  description: "\uC695\uC2EC \uCE78 \uD798\uC740 \uD53C\uD574 2.5\uBC30, \uC77C\uBC18
+    \uD798 \uCE78 \uD798\uC740 \uD53C\uD574 \uC808\uBC18"

@@ -21,6 +21,7 @@ public static class RunSave
     private const string RewardPendingKey = Prefix + "RewardPending";
     private const string UnitsKey = Prefix + "Units";              // 여정 시작 시 고정된 편성
     private const string ItemsKey = Prefix + "Items";
+    private const string RefitKey = Prefix + "Refit";            // 정비 횟수 (보스를 이길 때마다 +1, 편성을 바꾸면 소모)
 
     private const char Separator = ',';
 
@@ -44,6 +45,33 @@ public static class RunSave
     public static IReadOnlyList<int> UnitIds => Split(PlayerPrefs.GetString(UnitsKey, ""))
         .Select(s => int.TryParse(s, out var id) ? id : 0).ToArray();
     public static IReadOnlyList<string> ItemIds => PlayerPrefs.GetString(ItemsKey, "").Split(Separator);
+
+    /// <summary>남은 정비 횟수 (여정 중 편성 교체 가능 횟수).</summary>
+    public static int RefitTokens => HasRun ? PlayerPrefs.GetInt(RefitKey, 0) : 0;
+
+    public static void UseRefit(int count)
+    {
+        if (!HasRun || count <= 0) return;
+        PlayerPrefs.SetInt(RefitKey, Math.Max(0, RefitTokens - count));
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>정비로 바꾼 편성을 여정 편성으로 저장한다.</summary>
+    public static void SetFormation(UnitTemp[] units, ItemData[] items)
+    {
+        if (!HasRun) return;
+        PlayerPrefs.SetString(UnitsKey, string.Join(Separator.ToString(), units.Select(u => u != null ? u.id : 0)));
+        PlayerPrefs.SetString(ItemsKey, string.Join(Separator.ToString(), items.Select(i => i != null ? i.id : "")));
+        PlayerPrefs.Save();
+    }
+
+    /// <summary>지도에서 열린 장소(보스 id)를 저장한다. 껐다 켜서 다시 뽑는 것을 막는다.</summary>
+    public static void SaveChoiceIds(IEnumerable<string> ids)
+    {
+        if (!HasRun) return;
+        PlayerPrefs.SetString(ChoicesKey, string.Join(Separator.ToString(), ids.Where(id => !string.IsNullOrEmpty(id))));
+        PlayerPrefs.Save();
+    }
 
     public static void RequestResume() => _resumeRequested = true;
 
@@ -84,6 +112,7 @@ public static class RunSave
         PlayerPrefs.DeleteKey(CurrentKey);
         PlayerPrefs.DeleteKey(CurrentNameKey);
         PlayerPrefs.SetInt(RewardPendingKey, 1);
+        PlayerPrefs.SetInt(RefitKey, PlayerPrefs.GetInt(RefitKey, 0) + 1); // 이길 때마다 정비 1회
         PlayerPrefs.Save();
     }
 
@@ -105,7 +134,7 @@ public static class RunSave
     public static void Delete(bool save = true)
     {
         foreach (var key in new[] { ActiveKey, ClearedKey, ClearedNamesKey, CurrentKey, CurrentNameKey,
-                     ChoicesKey, RewardPendingKey, UnitsKey, ItemsKey })
+                     ChoicesKey, RewardPendingKey, UnitsKey, ItemsKey, RefitKey })
             PlayerPrefs.DeleteKey(key);
         if (save) PlayerPrefs.Save();
     }

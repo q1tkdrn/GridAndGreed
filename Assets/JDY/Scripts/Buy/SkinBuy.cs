@@ -37,6 +37,7 @@ public class SkinBuy : MonoBehaviour
             }
             else
             {
+                GameSfx.PlayDenied();
                 Debug.Log("ภÜพืบฮมท");
             }
         }

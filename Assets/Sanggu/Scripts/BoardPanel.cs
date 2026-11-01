@@ -50,6 +50,7 @@ public class BoardPanel : MonoBehaviour
     // 위 기록창: 줄은 한 번에 출력하고, 새 줄은 잠깐 흐리게 나타나며 금빛으로 강조됐다가 원래 색으로 돌아온다.
     private struct LogEntry { public string text; public float time; }
     private readonly List<LogEntry> _logEntries = new List<LogEntry>();
+    private string _pinnedLog;   // 위 대사창 맨 위에 고정되는 줄 (보스 특성)
     private Coroutine _logRenderRoutine;
     private const float LogFadeInTime = 0.15f;
     private const float LogHighlightTime = 0.8f;
@@ -87,6 +88,7 @@ public class BoardPanel : MonoBehaviour
     }
     
     [SerializeField] private Unit[] units = new Unit[3];
+    private UnitInfoView _info;   // 초상화 정보창 + 피격 해골
     [SerializeField] private ItemUI[] items = new ItemUI[3];
     
     [Header("Boss")]
@@ -187,7 +189,7 @@ public class BoardPanel : MonoBehaviour
         Trial?.EndTurn();
         if (IsBattleOver) return;
         // 자신의 턴 종료 HP 변화는 받는 피해가 아니므로 피해 면역을 거치지 않는다.
-        UpdateBossHp(AfterlifePassiveRules.GetTurnEndHp(boss.bossId, afterlifeTurnPassive, bossCurrentHp, bossMaxHp));
+        if (Trial == null) UpdateBossHp(AfterlifePassiveRules.GetTurnEndHp(boss.bossId, afterlifeTurnPassive, bossCurrentHp, bossMaxHp));
         // Include final-step effects and turn-end HP loss before releasing this group.
         if (_bossPatternGroupCompleted && _bossHpGate.CompleteGroup())
             PrintText("[보스] 버티기가 풀렸다");
@@ -202,7 +204,7 @@ public class BoardPanel : MonoBehaviour
     {
         if (!IsBattleOver)
         {
-            int willGain = boss.bossId == "death2" ? 1 : _bossPassives.AllyDeathWillGain;
+            int willGain = Trial != null ? 0 : boss.bossId == "death2" ? 1 : _bossPassives.AllyDeathWillGain;
             if (willGain > 0) UpdateBossWillPower(willPower + willGain);
         }
         HealReaper(ItemEffects.DeathHealing);
@@ -296,6 +298,7 @@ public class BoardPanel : MonoBehaviour
             items[i].itemData = BattleDisplayManager.GetInstance().currentItems[i];
             items[i].Init();
         }
+        if (_info == null) _info = new UnitInfoView(units.Select(u => u.image).ToArray(), UiFont);
         ResetUnitVisuals();
     }
 
@@ -316,6 +319,7 @@ public class BoardPanel : MonoBehaviour
             units[i].unit.rectTransform.sizeDelta = _unitSizes[i];
             units[i].isAnimPlaying = false;
             units[i].popUp.SetActive(false);
+            _info?.Hide(i);
         }
     }
 
@@ -360,7 +364,10 @@ public class BoardPanel : MonoBehaviour
         Trial?.Dispose();
         if (_baseReaperMaxHp < 0) _baseReaperMaxHp = reaperMaxHp;
         Trial = BellkeeperTrial.IsTrialBoss(boss) ? new BellkeeperTrial(this, battleManagerTemp) : null;
-        reaperMaxHp = Trial != null ? BellkeeperTrial.PlayerMaxHp : _baseReaperMaxHp;
+        // v3: 보스 특성은 시험 규칙(BellkeeperTrial)이 처리한다. 옛 보스 패시브는 끈다.
+        if (Trial != null) _bossPassives = new BossPassiveState(null);
+        else BellkeeperTrial.SoulBonus = 0f;
+        reaperMaxHp = Trial != null ? Trial.MaxPlayerHp : _baseReaperMaxHp;
         if (_bossPatternCoroutine != null) StopCoroutine(_bossPatternCoroutine);
         _bossPatternCoroutine = null;
         // The two afterlife phases are one battle: do not refill the contract in phase two.
@@ -368,7 +375,7 @@ public class BoardPanel : MonoBehaviour
             ItemEffects = new ItemBattleState(BattleDisplayManager.GetInstance().currentItems
                 .Where(item => item != null).Select(item => item.id));
         // 시험 규칙에서는 아이템 효과를 끈다.
-        if (Trial != null) ItemEffects = new ItemBattleState(null);
+        if (Trial != null && boss.bossId != "death2") ItemEffects = new ItemBattleState(BattleDisplayManager.GetInstance().currentItems.Where(item => item != null && item.id == "23").Select(item => item.id)); // 계약서만 유지
         _isLose = _isWin = false;
         _nextTurnActionPenalty = 0;
         _isResolvingBossPattern = false;
@@ -378,7 +385,7 @@ public class BoardPanel : MonoBehaviour
             reaperCurrentHp = reaperMaxHp;
         }
         // 각 보스 에셋의 스탯을 새로 읽어 이전 페이즈 HP/의지력이 남지 않도록 한다.
-        bossMaxHp = Trial != null ? BellkeeperTrial.BossMaxHp : Mathf.Max(1, boss.maxHp);
+        bossMaxHp = Trial != null ? Trial.MaxBossHp : Mathf.Max(1, boss.maxHp);
         _bossHpGate = new BossPatternHpGate(bossMaxHp, Trial == null && BossPatternHpGate.IsEnabled(boss.bossId, battleManagerTemp.HasBossPattern(boss)));
         willPower = Trial != null ? BellkeeperTrial.StartWillPower : Mathf.Max(0, boss.initialWillPower - ItemEffects.WillPowerReduction);
         willPowerText.text = $"의지력: {willPower}";
@@ -388,11 +395,13 @@ public class BoardPanel : MonoBehaviour
         UpdateBossHp(bossCurrentHp);
         UpdateReaperHp(reaperCurrentHp);
         _logEntries.Clear();
+        _pinnedLog = Trial != null && !string.IsNullOrEmpty(Trial.TraitText) ? "<size=75%><color=#D9B8FF>" + Trial.TraitText + "</color></size>" : null;
         textBox.text = "";
         if (bossTextBox != null) bossTextBox.text = "";
         HideBossDialog(instant: true);
         // 전투 시작 서술("당신은 ~에게 달려들었다!")은 나중에 별도 연출로 보여줄 예정이라 지금은 빼고, 보스가 직접 하는 말만 남긴다.
-        PrintText(OnlyBossSpeech(boss.battleStart));
+        PrintText(OnlyBossSpeech(boss.battleStart) + (Trial != null && !string.IsNullOrEmpty(Trial.TraitSpeech) ? "\n" + Trial.TraitSpeech : ""));
+        if (_pinnedLog != null) RenderLog();
         PrintText(GetBossText(boss.turnStart, 0));
         Trial?.OnBattleStart();
         turnCount = 1;
@@ -566,13 +575,14 @@ public class BoardPanel : MonoBehaviour
         var rect = textBox.rectTransform.rect;
         float width = rect.width - textBox.margin.x - textBox.margin.z;
         float height = rect.height - textBox.margin.y - textBox.margin.w;
-        while (_logEntries.Count > 1 && textBox.GetPreferredValues(string.Join("\n", _logEntries.Select(e => e.text)), width, 0f).y > height)
+        while (_logEntries.Count > 1 && textBox.GetPreferredValues((_pinnedLog != null ? _pinnedLog + "\n" : "") + string.Join("\n", _logEntries.Select(e => e.text)), width, 0f).y > height)
             _logEntries.RemoveAt(0);
     }
 
     private void RenderLog()
     {
         var builder = new StringBuilder();
+        if (_pinnedLog != null) { builder.Append(_pinnedLog); if (_logEntries.Count > 0) builder.Append('\n'); }
         float now = Time.unscaledTime;
         for (int i = 0; i < _logEntries.Count; i++)
         {
@@ -783,7 +793,7 @@ public class BoardPanel : MonoBehaviour
     private int ApplyBossDamage(int dmg, AfterlifePassiveRules.DamageSource source, int unitIndex = -1)
     {
         if (IsBattleOver) return 0;
-        int damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, dmg);
+        int damage = Trial != null ? dmg : AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, dmg);
         damage = Trial != null
             ? Trial.ResolveIncomingDamage(source, damage)
             : _bossPassives.ResolveDamage(source, damage, battleManagerTemp.IsUnitOnSanctuary(unitIndex));
@@ -906,7 +916,7 @@ public class BoardPanel : MonoBehaviour
         if (!battleManagerTemp.IsUnitOnBoard(i) || IsAnimPlaying(i)) return 0;
         var source = AfterlifePassiveRules.DamageSource.Judgment;
         int damage = Trial != null ? Trial.PreviewJudgment(i) : battleManagerTemp.GetIntelligence(i);
-        damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, damage);
+        if (Trial == null) damage = AfterlifePassiveRules.ResolveDamage(boss.bossId, afterlifeTurnPassive, source, damage);
         damage = Trial != null
             ? Trial.ResolveIncomingDamage(source, damage)
             : _bossPassives.ResolveDamage(source, damage, battleManagerTemp.IsUnitOnSanctuary(i));
@@ -918,14 +928,18 @@ public class BoardPanel : MonoBehaviour
     public void OnMouseEnterUnit(int i)
     {
         ShowJudgmentPreview(i);
+        _info?.Show(i);
         RefreshUnitDescription(i);
-        units[i].popUp.SetActive(true);
     }
 
     private void LateUpdate()
     {
         for (int i = 0; i < units.Length; i++)
-            if (units[i].popUp.activeInHierarchy) RefreshUnitDescription(i);
+        {
+            if (_info == null) break;
+            _info.SetPips(i, Trial != null ? Trial.HitsOf(i) : -1);
+            if (_info.Shown == i) RefreshUnitDescription(i);
+        }
         if (_bossHpFx != null)
             _bossHpFx.SetPreview(_judgmentPreviewUnit >= 0 ? PreviewJudgmentDamage(_judgmentPreviewUnit) : 0);
     }
@@ -933,14 +947,16 @@ public class BoardPanel : MonoBehaviour
     private void RefreshUnitDescription(int i)
     {
         var selectedUnit = BattleDisplayManager.GetInstance().currentUnits[i];
-        units[i].descriptionText.text = Trial != null ? Trial.DescribeUnit(i) : $"<color=#FFB080>힘 {battleManagerTemp.GetPower(i)}</color>    "
-            + $"<color=#88CEFF>지능 {battleManagerTemp.GetIntelligence(i)}</color>\n{(Trial != null ? Trial.DescribeUnit(i) : selectedUnit.abilityText)}";
+        string body = Trial != null ? Trial.InfoBody(i, selectedUnit.abilityText)
+            : $"<color=#FFB080>힘 {battleManagerTemp.GetPower(i)}</color>    <color=#88CEFF>지능 {battleManagerTemp.GetIntelligence(i)}</color>\n{selectedUnit.abilityText}";
+        _info?.SetContent(selectedUnit.unitName, body, Trial != null ? Trial.HitsOf(i) : -1);
     }
 
     public void OnMouseExitUnit(int i)
     {
         HideJudgmentPreview(i);
         units[i].popUp.SetActive(false);
+        _info?.Hide(i);
     }
 
     public void OnPhaseChange(int i)
@@ -977,7 +993,7 @@ public class BoardPanel : MonoBehaviour
     {
         units[i].unit.material.SetFloat(EnableGlitch, 1);
         yield return new WaitForSeconds(1f);
-        if (boss != null && (boss.bossId == "king" || AfterlifePassiveRules.PreventsAllyDeathFromBossAttack(boss.bossId)))
+        if (Trial == null && boss != null && (boss.bossId == "king" || AfterlifePassiveRules.PreventsAllyDeathFromBossAttack(boss.bossId)))
         {
             // 왕과 저승의 공격은 캐릭터를 사망시키지 않고 사신의 공유 HP만 감소시킨다.
             units[i].unit.material.SetFloat(EnableGlitch, 0);
@@ -1014,8 +1030,8 @@ public class BoardPanel : MonoBehaviour
     private bool TryPlayJudgeShot(int i)
     {
         var data = BattleDisplayManager.GetInstance().currentUnits[i];
-        if (data == null || data.currentSkin != 0 || i >= _shotRestoreSprites.Length) return false;
-        var profile = JudgeShot.Find(data.id);
+        if (data == null || i >= _shotRestoreSprites.Length) return false;
+        var profile = JudgeShot.Find(data.id, data.currentSkin == 3 ? 0 : data.currentSkin);   // 4번째 스킨 칸은 기본 그림 임시
         if (profile == null) return false;
 
         units[i].isAnimPlaying = true;

@@ -11,6 +11,7 @@ public static class JudgeShot
     public sealed class Profile
     {
         public int unitId;
+        public int skin;                 // 0 기본, 1 곤충, 2 보스
         public string folder;            // Resources/Anim/ 아래 폴더
         public string framePrefix;       // 프레임 그림 이름 앞부분 (뒤에 _1 ~ _N)
         public float[] frameTimes;       // 프레임별 시간(초)
@@ -71,7 +72,95 @@ public static class JudgeShot
             // 던진 뒤 팔을 뻗은 모습을 충분히 보여 주도록 던짐 0.09초 + 팔 뻗음 0.32초, 대신 앞부분을 줄여 전체 약 1.6초 유지
             cutTimes = new[] { 0.13f, 0.15f, 0.10f, 0.10f, 0.20f, 0.15f, 0.09f, 0.32f, 0.14f, 0.25f },
         },
+        // ── 아래는 그림이 아직 없는 연출 (2026-11-01 기획). 그림이 Resources/Anim/<폴더>/ 에 들어오면 자동으로 켜진다.
+        // 파일 이름 규칙: <폴더 소문자>_act_1~6, <폴더 소문자>_shot, Cut/<폴더 소문자>_cut_1~10
+        // 기사 곤충: 사슴벌레 뿔로 들이받기 → V자 충격파
+        Heavy(1, 1, "Knight_Insect", flight: 0.2f),
+        // 기사 보스(교관): 칼 끝으로 "교정" 찌르기 → 일직선 찌르기 충격
+        Heavy(1, 2, "Knight_Boss", flight: 0.12f),
+        // 궁수 곤충: 잠자리, 공중에서 침 발사
+        Light(2, 1, "Archer_Insect"),
+        // 궁수 보스(서기관): 책을 펼쳐 페이지 세 장이 화살처럼
+        Light(2, 2, "Archer_Boss", count: 3, spin: 0f),
+        // 도적 곤충: 사마귀, 앞발 낫 X자 → 낫 날 두 개 회전
+        Light(3, 1, "Rogue_Insect", count: 2, spin: 1500f),
+        // 도적 보스(실험체): 사슬 달린 단검 휘둘러 던지기
+        Light(3, 2, "Rogue_Boss"),
+        // 사제: 두 손 모아 기도 → 머리 위 빛 고리 → 십자 빛 구슬
+        Magic(4, 0, "Bishop"),
+        // 사제 곤충: 꿀벌, 날개 붕붕 → 꿀빛 구슬
+        Magic(4, 1, "Bishop_Insect"),
+        // 사제 보스(교황): 손을 들어 심판 → 빛의 창이 높게 날아가 내리꽂힘
+        Heavy(4, 2, "Bishop_Boss", flight: 0.3f, arc: 140f, stick: true),
+        // 무희: 빙글 회전 → 부채 두 개 던지기
+        Light(5, 0, "Dancer", count: 2, spin: 1200f),
+        // 무희 곤충: 나방, 날개 펄럭 → 나비 모양 빛
+        Magic(5, 1, "Dancer_Insect"),
+        // 무희 보스(융합체): 몸이 풀리며 붕대 리본이 뻗어 감김
+        Light(5, 2, "Dancer_Boss", flight: 0.2f),
+        // 스캐빈저: 갈고리를 머리 위로 돌리다 던지기
+        Light(6, 0, "Scavenger", spin: 1000f),
+        // 스캐빈저 곤충: 쇠똥구리, 공을 굴리다 높이 던지기
+        Heavy(6, 1, "Scavenger_Insect", flight: 0.32f, arc: 120f, spin: 600f),
+        // 스캐빈저 보스(영생귀족): 지팡이로 바닥을 치고 금화 세 닢 튕기기
+        Light(6, 2, "Scavenger_Boss", count: 3, spin: 1400f),
+        // 마법사: 지팡이 휘두르기 → 별 마법탄
+        Magic(7, 0, "Wizard", spin: 720f),
+        // 마법사 곤충: 더듬이에 번개를 모아 지그재그 번개
+        Heavy(7, 1, "Wizard_Insect", flight: 0.1f),
+        // 마법사 보스(문): 몸(문)이 열리고 안쪽 눈에서 빛
+        Magic(7, 2, "Wizard_Boss"),
+        // 광신도: 가슴 문양이 빛나며 떨어져 날아감
+        Magic(8, 0, "Fanatic", spin: 240f),
+        // 광신도 곤충: 등껍질을 펼쳐 문양 새긴 조각 세 개
+        Light(8, 1, "Fanatic_Insect", count: 3, spin: 900f),
+        // 광신도 보스(왕): 손가락을 튕기면 왕의 인장이 날아가 찍힘
+        Heavy(8, 2, "Fanatic_Boss", flight: 0.26f, arc: 60f),
+        // 꼬마 사신: 낫을 크게 돌려 베기 → 검은 반달 참격 (가장 크게)
+        Heavy(9, 0, "Reaper", flight: 0.24f, width: 1.6f, shake: 28f),
     };
+
+    // 새 연출 틀. 프레임 그림은 정리 도구가 같은 크기·같은 발 위치로 맞춰 주므로 canvasScale·launchOffset은 공통값에서 시작해 그림을 보고 조정한다.
+    private static Profile Std(int unit, int skin, string folder, float[] times)
+    {
+        string key = folder.ToLowerInvariant();
+        return new Profile
+        {
+            unitId = unit, skin = skin, folder = folder, framePrefix = key + "_act", frameTimes = times, releaseFrame = 3,
+            projectile = key + "_shot", canvasScale = 1.4f, launchOffset = new Vector2(0.3f, 0.05f),
+            // 컷인 10프레임 약 1.6초: 대기 → 준비 2 → 힘 모음 2 → 최대(멈춤) → 번뜩 → 발사(번쩍) → 여운 → 복귀
+            cutPrefix = key + "_cut", cutRelease = 7,
+            cutTimes = new[] { 0.13f, 0.11f, 0.12f, 0.11f, 0.12f, 0.28f, 0.20f, 0.08f, 0.22f, 0.25f },
+        };
+    }
+
+    // 가볍고 빠름: 던지기·쏘기. 박힌 채 머묾.
+    private static Profile Light(int unit, int skin, string folder, int count = 1, float spin = 0f, float flight = 0.16f)
+    {
+        var p = Std(unit, skin, folder, new[] { 0.05f, 0.07f, 0.16f, 0.04f, 0.08f, 0.10f });
+        p.projectileWidth = 0.8f; p.flightTime = flight; p.arcHeight = 25f; p.stick = true;
+        p.shakeAmplitude = 11f; p.shakeDuration = 0.22f; p.spin = spin;
+        p.projectileCount = count; if (count > 1) p.projectileSpread = new Vector2(0f, -0.14f);
+        return p;
+    }
+
+    // 마법: 모으는 시간이 길고 둥글게 날아가 퍼지며 사라짐.
+    private static Profile Magic(int unit, int skin, string folder, float spin = 0f)
+    {
+        var p = Std(unit, skin, folder, new[] { 0.06f, 0.08f, 0.24f, 0.04f, 0.10f, 0.10f });
+        p.projectileWidth = 0.9f; p.flightTime = 0.28f; p.arcHeight = 60f; p.stick = false;
+        p.shakeAmplitude = 16f; p.shakeDuration = 0.3f; p.spin = spin;
+        return p;
+    }
+
+    // 무거운 한 방: 크게 흔들림.
+    private static Profile Heavy(int unit, int skin, string folder, float flight = 0.22f, float arc = 0f, bool stick = false, float spin = 0f, float width = 1.3f, float shake = 22f)
+    {
+        var p = Std(unit, skin, folder, new[] { 0.07f, 0.09f, 0.22f, 0.04f, 0.12f, 0.12f });
+        p.projectileWidth = width; p.flightTime = flight; p.arcHeight = arc; p.stick = stick; p.spin = spin;
+        p.shakeAmplitude = shake; p.shakeDuration = 0.4f;
+        return p;
+    }
 
     private const float StuckTime = 0.12f;
     private const float FadeTime = 0.15f;
@@ -94,11 +183,11 @@ public static class JudgeShot
     }
     private static readonly List<GameObject> _live = new List<GameObject>();
 
-    /// <summary>이 캐릭터(기본 스킨)에 심판 연출이 있으면 돌려준다. 그림이 하나라도 없으면 null.</summary>
-    public static Profile Find(int unitId)
+    /// <summary>이 캐릭터·스킨에 심판 연출이 있으면 돌려준다. 그림이 하나라도 없으면 null. (skin: 0 기본, 1 곤충, 2 보스)</summary>
+    public static Profile Find(int unitId, int skin = 0)
     {
         foreach (var p in Profiles)
-            if (p.unitId == unitId) return Load(p) ? p : null;
+            if (p.unitId == unitId && p.skin == skin) return Load(p) ? p : null;
         return null;
     }
 
@@ -112,7 +201,8 @@ public static class JudgeShot
         bool ok = Array.TrueForAll(frames, f => f != null) && projectile != null;
         _frames[p] = ok ? frames : null;
         _projectiles[p] = projectile;
-        if (!ok) Debug.LogWarning($"JudgeShot: Resources/Anim/{p.folder} 그림이 모자라서 {p.framePrefix} 연출을 건너뜀");
+        // 아직 그림을 하나도 넣지 않은 연출은 조용히 건너뛴다. 일부만 있으면 알려 준다.
+        if (!ok && (frames[0] != null || projectile != null)) Debug.LogWarning($"JudgeShot: Resources/Anim/{p.folder} 그림이 모자라서 {p.framePrefix} 연출을 건너뜀");
         return ok;
     }
 

@@ -609,7 +609,7 @@ public class BattleManagerTemp : MonoBehaviour
 
         // 피격 캐릭터 수와 관계없이 이번 패턴의 공유 HP 피해는 한 번만 적용한다.
         // 시험 규칙: 맞은 캐릭터 1명당 플레이어 HP를 깎는다.
-        if (hitUnits.Count > 0) boardPanel.OnBossAttack(boardPanel.Trial != null ? BellkeeperTrial.HitDamage * hitUnits.Count : damage);
+        if (hitUnits.Count > 0) boardPanel.OnBossAttack(boardPanel.Trial != null ? boardPanel.Trial.HitDamageTotal(hitUnits) : damage);
         boardPanel.Trial?.AfterBossAttack(hitUnits);
 
         if (!boardPanel.IsBattleOver)
@@ -720,6 +720,18 @@ public class BattleManagerTemp : MonoBehaviour
     // ───── 시험 규칙(BellkeeperTrial)용 조회 ─────
     public bool IsUnitOnBoard(int i) => i >= 0 && i < units.Length && units[i].isPlaced && units[i].reviveRemainTurn <= 0;
     public Vector2Int GetUnitPos(int i) => units[i].pos;
+    // v3 보스 특성(문)용: 빈칸이면 지정 칸으로 이동. 행동력·이동 효과 없음.
+    public bool MoveUnitTo(int i, Vector2Int cell)
+    {
+        if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return false;
+        if (!_blankPos.ContainsKey(cell)) return false;
+        for (int k = 0; k < units.Length; k++) if (k != i && units[k].isPlaced && units[k].pos == cell) return false;
+        units[i].pos = cell;
+        units[i].unit.rectTransform.anchoredPosition = _blankPos[cell].GetComponent<RectTransform>().anchoredPosition;
+        UnitMotion.For(units[i].unit).Hop();
+        return true;
+    }
+
     public int GetUnitId(int i) => units[i].unitTemp != null ? units[i].unitTemp.id : 0;
     public string GetUnitName(int i) => units[i].unitTemp != null ? units[i].unitTemp.unitName : "";
     public Image GetUnitImage(int i) => units[i].unit;

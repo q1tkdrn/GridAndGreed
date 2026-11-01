@@ -79,6 +79,20 @@ public class BattleDisplayManager : MonoBehaviour
 
     private void Start()
     {
+        // 마을의 여정 지도에서 들어온 경우 (JSW/Script/JourneyMap.cs, JourneyLink.cs)
+        if (JourneyLink.FormationRequested)
+        {
+            JourneyLink.FormationRequested = false;
+            OpenFormationFromMap();
+            return;
+        }
+        if (!string.IsNullOrEmpty(JourneyLink.PendingBossId))
+        {
+            var bossId = JourneyLink.PendingBossId;
+            JourneyLink.PendingBossId = null;
+            StartFromMap(bossId);
+            return;
+        }
         // 마을에서 "여정 이어가기" 또는 ESC 메뉴의 "보스전 다시 시작하기"로 들어온 경우.
         if (RunSave.ConsumeResumeRequest())
         {
@@ -101,6 +115,8 @@ public class BattleDisplayManager : MonoBehaviour
     [SerializeField] private GameObject victoryPanel;
     [Header("Victory Reward")]
     [SerializeField, Min(0)] private int victorySoulReward = 500;
+    // 욕심 아이템 소울 보너스 반영 (임시값, 소울 경제 확정 전)
+    private int VictorySoul => Mathf.RoundToInt(victorySoulReward * (1f + BellkeeperTrial.SoulBonus));
     [SerializeField] private GameObject defeatPanel;
     [SerializeField] private Image waysPanel;
     [SerializeField] private GameObject waysBackButton;
@@ -210,6 +226,8 @@ public class BattleDisplayManager : MonoBehaviour
     [DebugButton]
     public void OpenEntrancePanel(bool isBuilding)
     {
+        // 지도에서 연 편성: 캐릭터/아이템 화면에서 나가면 '캐릭터·아이템' 고르는 화면으로 (그 화면의 돌아가기는 지도로)
+        if (JourneyRefit.FromMap) isBuilding = true;
         entrancePanel.gameObject.SetActive(true);
         boardPanel.gameObject.SetActive(false);
         unitBuildingPanel.SetActive(false);
@@ -227,7 +245,7 @@ public class BattleDisplayManager : MonoBehaviour
         _victoryRewardClaimed = false;
         if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
         if (_soulRewardButton != null) _soulRewardButton.interactable = true;
-        if (_soulRewardText != null) _soulRewardText.text = $"소울 {victorySoulReward}";
+        if (_soulRewardText != null) _soulRewardText.text = $"소울 {VictorySoul}";
         victoryPanel.SetActive(true);
         if (appearedBoss.Count > 0)
         {
@@ -257,7 +275,7 @@ public class BattleDisplayManager : MonoBehaviour
         AddRewardText(rewards.GetChild(0), "보상", font, 42);
 
         Transform soulBubble = rewards.GetChild(1);
-        _soulRewardText = AddRewardText(soulBubble, $"소울 {victorySoulReward}", font, 44);
+        _soulRewardText = AddRewardText(soulBubble, $"소울 {VictorySoul}", font, 44);
         _soulRewardButton = soulBubble.gameObject.GetComponent<Button>();
         if (_soulRewardButton == null) _soulRewardButton = soulBubble.gameObject.AddComponent<Button>();
         _soulRewardButton.targetGraphic = soulBubble.GetComponent<Graphic>();
@@ -312,17 +330,17 @@ public class BattleDisplayManager : MonoBehaviour
 
         if (InventoryManager.Instance != null)
         {
-            InventoryManager.Instance.AddSoul(victorySoulReward);
+            InventoryManager.Instance.AddSoul(VictorySoul);
         }
         else
         {
             // Allows the battle scene's standalone editor test to exercise the reward.
-            PlayerPrefs.SetInt("Soul", PlayerPrefs.GetInt("Soul", 0) + victorySoulReward);
+            PlayerPrefs.SetInt("Soul", PlayerPrefs.GetInt("Soul", 0) + VictorySoul);
             PlayerPrefs.Save();
         }
 
         if (_soulRewardButton != null) _soulRewardButton.interactable = false;
-        if (_soulRewardText != null) _soulRewardText.text = $"소울 {victorySoulReward} 획득";
+        if (_soulRewardText != null) _soulRewardText.text = $"소울 {VictorySoul} 획득";
         if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
     }
 
@@ -336,8 +354,64 @@ public class BattleDisplayManager : MonoBehaviour
         
     }
 
+    // 승리 화면에서 넘어갈 때(화살표·"상관없음"): 마을의 여정 지도로 돌아가 다음 장소를 고른다.
     [DebugButton]
     public void ShowWaysPanel()
+    {
+        victoryPanel.SetActive(false);
+        RunSave.ClearRewardPending();
+        JourneyLink.ReturnToMap(justCleared: true);
+    }
+
+    /// <summary>지도에서 고른 보스와 바로 싸운다. 첫 보스면 여정을 시작하고 편성을 고정한다.</summary>
+    private void StartFromMap(string bossId)
+    {
+        EnsureFormationLoaded();
+        if (RunSave.HasRun) ApplySavedFormation();
+        else RunSave.Begin(currentUnits, currentItems);
+
+        var catalog = remainBoss.Concat(new[] { bossKing, bossDeath1, bossDeath2 })
+            .Where(b => b != null).GroupBy(b => b.bossId).ToDictionary(g => g.Key, g => g.First());
+        appearedBoss.Clear();
+        foreach (var id in RunSave.ClearedBossIds)
+            if (catalog.TryGetValue(id, out var cleared)) { appearedBoss.Add(cleared); remainBoss.Remove(cleared); }
+        if (!catalog.TryGetValue(bossId, out var boss))
+        {
+            Debug.LogWarning($"지도에서 고른 보스 '{bossId}'를 찾지 못해 마을로 돌아갑니다.", this);
+            JourneyLink.ReturnToMap(false);
+            return;
+        }
+        if (boss == bossKing) RecordAchievement("ACH-18", 1);
+
+        entrancePanel.gameObject.SetActive(false);
+        unitBuildingPanel.SetActive(false);
+        itemBuildingPanel.gameObject.SetActive(false);
+        victoryPanel.SetActive(false);
+        defeatPanel.SetActive(false);
+        waysPanel.gameObject.SetActive(false);
+        arrow.SetActive(false);
+        _decidedStage = -1;
+        _waysChoicesReady = false;
+
+        remainBoss.Remove(boss);
+        appearedBoss.Add(boss);
+        RunSave.SetCurrentBoss(boss);
+        boardPanel.gameObject.SetActive(true);
+        boardPanel.boss = boss;
+        boardPanel.ShowCutScene();
+    }
+
+    /// <summary>지도에서 꼬마 사신의 편성 버튼으로 들어온 경우. 여정 중이면 정비 제한이 걸린다.</summary>
+    private void OpenFormationFromMap()
+    {
+        EnsureFormationLoaded();
+        if (RunSave.HasRun) ApplySavedFormation();
+        JourneyRefit.Begin(currentUnits, currentItems);
+        OpenEntrancePanel(true);
+    }
+
+    // 예전 3지선다 화면 (지금은 쓰지 않음, 지도 기능으로 대체)
+    private void ShowWaysPanelLegacy()
     {
         victoryPanel.SetActive(false);
         if (appearedBoss.Count == 4)
@@ -467,7 +541,7 @@ public class BattleDisplayManager : MonoBehaviour
             _victoryRewardClaimed = false;
             if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
             if (_soulRewardButton != null) _soulRewardButton.interactable = true;
-            if (_soulRewardText != null) _soulRewardText.text = $"소울 {victorySoulReward}";
+            if (_soulRewardText != null) _soulRewardText.text = $"소울 {VictorySoul}";
             victoryPanel.SetActive(true);
         }
         else
@@ -604,6 +678,12 @@ public class BattleDisplayManager : MonoBehaviour
     [DebugButton]
     public void BackToVillage()
     {
+        if (JourneyRefit.FromMap)
+        {
+            JourneyRefit.Finish(currentUnits, currentItems);
+            JourneyLink.ReturnToMap(false);
+            return;
+        }
         SceneManager.LoadScene("Main");
     }
 

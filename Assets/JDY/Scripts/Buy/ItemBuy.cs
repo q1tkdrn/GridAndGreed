@@ -31,6 +31,7 @@ public class ItemBuy : MonoBehaviour
             }
             else
             {
+                GameSfx.PlayDenied();
                 Debug.Log("ภÜพืบฮมท");
             }
         }

@@ -32,6 +32,7 @@ public class CharacterBuy : MonoBehaviour
             }
             else
             {
+                GameSfx.PlayDenied();
                 Debug.Log("ภÜพืบฮมท");
             }
         }

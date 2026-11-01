@@ -17,13 +17,14 @@ MonoBehaviour:
   power: 4
   intelligence: 3
   reviveCool: 3
-  abilityText: "\uD134 \uC885\uB8CC \uC2DC, \uC774\uB3D9\uD558\uC9C0 \uC54A\uC558\uB2E4\uBA74,
-    \uBCF4\uC2A4\uC5D0\uAC8C \uD53C\uD574 5"
+  abilityText: "\uC774\uBC88 \uD134\uC5D0 \uC6C0\uC9C1\uC774\uC9C0 \uC54A\uACE0 \uC2EC\uD310\uD558\uBA74
+    \uD53C\uD574 +8"
   illustration: {fileID: 21300000, guid: 8833500dc6aab1342b601bf0bd2ef212, type: 3}
   defaultSkin: {fileID: 21300000, guid: 8882d04e0d7ff05458d494b3a104f94f, type: 3}
   skin1: {fileID: 21300000, guid: 78d47f364c9ef664a890d5bc324fb336, type: 3}
   skin2: {fileID: 21300000, guid: eba45bcd12c8e9845bcbc7a975d8f7d8, type: 3}
   skin3: {fileID: 21300000, guid: 11e44196ddfdd0944a9a65c004d1c9ff, type: 3}
+  isSkin1Unlocked: 0
   isSkin2Unlocked: 0
   isSkin3Unlocked: 0
   currentSkin: 0
