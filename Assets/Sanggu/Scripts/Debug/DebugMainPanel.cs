@@ -21,14 +21,7 @@ public class DebugMainPanel: MonoBehaviour
         Init();
     }
 
-    private void Update()
-    {
-        if (Input.GetKeyDown(KeyCode.F12))
-        {
-            panel.SetActive(!panel.activeSelf);
-            logPanel.SetActive(!logPanel.activeSelf);
-        }
-    }
+    // F12 토글은 제거함. 테스트 단축키는 JSW/Script/DebugKeys.cs 에서 관리한다.
 
     private void Init()
     {

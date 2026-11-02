@@ -21,6 +21,7 @@ public sealed class JourneyMap : MonoBehaviour
     private const float FadeToWhite = 0.35f;
     private const float FadeFromWhite = 0.45f;
     private const float CloseTime = 0.25f;
+    private const float DoorZoom = 1.17f;          // 여정_입장4의 문틀이 1~3보다 이만큼 크다 (3→4 줌으로 이어 붙인다)
     private const int OpenCount = 3;
     private const int ClearsForFinal = 4;
 
@@ -57,6 +58,10 @@ public sealed class JourneyMap : MonoBehaviour
     private static JourneyMap _instance;
     private CanvasGroup _group;
     private Image _white;
+    private RectTransform _door;       // 문 열림 연출 (여정_입장1~4)
+    private Image _doorBack, _doorFront;
+    private Sprite[] _doorFrames;
+    private bool _skipDoor;
     private RectTransform _mapRect;
     private RectTransform _reaper;
     private GameObject _formationButton;
@@ -187,6 +192,7 @@ public sealed class JourneyMap : MonoBehaviour
         }
 
         BuildBackButton();
+        BuildDoor();
 
         _white = NewImage("White", transform, new Color(1f, 1f, 1f, 0f));
         Stretch(_white.rectTransform);
@@ -418,18 +424,33 @@ public sealed class JourneyMap : MonoBehaviour
     private IEnumerator OpenRoutine(bool instant)
     {
         _busy = true;
+        if (instant && _door != null)
+        {
+            Destroy(_door.gameObject); // 전투에서 돌아올 때는 문 연출 없이
+            _door = null;
+        }
         if (!instant)
         {
-            // 마을이 하얗게 밝아진 뒤 지도가 드러난다
+            // 마을 → 문이 열리며 빛이 터진다 → 하얀 화면 → 지도가 드러난다
             var white = _white;
-            foreach (Transform child in transform) if (child != white.transform) child.gameObject.SetActive(false);
-            for (float t = 0f; t < FadeToWhite; t += Time.unscaledDeltaTime)
+            foreach (Transform child in transform) child.gameObject.SetActive(child == white.transform);
+            if (_doorFrames != null)
             {
-                SetAlpha(white, Mathf.SmoothStep(0f, 1f, t / FadeToWhite));
-                yield return null;
+                yield return PlayDoor();
+            }
+            else
+            {
+                // 문 그림이 없으면 예전처럼 하얗게만 밝아진다
+                for (float t = 0f; t < FadeToWhite; t += Time.unscaledDeltaTime)
+                {
+                    SetAlpha(white, Mathf.SmoothStep(0f, 1f, t / FadeToWhite));
+                    yield return null;
+                }
             }
             SetAlpha(white, 1f);
-            foreach (Transform child in transform) child.gameObject.SetActive(true);
+            if (_door != null) Destroy(_door.gameObject);
+            foreach (Transform child in transform) if (_door == null || child != _door) child.gameObject.SetActive(true);
+            _door = null;
             for (float t = 0f; t < FadeFromWhite; t += Time.unscaledDeltaTime)
             {
                 SetAlpha(white, 1f - Mathf.SmoothStep(0f, 1f, t / FadeFromWhite));
@@ -461,6 +482,117 @@ public sealed class JourneyMap : MonoBehaviour
             foreach (var (fog, _) in _revealFogs) if (fog != null) Destroy(fog.gameObject);
             _revealFogs.Clear();
         }
+    }
+
+    // ───────────────────────────── 문 열림 연출 ─────────────────────────────
+    // 긴 판(약 1.8초): 여정을 새로 나갈 때(진행 중인 여정 없음), 마을에 들어올 때마다 한 번.
+    // 짧은 판(약 1.0초): 그 밖에. 3번(열린 문)에서 시작해 4번으로 바로 줌.
+    // 연출 중 클릭하면 바로 하얀 화면으로 넘어간다.
+
+    private static int _longDoorScene = -1;
+
+    private void BuildDoor()
+    {
+        var frames = new Sprite[4];
+        for (int i = 0; i < 4; i++) frames[i] = LoadSprite("여정_입장" + (i + 1));
+        if (frames.Any(f => f == null))
+        {
+            Debug.LogWarning("[JourneyMap] 여정_입장1~4 스프라이트를 못 찾아 문 연출을 건너뜁니다 (Texture Type이 Sprite인지 확인).");
+            return;
+        }
+        _doorFrames = frames;
+        _door = NewRect("Door", transform);
+        _doorBack = DoorImage("Frame Back");
+        _doorFront = DoorImage("Frame Front");
+        var hit = NewImage("Skip", _door, new Color(0f, 0f, 0f, 0f));
+        Stretch(hit.rectTransform);
+        hit.gameObject.AddComponent<PressRelay>().onPress = () => _skipDoor = true;
+        _door.gameObject.SetActive(false);
+    }
+
+    private Image DoorImage(string name)
+    {
+        var image = NewImage(name, _door, new Color(1f, 1f, 1f, 0f));
+        image.raycastTarget = false;
+        var fitter = image.gameObject.AddComponent<AspectRatioFitter>();
+        fitter.aspectMode = AspectRatioFitter.AspectMode.EnvelopeParent;
+        fitter.aspectRatio = _doorFrames[0].rect.width / _doorFrames[0].rect.height;
+        return image;
+    }
+
+    private IEnumerator PlayDoor()
+    {
+        int scene = SceneManager.GetActiveScene().handle;
+        bool full = !RunSave.HasRun && _longDoorScene != scene;
+        if (full) _longDoorScene = scene;
+
+        _skipDoor = false;
+        _door.gameObject.SetActive(true);
+        var back = _doorBack;
+        var front = _doorFront;
+        var f = _doorFrames;
+
+        if (full)
+        {
+            back.sprite = f[0];
+            SetScale(back, 1f);
+            yield return Tween(0.20f, k => SetAlpha(back, Smooth(k)));                          // 마을 → 닫힌 문
+            yield return Tween(0.25f, k => SetScale(back, Mathf.Lerp(1f, 1.03f, Smooth(k))));   // 살짝 다가감
+            back.sprite = f[1];
+            yield return Tween(0.15f, null);
+            back.sprite = f[2];
+            yield return Tween(0.15f, null);
+        }
+        else
+        {
+            back.sprite = f[2];
+            SetScale(back, 1.03f);
+            yield return Tween(0.15f, k => SetAlpha(back, Smooth(k)));
+        }
+
+        // 3 → 4: 3번을 키우면서 4번을 겹쳐 띄운다 (문틀 크기 차이를 줌으로 숨김)
+        front.sprite = f[3];
+        SetScale(front, 1f);
+        float from = back.rectTransform.localScale.x;
+        yield return Tween(0.15f, k =>
+        {
+            SetScale(back, Mathf.Lerp(from, from * DoorZoom, Smooth(k)));
+            SetAlpha(front, Smooth(k));
+        });
+        // 빛이 터지며 튕기듯 다가감
+        yield return Tween(full ? 0.25f : 0.15f, k => SetScale(front, Mathf.Lerp(1f, 1.06f, 1f - (1f - k) * (1f - k))));
+
+        // 빛이 화면을 덮는다 (건너뛰어도 여기는 짧게 보여 준다)
+        float white0 = _white.color.a;
+        float scale0 = front.rectTransform.localScale.x;
+        float toWhite = _skipDoor ? 0.12f : (full ? 0.20f : 0.15f);
+        yield return Tween(toWhite, k =>
+        {
+            SetAlpha(_white, Mathf.Lerp(white0, 1f, Smooth(k)));
+            SetScale(front, Mathf.Lerp(scale0, 1.08f, k));
+        }, skippable: false);
+    }
+
+    /// <summary>k(0→1)를 duration초 동안 넘겨 준다. skippable이면 클릭 시 바로 끝난다.</summary>
+    private IEnumerator Tween(float duration, Action<float> step, bool skippable = true)
+    {
+        for (float t = 0f; t < duration; t += Time.unscaledDeltaTime)
+        {
+            if (skippable && _skipDoor) yield break;
+            step?.Invoke(t / duration);
+            yield return null;
+        }
+        if (!(skippable && _skipDoor)) step?.Invoke(1f);
+    }
+
+    private static float Smooth(float k) => Mathf.SmoothStep(0f, 1f, k);
+
+    private static void SetScale(Graphic g, float s) => g.rectTransform.localScale = new Vector3(s, s, 1f);
+
+    private sealed class PressRelay : MonoBehaviour, IPointerDownHandler
+    {
+        public Action onPress;
+        public void OnPointerDown(PointerEventData eventData) => onPress?.Invoke();
     }
 
     private IEnumerator CloseRoutine()
