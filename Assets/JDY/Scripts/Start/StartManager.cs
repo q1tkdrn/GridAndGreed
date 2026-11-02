@@ -5,14 +5,12 @@ using UnityEngine.UI;
 public class StartManager : MonoBehaviour
 {
     [Header("UI")]
-    [SerializeField] private GameObject settingPanel;
     [Tooltip("비워 두면 ContinueButton()을 호출하는 버튼을 씬에서 자동으로 찾는다.")]
     [SerializeField] private Button continueButton;
     [SerializeField, Range(0f, 1f)] private float disabledContinueAlpha = 0.35f;
 
     void Start()
     {
-        settingPanel.SetActive(false);
         // 랜덤 오프닝 배경, 가운데 로고와 메뉴 배치 (JSW/Script/TitleScreenLayout.cs)
         TitleScreenLayout.Setup(gameObject);
         RefreshContinueButton();
@@ -81,15 +79,8 @@ public class StartManager : MonoBehaviour
         SceneManager.LoadScene("Main");
     }
 
-    public void SettingButton()
-    {
-        settingPanel.SetActive(true);
-    }
-
-    public void SettingExitButton()
-    {
-        settingPanel.SetActive(false);
-    }
+    // 타이틀 '환경설정': 마을 ESC 메뉴의 설정 화면을 띄운다. (옛 설정창은 삭제됨)
+    public void SettingButton() => EscMenu.OpenSettings();
 
     public void ExitButton()
     {

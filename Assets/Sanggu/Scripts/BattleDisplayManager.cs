@@ -79,6 +79,12 @@ public class BattleDisplayManager : MonoBehaviour
 
     private void Start()
     {
+        // 새 게임의 오프닝 뒤, 또는 마을의 튜토리얼 NPC에서 들어온 경우 (JSW/Script/Tutorial)
+        if (TutorialLink.Consume())
+        {
+            StartTutorial();
+            return;
+        }
         // 마을의 여정 지도에서 들어온 경우 (JSW/Script/JourneyMap.cs, JourneyLink.cs)
         if (JourneyLink.FormationRequested)
         {
@@ -150,7 +156,7 @@ public class BattleDisplayManager : MonoBehaviour
 
     public void SaveFormation()
     {
-        if (!_formationLoaded) return;
+        if (!_formationLoaded || TutorialDirector.Active) return;   // 튜토리얼 편성은 저장하지 않는다
         FormationSave.Save(currentUnits, currentItems, FormationRoster());
     }
     
@@ -398,6 +404,43 @@ public class BattleDisplayManager : MonoBehaviour
         RunSave.SetCurrentBoss(boss);
         boardPanel.gameObject.SetActive(true);
         boardPanel.boss = boss;
+        boardPanel.ShowCutScene();
+    }
+
+    /// <summary>튜토리얼: 기사·궁수·도적, 아이템 없음, 안내자 보스. 여정 저장(RunSave)은 건드리지 않는다.</summary>
+    private void StartTutorial()
+    {
+        var roster = FormationRoster();
+        for (int k = 0; k < 3; k++)
+        {
+            var unit = roster.FirstOrDefault(u => u.id == TutorialScript.UnitIds[k]);
+            if (unit == null)
+            {
+                Debug.LogError($"튜토리얼 캐릭터(id {TutorialScript.UnitIds[k]})를 찾지 못해 마을로 갑니다.", this);
+                SceneManager.LoadScene("Main");
+                return;
+            }
+            currentUnits[k] = unit;
+        }
+        currentItems = new ItemData[3];
+
+        entrancePanel.gameObject.SetActive(false);
+        cutScenePanel.gameObject.SetActive(false);
+        unitBuildingPanel.SetActive(false);
+        itemBuildingPanel.gameObject.SetActive(false);
+        victoryPanel.SetActive(false);
+        defeatPanel.SetActive(false);
+        waysPanel.gameObject.SetActive(false);
+        arrow.SetActive(false);
+        _decidedStage = -1;
+
+        var boss = TutorialScript.CreateBoss(remainBoss.FirstOrDefault(b => b != null && b.bgmLoop != null));
+        appearedBoss.Clear();
+        appearedBoss.Add(boss);
+        boardPanel.boss = boss;
+        boardPanel.reaperCurrentHp = boardPanel.reaperMaxHp;
+        TutorialDirector.Create();
+        boardPanel.gameObject.SetActive(true);
         boardPanel.ShowCutScene();
     }
 

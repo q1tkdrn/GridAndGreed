@@ -39,6 +39,8 @@ public class MainManager : MonoBehaviour
         // 아래 UI 초기화에서 예외가 나도 저장 여부는 기록되도록 가장 먼저 둔다.
         SaveData.MarkStarted();
         PlayerPrefs.Save();
+        // 가운데 화면 왼쪽의 튜토리얼 NPC (JSW/Script/Tutorial/TutorialNpc.cs). 아래 호버 설정보다 먼저 만든다.
+        TutorialNpc.Create(gameObject);
         foreach (var button in GetComponentsInChildren<Button>(true))
             UIHoverScale.Attach(button.gameObject);
         // NPC는 조각을 묶어 함께 커지게 하고, 마우스를 올리면 색이 채워지게 한다 (문·화살표 등은 제외).

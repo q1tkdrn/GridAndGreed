@@ -119,6 +119,16 @@ public class BoardPanel : MonoBehaviour
     public void OnAllyMoved() => HealBoss(_bossPassives.AllyMoveHealing);
     public bool IsSanctuary(Vector2Int cell) => _bossPassives.IsSanctuary(cell.x, cell.y);
     public TMP_FontAsset UiFont => turnTextUI.font;
+
+    /// <summary>튜토리얼 말풍선이 가리킬 화면 요소.</summary>
+    public RectTransform TutorialAnchorRect(TutorialAnchor anchor, int unit) => anchor switch
+    {
+        TutorialAnchor.Portrait => unit >= 0 && unit < units.Length ? units[unit].image.rectTransform : null,
+        TutorialAnchor.ActionPoints => actionPoints != null ? (RectTransform)actionPoints.transform : null,
+        TutorialAnchor.WillPower => willPowerText != null ? willPowerText.rectTransform : null,
+        TutorialAnchor.PlayerHp => reaperSlider != null ? (RectTransform)reaperSlider.transform : null,
+        _ => null
+    };
     private int _nextTurnActionPenalty;
     [SerializeField] private AfterlifePassiveRules.PhaseOneEffect afterlifeTurnPassive;
 
@@ -437,6 +447,7 @@ public class BoardPanel : MonoBehaviour
                 break;
             case ETurn.Place:
                 turnText = "유닛 배치";
+                TutorialDirector.OnPhase(turnCount, true);
                 break;
             case ETurn.BossReady:
                 turnText = "보스 공격 준비";
@@ -445,6 +456,7 @@ public class BoardPanel : MonoBehaviour
             case ETurn.Player:
                 turnText = "행동";
                 battleManagerTemp.PrepareBossPattern(boss, turnCount);
+                TutorialDirector.OnPhase(turnCount, false);
                 break;
             case ETurn.Attack:
                 turnText = "공격";
@@ -694,6 +706,13 @@ public class BoardPanel : MonoBehaviour
         _isFinishingBattle = true;
         yield return new WaitForSeconds(0.1f);
         _isFinishingBattle = false;
+        if (TutorialDirector.Active)
+        {
+            // 튜토리얼: 보상·승리 화면 없이 마지막 말풍선 뒤 마을로. 지면 처음부터 다시.
+            if (_isWin) TutorialDirector.Instance.Finish();
+            else TutorialLink.Begin();
+            yield break;
+        }
         if (_isWin)
         {
             if (boss.bossId == "death1")

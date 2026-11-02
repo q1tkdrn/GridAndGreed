@@ -18,6 +18,7 @@ public sealed class NpcHoverEffect : MonoBehaviour
         { "button1_2", null },          // 엔딩 후 업적 NPC (색 그림 없음)
         { "button2", "캐릭터_색2" },   // 캐릭터·아이템·스킨 상점 NPC
         { "button3", "캐릭터_색" },    // 추모·음악 NPC
+        { "마을_튜토리얼NPC_흰", null },  // 튜토리얼 NPC (색 그림 없음, TutorialNpc.cs)
     };
 
     private const float HoverScale = 1.04f;

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Audio;
@@ -13,7 +12,8 @@ using UnityEngine.UI;
 /// ESC 메뉴. 예시 이미지(Resources/ESC.png, ESC2.png)를 기준으로 코드에서 화면을 만든다.
 /// - 마을(Main): 오른쪽 어두운 그라데이션 + 글자 메뉴 (ESC.png)
 /// - 전투(BattleTemp): 화면 전체를 어둡게 + 붓터치 해골 버튼 (ESC2.png)
-/// - 그 밖의 씬(타이틀, 상점, 오프닝 등)에서는 열리지 않는다.
+/// - 타이틀: ESC로는 열리지 않고, '환경설정' 버튼이 설정 화면만 바로 띄운다 (OpenSettings).
+/// - 그 밖의 씬(상점, 오프닝, 튜토리얼 등)에서는 열리지 않는다.
 /// 붓터치 버튼 이미지는 Resources/UI/EscButton.png (9-slice). 원본 이미지가 생기면 이 파일만 교체하면 된다.
 /// </summary>
 public sealed class EscMenu : MonoBehaviour
@@ -23,7 +23,7 @@ public sealed class EscMenu : MonoBehaviour
     private const string BattleScene = "BattleTemp";
 
     private enum Style { None, Village, Battle }
-    private enum Page { Menu, ConfirmRetry, Settings }
+    private enum Page { Menu, ConfirmRetry, Settings, Credit }
 
     private static EscMenu _instance;
 
@@ -42,6 +42,7 @@ public sealed class EscMenu : MonoBehaviour
     private bool _isOpen;
     private bool _escapeHeld;
     private float _timeScaleBeforeOpen = 1f;
+    private bool _settingsOnly;   // 타이틀에서 연 설정 화면: 메뉴로 돌아가지 않고 바로 닫는다
 
     private TMP_FontAsset _bold;
     private TMP_FontAsset _light;
@@ -94,6 +95,23 @@ public sealed class EscMenu : MonoBehaviour
         SceneManager.sceneLoaded += OnSceneLoaded;
     }
 
+    // 옛 톱니바퀴 설정창(SettingManager)이 하던 일: 게임을 켤 때 저장된 음량을 믹서에 적용한다.
+    // 믹서 값은 Awake에서 바꾸면 무시될 수 있어 Start에서 한다.
+    private void Start()
+    {
+        foreach (var key in new[] { "MasterVolume", "BGMVolume", "SFXVolume" })
+            if (_mixer != null) { float v = PlayerPrefs.GetFloat(key, 1f); _mixer.SetFloat(key, v <= 0.001f ? -80f : Mathf.Log10(v) * 20f); }
+    }
+
+    /// <summary>타이틀의 '환경설정' 버튼: 마을 ESC 설정 화면을 그대로 띄운다.</summary>
+    public static void OpenSettings()
+    {
+        if (_instance == null) Create();
+        if (_instance == null || _instance._isOpen) return;
+        _instance._settingsOnly = true;
+        _instance.Open(Style.Village, Page.Settings);
+    }
+
     private void OnDestroy()
     {
         if (_instance != this) return;
@@ -125,15 +143,14 @@ public sealed class EscMenu : MonoBehaviour
 
         if (_isOpen)
         {
-            if (_page == Page.Menu) Close();
+            if (_page == Page.Credit) ShowPage(Page.Settings);
+            else if (_page == Page.Menu || _settingsOnly) Close();
             else ShowPage(Page.Menu);
             return;
         }
 
         var style = StyleFor(SceneManager.GetActiveScene().name);
         if (style == Style.None) return;
-        // 마을의 톱니바퀴 설정창이 열려 있으면 ESC는 그 창을 닫는다.
-        if (style == Style.Village && CloseVillageSettingsPanel()) return;
         Open(style);
     }
 
@@ -144,14 +161,14 @@ public sealed class EscMenu : MonoBehaviour
         _ => Style.None,
     };
 
-    private void Open(Style style)
+    private void Open(Style style, Page page = Page.Menu)
     {
         _style = style;
         _timeScaleBeforeOpen = Time.timeScale;
         Time.timeScale = 0f;
         _isOpen = true;
         _root.gameObject.SetActive(true);
-        ShowPage(Page.Menu);
+        ShowPage(page);
     }
 
     public void Close()
@@ -160,24 +177,24 @@ public sealed class EscMenu : MonoBehaviour
         _isOpen = false;
         _root.gameObject.SetActive(false);
         Clear();
+        _settingsOnly = false;
         Time.timeScale = _timeScaleBeforeOpen;
-        SyncVillageSettingsSliders();
     }
 
     // ───────────────────────────── 화면 구성 ─────────────────────────────
 
     private void ShowPage(Page page)
     {
-        if (_page == Page.Settings && page != Page.Settings) SyncVillageSettingsSliders();
         _page = page;
         Clear();
         BuildBackdrop();
-        BuildGear();
+        if (!_settingsOnly && page != Page.Credit) BuildGear();
         switch (page)
         {
             case Page.Menu: BuildMenu(); break;
             case Page.ConfirmRetry: BuildConfirmRetry(); break;
             case Page.Settings: BuildSettings(); break;
+            case Page.Credit: BuildCredit(); break;
         }
         EventSystem.current?.SetSelectedGameObject(null);
     }
@@ -245,7 +262,48 @@ public sealed class EscMenu : MonoBehaviour
         MakeVolumeRow("마스터", "MasterVolume", 120f);
         MakeVolumeRow("배경음", "BGMVolume", 20f);
         MakeVolumeRow("효과음", "SFXVolume", -80f);
-        MakeMenuButton("돌아가기", -230f, () => ShowPage(Page.Menu));
+        MakeMenuButton("돌아가기", -230f, () => { if (_settingsOnly) Close(); else ShowPage(Page.Menu); });
+        BuildCreditLink();
+    }
+
+    // 크레딧: 설정 화면 오른쪽 아래 구석의 작고 흐린 글자. 눈에 띄지 않게 숨겨 둔다. (업적 ACH-10)
+    private void BuildCreditLink()
+    {
+        var rect = NewRect("Credit", _root);
+        rect.anchorMin = rect.anchorMax = new Vector2(1f, 0f);
+        rect.sizeDelta = new Vector2(160f, 50f);
+        rect.anchoredPosition = new Vector2(-110f, 45f);
+        var text = AddText(rect, "Credit", _light, 26f, new Color(1f, 1f, 1f, 0.35f));
+        text.characterSpacing = 6f;
+        AddButton(rect.gameObject, text, () => ShowPage(Page.Credit), 0.92f);
+    }
+
+    // 옛 설정창의 크레딧과 같은 화면: 검은 바탕에 엔딩 그림(Resources/Ending)
+    private void BuildCredit()
+    {
+        var panel = NewRect("CreditPanel", _root);
+        Stretch(panel);
+        var bg = panel.gameObject.AddComponent<Image>();
+        bg.color = Color.black;
+        var ending = Resources.Load<Texture2D>("Ending");
+        if (ending != null)
+        {
+            var art = NewRect("Ending", panel);
+            Stretch(art);
+            var image = art.gameObject.AddComponent<RawImage>();
+            image.texture = ending;
+            image.raycastTarget = false;
+            var fit = art.gameObject.AddComponent<AspectRatioFitter>();
+            fit.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
+            fit.aspectRatio = (float)ending.width / ending.height;
+        }
+        var back = NewRect("Back", _root);
+        back.anchorMin = back.anchorMax = new Vector2(0f, 0f);
+        back.sizeDelta = new Vector2(260f, 70f);
+        back.anchoredPosition = new Vector2(170f, 70f);
+        var label = AddText(back, "돌아가기", _bold, 38f, Color.white);
+        AddButton(back.gameObject, label, () => ShowPage(Page.Settings), 0.85f);
+        if (AchievementManager.Instance != null) { AchievementManager.Instance.AddProgress("ACH-10", 1); PlayerPrefs.Save(); }
     }
 
     // 설정 화면의 슬라이더 줄 중심. 마을은 오른쪽 끝에 붙어 있어 안쪽으로 당긴다.
@@ -434,35 +492,6 @@ public sealed class EscMenu : MonoBehaviour
         PlayerPrefs.Save();
         if (key == "MasterVolume" && value <= 0.001f && AchievementManager.Instance != null)
             AchievementManager.Instance.AddProgress("ACH-27", 1);
-    }
-
-    // 마을 톱니바퀴 설정창(StartManager.settingPanel)
-    private static GameObject VillageSettingsPanel()
-    {
-        var start = FindFirstObjectByType<StartManager>();
-        if (start == null) return null;
-        var field = typeof(StartManager).GetField("settingPanel", BindingFlags.Instance | BindingFlags.NonPublic);
-        return field?.GetValue(start) as GameObject;
-    }
-
-    private static bool CloseVillageSettingsPanel()
-    {
-        var panel = VillageSettingsPanel();
-        if (panel == null || !panel.activeInHierarchy) return false;
-        FindFirstObjectByType<StartManager>().SettingExitButton();
-        return true;
-    }
-
-    // ESC에서 바꾼 볼륨이 마을 톱니바퀴 설정창의 슬라이더에도 보이도록 맞춘다.
-    private static void SyncVillageSettingsSliders()
-    {
-        var settings = FindFirstObjectByType<SettingManager>(FindObjectsInactive.Include);
-        if (settings == null) return;
-        foreach (var (field, key) in new[] { ("masterSlider", "MasterVolume"), ("bgmSlider", "BGMVolume"), ("sfxSlider", "SFXVolume") })
-        {
-            var slider = typeof(SettingManager).GetField(field, BindingFlags.Instance | BindingFlags.NonPublic)?.GetValue(settings) as Slider;
-            if (slider != null) slider.SetValueWithoutNotify(PlayerPrefs.GetFloat(key, 1f));
-        }
     }
 
     // ───────────────────────────── 공용 ─────────────────────────────

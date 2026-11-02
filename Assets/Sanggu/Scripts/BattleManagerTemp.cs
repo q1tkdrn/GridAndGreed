@@ -225,6 +225,7 @@ public class BattleManagerTemp : MonoBehaviour
     {
         if (boardPanel.IsBattleOver || boardPanel.turn != BoardPanel.ETurn.Place) return;
         if (i < 0 || i >= units.Length) return;
+        if (!TutorialDirector.Allow(TutorialAct.Select, i)) return;   // 튜토리얼: 말풍선이 시킨 캐릭터만
         if (!units[i].isPlaced && units[i].reviveRemainTurn == 0)
         {
             // Selection is reversible; only placement changes the unit's lifecycle state.
@@ -248,6 +249,7 @@ public class BattleManagerTemp : MonoBehaviour
 
         if (boardPanel.turn == BoardPanel.ETurn.Place)
         {
+            if (!TutorialDirector.Allow(TutorialAct.Place, _currentMoveIndex, pos)) return;
             units[_currentMoveIndex].isPlaced = true;
             units[_currentMoveIndex].reviveRemainTurn = -1;
             units[_currentMoveIndex].pos = pos;
@@ -255,6 +257,7 @@ public class BattleManagerTemp : MonoBehaviour
             units[_currentMoveIndex].unit.sprite = units[_currentMoveIndex].unitOnWaiting.sprite;
             units[_currentMoveIndex].unit.gameObject.SetActive(true);
             units[_currentMoveIndex].unitOnWaiting.GetComponent<Image>().color =  new Color(1, 1, 1, 0.5f);
+            TutorialDirector.Notify(TutorialAct.Place, _currentMoveIndex);
             _currentMoveIndex = -1;
             
             var tb = false;
@@ -306,6 +309,7 @@ public class BattleManagerTemp : MonoBehaviour
         if (boardPanel.IsBattleOver) return;
         if(i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
         if(boardPanel.turn != BoardPanel.ETurn.Player) return;
+        if (!TutorialDirector.Allow(TutorialAct.Drag, i)) return;
         _currentMoveIndex = i;
         units[_currentMoveIndex].unit.transform.SetAsLastSibling();
     }
@@ -336,7 +340,7 @@ public class BattleManagerTemp : MonoBehaviour
         eventSystem.RaycastAll(data, results);
         var boardHit = results.FirstOrDefault(result => result.gameObject != null && result.gameObject.CompareTag("Board"));
         var target = _blankPos.FirstOrDefault(pair => pair.Value == boardHit.gameObject);
-        if (target.Value != null && _movableBlank.Contains(target.Value))
+        if (target.Value != null && _movableBlank.Contains(target.Value) && TutorialDirector.Allow(TutorialAct.Move, _currentMoveIndex, target.Key))
         {
             units[_currentMoveIndex].unit.GetComponent<RectTransform>().anchoredPosition = target.Value.GetComponent<RectTransform>().anchoredPosition;
             units[_currentMoveIndex].pos = target.Key;
@@ -350,6 +354,7 @@ public class BattleManagerTemp : MonoBehaviour
             if (boardPanel.Trial == null) boardPanel.HealReaper(passive.MoveHealing);
             OnPointerExit(_currentMoveIndex);
             OnPointerEnter(_currentMoveIndex);
+            TutorialDirector.Notify(TutorialAct.Move, _currentMoveIndex);
             boardPanel.SpendAction();
         }
         else
@@ -369,7 +374,12 @@ public class BattleManagerTemp : MonoBehaviour
         if(boardPanel.actionPoint <= 0) return;
         if (_currentClickIndex == i && _isClicked)
         {
-            Debug.Log("db");
+            if (!TutorialDirector.Allow(TutorialAct.Judge, i))
+            {
+                _isClicked = false;
+                _currentClickIndex = -1;
+                return;
+            }
             var passive = units[i].passive;
             int damage = GetIntelligence(i);
             // 시험 규칙: 심판 횟수 제한, 치명타, 캐릭터 보너스를 적용한다.
@@ -382,6 +392,7 @@ public class BattleManagerTemp : MonoBehaviour
             boardPanel.JudgeBossFromUnit(damage, i);
             passive.AfterJudge();
             boardPanel.PlayJudgeAnim(i);
+            TutorialDirector.Notify(TutorialAct.Judge, i);
             boardPanel.SpendAction(judgment: true);
         }
         _isClicked = true;
@@ -735,6 +746,7 @@ public class BattleManagerTemp : MonoBehaviour
     public int GetUnitId(int i) => units[i].unitTemp != null ? units[i].unitTemp.id : 0;
     public string GetUnitName(int i) => units[i].unitTemp != null ? units[i].unitTemp.unitName : "";
     public Image GetUnitImage(int i) => units[i].unit;
+    public RectTransform GetWaitingRect(int i) => i >= 0 && i < units.Length ? units[i].unitOnWaiting.rectTransform : null;
     public RectTransform GetCellRect(Vector2Int cell) => _blankPos.TryGetValue(cell, out var go) ? (RectTransform)go.transform : null;
     public bool IsPreparedDanger(Vector2Int cell) => _preparedDangerCells != null && _preparedDangerCells.Contains(cell);
 

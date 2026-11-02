@@ -51,6 +51,7 @@ public sealed class BellkeeperTrial
         ["subject"] = (162, new[] { new[] { "MidRows", "Left3", "MidRows", "Right3" }, new[] { "Edge1x", "Pursuit3" }, new[] { "Xm4", "Ym4", "Center5" }, new[] { "Diag" } }),
         ["death1"] = (130, new[] { new[] { "Mansion1", "Mansion2", "Pursuit3" }, new[] { "Top3", "SideCols", "Inner7" }, new[] { "Diag", "Inner7" }, new[] { "Cross1", "Pursuit3" } }),
         ["death2"] = (55, new[] { new[] { "PendX", "Pursuit3" }, new[] { "Border2", "Center5" }, new[] { "Mansion1", "Mansion2" }, new[] { "Ring3", "Pursuit3" } }),
+        ["tutorial"] = (TutorialScript.BossHp, new[] { new[] { "TutRow", "TutCol", "Tut3x3", "Tut3x3" } }),   // 튜토리얼: 묶음 하나, 순서 고정
         ["king"] = (157, new[] { new[] { "MidRows", "KingA2", "Border2x" }, new[] { "Diag", "Ring3full" }, new[] { "Cross1", "Pursuit3" }, new[] { "Xm4", "Ym4", "Center5", "Pursuit3" }, new[] { "Diag" } }),
     };
 
@@ -82,6 +83,9 @@ public sealed class BellkeeperTrial
         "Inner7" => x >= 1 && x <= 7 && y >= 1 && y <= 7,
         "Xm4" => x % 4 != 0,
         "Ym4" => y % 4 != 0,
+        "TutRow" => y == 4 && x >= 2 && x <= 6,
+        "TutCol" => x == 3 && y >= 2 && y <= 6,
+        "Tut3x3" => x >= 3 && x <= 5 && y >= 2 && y <= 4,
         "KingA2" => x == 0 || x == 8 || y == 0 || y == 8 || (x >= 2 && x <= 6 && y >= 2 && y <= 6),
         _ => false
     };
@@ -201,7 +205,8 @@ public sealed class BellkeeperTrial
     private int UnitId(int i) => _battle.GetUnitId(i);
     /// <summary>욕심 아이템 소울 보너스 (담배 +20%, 마지막 잎새 +30%). 소울 경제 확정 전 임시값.</summary>
     public static float SoulBonus { get; set; }
-    private int WillAt(int turn) => _bossId == "death2" ? 0 : WillPowerAt(Math.Max(1, turn - (HasItem("21") ? 1 : 0))) + _willBonus;   // 죽음 2페이즈: 의지력 없음
+    private bool IsTutorial => _bossId == TutorialScript.BossId;
+    private int WillAt(int turn) => IsTutorial ? TutorialScript.WillPower(turn) : _bossId == "death2" ? 0 : WillPowerAt(Math.Max(1, turn - (HasItem("21") ? 1 : 0))) + _willBonus;   // 죽음 2페이즈: 의지력 없음
     private bool IsDeath => _bossId == "death1" || _bossId == "death2";
     private const int DeathHourglassTurns = 3;   // 죽음 2페이즈: 이 턴 안에 쓰러뜨리지 못하면 패배
 
@@ -296,7 +301,7 @@ public sealed class BellkeeperTrial
         // 보스 일러스트 위 종소리·페이즈 신호 창은 쓰지 않는다. 같은 안내는 매 턴 위 대사창에 출력된다.
         _hud = null;
         // 규칙 설명은 처음 한 번만 보여준다. ('처음부터'로 저장을 지우면 다시 보인다.)
-        if (PlayerPrefs.GetInt(RulesSeenKey, 0) == 0)
+        if (!IsTutorial && PlayerPrefs.GetInt(RulesSeenKey, 0) == 0)
         {
             PlayerPrefs.SetInt(RulesSeenKey, 1);
             _board.PrintText("[전투 규칙] 힘은 0에서 시작. 힘 칸을 밟아 모으고, 더블클릭 심판으로 터뜨린다. 욕심 칸에서 얻은 힘은 피해가 2배");
@@ -324,7 +329,7 @@ public sealed class BellkeeperTrial
             CheckSurvival();
             _board.UpdateBossWillPower(WillAt(turnCount));
             if (_pattern == "PendX") _pendulumLeft = ChoosePendulumSide();
-            _board.UpdateActionPoint(ActionPointsPerTurn);
+            _board.UpdateActionPoint(IsTutorial ? TutorialScript.ActionPoints(turnCount) : ActionPointsPerTurn);
             RefreshMarkers();
             RefreshChargeLabels();
             AnnounceTurnTrait();
@@ -481,6 +486,12 @@ public sealed class BellkeeperTrial
     private void SpawnPowerCells(HashSet<Vector2Int> danger, int turnCount)
     {
         _powerCells.Clear();
+        if (IsTutorial)   // 튜토리얼: 대본에 정한 칸만
+        {
+            _lucky = null;
+            foreach (var (cell, greed) in TutorialScript.PowerCells(turnCount)) _powerCells[cell] = greed;
+            return;
+        }
         var occupied = new HashSet<Vector2Int>(Enumerable.Range(0, 3).Where(_battle.IsUnitOnBoard).Select(_battle.GetUnitPos));
         var depth = EscapeDepth(danger);
 

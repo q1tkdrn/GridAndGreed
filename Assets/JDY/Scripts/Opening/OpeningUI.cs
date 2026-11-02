@@ -40,7 +40,8 @@ public class OpeningUI : MonoBehaviour
         }
         else
         {
-            SceneManager.LoadScene("Main");
+            // 새 게임: 오프닝이 끝나면 튜토리얼 전투로 (끝나면 마을로 간다)
+            TutorialLink.Begin();
         }
     }
 }
