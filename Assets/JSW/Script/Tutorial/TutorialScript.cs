@@ -12,6 +12,7 @@ public sealed class TutorialStep
     public TutorialAct act;
     public int unit = -1;       // 0 기사, 1 궁수, 2 도적 (편성 순서)
     public Vector2Int cell;     // 배치·이동할 칸
+    public Vector2Int? cellTo;  // 설명할 칸이 여러 개면 cell~cellTo 사각형을 밝힌다
     public TutorialAnchor anchor;
     public string text;
 }
@@ -49,6 +50,12 @@ public static class TutorialScript
         => new TutorialStep { turn = 1, place = true, act = act, unit = unit, cell = new Vector2Int(x, y), anchor = anchor, text = text };
     private static TutorialStep S(int turn, TutorialAct act, int unit, int x, int y, TutorialAnchor anchor, string text)
         => new TutorialStep { turn = turn, act = act, unit = unit, cell = new Vector2Int(x, y), anchor = anchor, text = text };
+    private static TutorialStep Area(int turn, int x, int y, int x2, int y2, string text)
+    {
+        var s = S(turn, TutorialAct.Next, -1, x, y, TutorialAnchor.Cell, text);
+        s.cellTo = new Vector2Int(x2, y2);
+        return s;
+    }
     private static TutorialStep Say(int turn, TutorialAnchor anchor, string text, int unit = -1, int x = 0, int y = 0)
         => S(turn, TutorialAct.Next, unit, x, y, anchor, text);
 
@@ -63,7 +70,7 @@ public static class TutorialScript
         P(TutorialAct.Place, 2, 5, 4, TutorialAnchor.Cell, "이 칸에 세워 주세요."),
 
         // ── 1턴: 이동, 행동력, 공격 칸, 힘 칸, 심판 ──
-        Say(1, TutorialAnchor.Cell, "붉게 물든 칸이 보스가 이번 턴에 공격할 곳이에요.\n세 명 모두 그 위에 서 있네요.", -1, 2, 4),
+        Area(1, 2, 4, 6, 4, "회색으로 표시된 칸이 보스가 이번 턴에 공격할 곳이에요.\n보스가 공격하는 순간 붉게 바뀌어요. 세 명 모두 그 위에 서 있네요."),
         Say(1, TutorialAnchor.ActionPoints, "움직이거나 공격할 때마다 행동력을 1씩 써요.\n본편에서는 매 턴 6개지만, 지금은 연습이라 4개만 드릴게요.\n다 쓰면 보스가 공격해요."),
         S(1, TutorialAct.Move, 0, 3, 5, TutorialAnchor.Unit, "기사를 끌어서 아래 칸으로 옮기세요.\n한 번에 주변 한 칸까지 갈 수 있어요."),
         Say(1, TutorialAnchor.Unit, "방금 밟은 칸이 힘 칸이에요. 밟으면 힘이 3 쌓여요.\n힘은 0에서 시작하니, 공격하려면 먼저 힘을 모아야 해요.", 0),

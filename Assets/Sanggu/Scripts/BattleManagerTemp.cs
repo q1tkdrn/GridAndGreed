@@ -230,6 +230,7 @@ public class BattleManagerTemp : MonoBehaviour
         {
             // Selection is reversible; only placement changes the unit's lifecycle state.
             _currentMoveIndex = i;
+            TutorialDirector.Notify(TutorialAct.Select, i);
         }
     }
 

@@ -8,7 +8,8 @@ public class OpeningManager : MonoBehaviour
     {
         if (Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            SceneManager.LoadScene("Main");
+            // 스페이스로 오프닝을 건너뛰어도 새 게임은 튜토리얼로 간다
+            TutorialLink.Begin();
         }
     }
 }

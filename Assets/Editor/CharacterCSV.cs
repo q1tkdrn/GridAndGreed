@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEditor;
 using System.IO;
 using System.Text;
@@ -13,7 +13,7 @@ public class CharacterCSVImporter
 
         if (!File.Exists(csvPath))
         {
-            Debug.LogError("Characters.csv¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogError("Characters.csvë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
@@ -27,7 +27,7 @@ public class CharacterCSVImporter
 
         if (rows.Count <= 1)
         {
-            Debug.LogError("µ¥ÀÌÅÍ°¡ ¾øÀ½");
+            Debug.LogError("ë°ì´í„°ê°€ ì—†ìŒ");
             return;
         }
 
@@ -49,22 +49,22 @@ public class CharacterCSVImporter
             string bossSkinName = values[9];
             if (string.IsNullOrEmpty(id))
             {
-                Debug.LogError($"{i + 1}¹øÂ° ÁÙ ID ´©¶ô");
+                Debug.LogError($"{i + 1}ë²ˆì§¸ ì¤„ ID ëˆ„ë½");
                 continue;
             }
             if (!int.TryParse(STRText, out int STR))
             {
-                Debug.LogError($"{i + 1}¹øÂ° ÁÙ STR ¿À·ù");
+                Debug.LogError($"{i + 1}ë²ˆì§¸ ì¤„ STR ì˜¤ë¥˜");
                 continue;
             }
             if (!int.TryParse(INTText, out int INT))
             {
-                Debug.LogError($"{i + 1}¹øÂ° ÁÙ INT ¿À·ù");
+                Debug.LogError($"{i + 1}ë²ˆì§¸ ì¤„ INT ì˜¤ë¥˜");
                 continue;
             }
             if (!int.TryParse(priceText, out int price))
             {
-                Debug.LogError($"{i + 1}¹øÂ° ÁÙ price ¿À·ù");
+                Debug.LogError($"{i + 1}ë²ˆì§¸ ì¤„ price ì˜¤ë¥˜");
                 continue;
             }
 
@@ -76,11 +76,11 @@ public class CharacterCSVImporter
             {
                 characterData = ScriptableObject.CreateInstance<CharacterData>();
                 AssetDatabase.CreateAsset(characterData, assetPath);
-                Debug.Log("»ı¼º: " + id);
+                Debug.Log("ìƒì„±: " + id);
             }
             else
             {
-                Debug.Log("¼öÁ¤: " + id);
+                Debug.Log("ìˆ˜ì •: " + id);
             }
 
             characterData.id = id;
@@ -94,27 +94,27 @@ public class CharacterCSVImporter
             characterData.bossSkinName = bossSkinName;
             string iconPath = $"Assets/JDY/Data/Characters/Icons/{characterName}.png";
             string npcSkinPath = $"Assets/JDY/Data/Characters/NpcSkins/{characterName}.png";
-            string insectSkinPath = $"Assets/JDY/Data/Characters/InsectSkins/{characterName}_½ºÅ²3.png";
-            string bossSkinPath = $"Assets/JDY/Data/Characters/BossSkins/{characterName}_½ºÅ²4.png";
+            string insectSkinPath = $"Assets/JDY/Data/Characters/InsectSkins/{characterName}_ìŠ¤í‚¨3.png";
+            string bossSkinPath = $"Assets/JDY/Data/Characters/BossSkins/{characterName}_ìŠ¤í‚¨4.png";
             Sprite icon = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
             Sprite npcSkin = AssetDatabase.LoadAssetAtPath<Sprite>(npcSkinPath);
             Sprite insectSkin = AssetDatabase.LoadAssetAtPath<Sprite>(insectSkinPath);
             Sprite bossSkin = AssetDatabase.LoadAssetAtPath<Sprite>(bossSkinPath);
             if (icon != null){ characterData.icon = icon;}
-            else { Debug.LogWarning($"{id}: ¾ÆÀÌÄÜ ¾øÀ½");}
+            else { Debug.LogWarning($"{id}: ì•„ì´ì½˜ ì—†ìŒ");}
             if (icon != null){ characterData.npcSkin = npcSkin;} 
-            else { Debug.LogWarning($"{id}: NPC ½ºÅ² ¾øÀ½");}
+            else { Debug.LogWarning($"{id}: NPC ìŠ¤í‚¨ ì—†ìŒ");}
             if (insectSkin != null){ characterData.insectSkin = insectSkin;}
-            else { Debug.LogWarning($"{id}: °ïÃæ ½ºÅ² ¾øÀ½");}
+            else { Debug.LogWarning($"{id}: ê³¤ì¶© ìŠ¤í‚¨ ì—†ìŒ");}
             if (bossSkin != null){ characterData.bossSkin = bossSkin;}
-            else { Debug.LogWarning($"{id}: º¸½º ½ºÅ² ¾øÀ½");}
+            else { Debug.LogWarning($"{id}: ë³´ìŠ¤ ìŠ¤í‚¨ ì—†ìŒ");}
             EditorUtility.SetDirty(characterData);
         }
 
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("¿Ï·á");
+        Debug.Log("ì™„ë£Œ");
     }
 
     private static List<List<string>> ParseCSV(string csv)

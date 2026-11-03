@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEngine.UI;
 public class AchievementUI : MonoBehaviour
 {
@@ -52,30 +52,30 @@ public class AchievementUI : MonoBehaviour
     }
     private string FindReward(AchievementData data)
     {
-        string rewardText = "º¸»ó : ";
+        string rewardText = "ë³´ìƒ : ";
 
         foreach (AchievementReward reward in data.rewards)
         {
             switch (reward.type)
             {
                 case RewardType.Soul:
-                    rewardText += "¼Ò¿ï "+reward.amount + "°³\n";
+                    rewardText += "ì†Œìš¸ "+reward.amount + "ê°œ\n";
                     break;
 
                 case RewardType.Item:
-                    rewardText += "¾ÆÀÌÅÛ - "+FindItemName(reward.rewardID) + "\n";
+                    rewardText += "ì•„ì´í…œ - "+FindItemName(reward.rewardID) + "\n";
                     break;
 
                 case RewardType.Memorial:
-                    rewardText += "±â¾ï - "+FindMemorialName(reward.rewardID) + "\n";
+                    rewardText += "ê¸°ì–µ - "+FindMemorialName(reward.rewardID) + "\n";
                     break;
 
                 case RewardType.Character:
-                    rewardText += "Ä³¸¯ÅÍ - "+FindCharacterName(reward.rewardID) + "\n";
+                    rewardText += "ìºë¦­í„° - "+FindCharacterName(reward.rewardID) + "\n";
                     break;
 
                 case RewardType.None:
-                    rewardText += "¾øÀ½";
+                    rewardText += "ì—†ìŒ";
                     break;
             }
         }
@@ -88,7 +88,7 @@ public class AchievementUI : MonoBehaviour
         {
             if (item.id == id) return item.itemName;
         }
-        return "¾øÀ½";
+        return "ì—†ìŒ";
     }
 
     private string FindMemorialName(string id)
@@ -97,7 +97,7 @@ public class AchievementUI : MonoBehaviour
         {
             if (memorial.id == id) return memorial.memorialName;
         }
-        return "¾øÀ½";
+        return "ì—†ìŒ";
     }
 
     private string FindCharacterName(string id)
@@ -106,6 +106,6 @@ public class AchievementUI : MonoBehaviour
         {
             if (character.id == id) return character.characterName;
         }
-        return "¾øÀ½";
+        return "ì—†ìŒ";
     }
 }

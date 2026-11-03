@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,11 +31,11 @@ public class QuestionUI : MonoBehaviour
 
         foreach (DialogData question in questions)
         {
-            if (question.target == "(ºû¿¡ ´ëÇÑ ÀÌ¾ß±â) ¼±ÅÃÁö¸¦ 10¹ø ¹İº¹ÇßÀ» ¶§.")
+            if (question.target == "(ë¹›ì— ëŒ€í•œ ì´ì•¼ê¸°) ì„ íƒì§€ë¥¼ 10ë²ˆ ë°˜ë³µí–ˆì„ ë•Œ.")
                 continue;
-            if (question.target == "(ºû¿¡ ´ëÇÑ ÀÌ¾ß±â)" && nowQuestionCount == 0)
+            if (question.target == "(ë¹›ì— ëŒ€í•œ ì´ì•¼ê¸°)" && nowQuestionCount == 0)
                 continue;
-            if (question.target == "(ºû¿¡ ´ëÇÑ ÀÌ¾ß±â)" && lightQuestionCount >= 11)
+            if (question.target == "(ë¹›ì— ëŒ€í•œ ì´ì•¼ê¸°)" && lightQuestionCount >= 11)
             {
                 continue;
             }
@@ -61,19 +61,19 @@ public class QuestionUI : MonoBehaviour
     {
         lightQuestionCount = PlayerPrefs.GetInt("lightQuestionCount", 0);
         string target = question.target;
-        if (target == "¾ÕÀ¸·Î" && question.npcName == "È÷¾Æ½Å½º" && nowQuestionCount == 0)
+        if (target == "ì•ìœ¼ë¡œ" && question.npcName == "íˆì•„ì‹ ìŠ¤" && nowQuestionCount == 0)
         {
             PlayerPrefs.SetInt("nowQuestionCount", 1);
             PlayerPrefs.Save();
         }
-        if (target == "(ºû¿¡ ´ëÇÑ ÀÌ¾ß±â)")
+        if (target == "(ë¹›ì— ëŒ€í•œ ì´ì•¼ê¸°)")
         {
             lightQuestionCount++;
             PlayerPrefs.SetInt("lightQuestionCount", lightQuestionCount);
             PlayerPrefs.Save();
             if (lightQuestionCount >= 11)
             {
-                target = "(ºû¿¡ ´ëÇÑ ÀÌ¾ß±â) ¼±ÅÃÁö¸¦ 10¹ø ¹İº¹ÇßÀ» ¶§.";
+                target = "(ë¹›ì— ëŒ€í•œ ì´ì•¼ê¸°) ì„ íƒì§€ë¥¼ 10ë²ˆ ë°˜ë³µí–ˆì„ ë•Œ.";
 
             }
         }
@@ -82,7 +82,7 @@ public class QuestionUI : MonoBehaviour
 
         if (dialogs.Count == 0)
         {
-            Debug.LogWarning("´ëÈ­ ¾øÀ½");
+            Debug.LogWarning("ëŒ€í™” ì—†ìŒ");
             return;
         }
 

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Linq;
 using TMPro;
 using UnityEngine;
@@ -25,6 +25,7 @@ public class UnitBuildingPanel : MonoBehaviour
 
     public Image[] skins = new Image[3];
     public TextMeshProUGUI[] skinTexts = new TextMeshProUGUI[3];
+    [Tooltip("스킨 글자 바탕 (JSW)")] public GameObject[] skinLabelBacks = new GameObject[3];
 
     private int _currentUnitIndex = 0;
     private int _currentCardIndex = 0;
@@ -91,35 +92,41 @@ public class UnitBuildingPanel : MonoBehaviour
         foreach (var card in cards)
         {
             id++;
+            card.locked = !InventoryManager.Instance.HasCharacter(id.ToString());
             card.isSelected = currentUnits.Contains(card.unitTemp);
-            if (card.isSelected)
-            {
-                card.text.text = "<size=45>장착됨</size>";
-            }
-            
             card.Init();
-            
-            if (!InventoryManager.Instance.HasCharacter(id.ToString()))
-            {
-                card.text.text = "잠김";
-                card.text.gameObject.SetActive(true);
-            }
-            
+            card.border.SetActive(false);
+            card.SetLabel(card.isSelected ? LabelEquipped : "");
+
             if (card.unitTemp == currentUnits[_currentUnitIndex])
             {
                 _currentCardIndex = cards.ToList().IndexOf(card);
                 _cardIndex = _currentCardIndex;
                 card.border.SetActive(true);
-                card.text.text = "장착됨\n눌러서 완료";
+                card.SetLabel(LabelCurrent);
             }
         }
 
         InitSkin();
     }
 
+    // 카드 아래쪽 글자 띠 문구 (JSW)
+    private const string LabelEquipped = "장착됨";
+    private const string LabelCurrent = "현재 캐릭터\n눌러서 완료";
+    private const string LabelSwap = "한 번 더 눌러\n교체";
+
+    /// <summary>교체 화면의 '돌아가기': 바꾸지 않고 캐릭터 3명 화면으로 (JSW)</summary>
+    public void CloseChangePanel()
+    {
+        popup1.SetActive(false);
+        popup2.SetActive(false);
+        changePanel.SetActive(false);
+        formPanel.SetActive(true);
+    }
+
     public void OnCardClick(int i)
     {
-        if (!InventoryManager.Instance.HasCharacter((i + 1).ToString())) return; 
+        if (cards[i].locked) return;
         if (_currentCardIndex == i)
         {
             popup1.SetActive(false);
@@ -140,22 +147,13 @@ public class UnitBuildingPanel : MonoBehaviour
 
         if (cards[i].isSelected && i != _cardIndex) return;
 
-        cards[_currentCardIndex].Init();
-        cards[_currentCardIndex].border.SetActive(false);
-        if (_currentCardIndex == _cardIndex)
-        {
-            cards[_currentCardIndex].text.text = "장착됨";
-        }
+        var prev = cards[_currentCardIndex];
+        prev.border.SetActive(false);
+        prev.SetLabel(prev.isSelected ? LabelEquipped : "");
 
         _currentCardIndex = i;
-        cards[_currentCardIndex].border.SetActive(true);
-        cards[i].text.text = "한 번 더\n클릭하여\n교체";
-        if (_currentCardIndex == _cardIndex)
-        {
-            cards[_currentCardIndex].text.text = "장착됨\n눌러서 완료";
-        }
-
-        cards[i].text.gameObject.SetActive(true);
+        cards[i].border.SetActive(true);
+        cards[i].SetLabel(i == _cardIndex ? LabelCurrent : LabelSwap);
 
         InitSkin();
     }
@@ -167,11 +165,15 @@ public class UnitBuildingPanel : MonoBehaviour
         for (int i = 0; i < skins.Length; i++)
         {
             var sprite = unit.GetSkin(i + 1);
+            bool unlocked = unit.IsSkinUnlocked(i + 1);
             skins[i].sprite = sprite;
             skins[i].gameObject.SetActive(sprite != null);
+            // 잠긴 스킨은 어둡게 (JSW)
+            skins[i].color = unlocked ? Color.white : new Color(0.22f, 0.22f, 0.22f, 1f);
             skinTexts[i].gameObject.SetActive(sprite != null);
-            skinTexts[i].text = unit.currentSkin == i + 1 ? "장착됨"
-                : unit.IsSkinUnlocked(i + 1) ? "해금됨" : "잠금됨";
+            if (i < skinLabelBacks.Length && skinLabelBacks[i] != null) skinLabelBacks[i].SetActive(sprite != null);
+            string label = unit.currentSkin == i + 1 ? "장착됨" : unlocked ? "해금됨" : "잠김";
+            skinTexts[i].text = label;
         }
     }
 

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 public class ItemDialog : MonoBehaviour
 {
@@ -16,21 +16,21 @@ public class ItemDialog : MonoBehaviour
     }
     void Start()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¾Æ½ºÅÍ", DialogType.Welcome, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ì•„ìŠ¤í„°", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {
-        questionUI.ShowQuestions("¾Æ½ºÅÍ", currentPhase);
+        questionUI.ShowQuestions("ì•„ìŠ¤í„°", currentPhase);
     }
     public void StartItemDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¾Æ½ºÅÍ", DialogType.Item, itemSlot.item.itemName, currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ì•„ìŠ¤í„°", DialogType.Item, itemSlot.item.itemName, currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ExitDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¾Æ½ºÅÍ", DialogType.Exit, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ì•„ìŠ¤í„°", DialogType.Exit, "", currentPhase);
         dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+锘縰sing System.Collections.Generic;
 using UnityEngine;
 public class CharacterDialog : MonoBehaviour
 {
@@ -16,21 +16,21 @@ public class CharacterDialog : MonoBehaviour
     }
     void Start()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("副府", DialogType.Welcome, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("毽措Μ", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {
-        questionUI.ShowQuestions("副府", currentPhase);
+        questionUI.ShowQuestions("毽措Μ", currentPhase);
     }
     public void StartCharacterDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("副府", DialogType.Character, characterSlot.character.characterName, currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("毽措Μ", DialogType.Character, characterSlot.character.characterName, currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ExitDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("副府", DialogType.Exit, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("毽措Μ", DialogType.Exit, "", currentPhase);
         dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

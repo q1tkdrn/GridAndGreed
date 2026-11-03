@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEditor;
 using System.IO;
 using System.Text;
@@ -13,7 +13,7 @@ public class ItemCSVImporter
 
         if (!File.Exists(csvPath))
         {
-            Debug.LogError("Items.csv¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogError("Items.csvë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
@@ -26,7 +26,7 @@ public class ItemCSVImporter
 
         if (rows.Count <= 1)
         {
-            Debug.LogError("µ¥ÀÌÅÍ ¾øÀ½");
+            Debug.LogError("ë°ì´í„° ì—†ìŒ");
             return;
         }
 
@@ -44,13 +44,13 @@ public class ItemCSVImporter
 
             if (string.IsNullOrEmpty(id))
             {
-                Debug.LogError($"{i + 1}¹øÂ° ÁÙ ID ´©¶ô");
+                Debug.LogError($"{i + 1}ë²ˆì§¸ ì¤„ ID ëˆ„ë½");
                 continue;
             }
 
             if (!int.TryParse(priceText, out int price))
             {
-                Debug.LogError($"{i + 1}¹øÂ° ÁÙ price ¿À·ù");
+                Debug.LogError($"{i + 1}ë²ˆì§¸ ì¤„ price ì˜¤ë¥˜");
                 continue;
             }
 
@@ -62,11 +62,11 @@ public class ItemCSVImporter
             {
                 itemData = ScriptableObject.CreateInstance<ItemData>();
                 AssetDatabase.CreateAsset(itemData, assetPath);
-                Debug.Log("»ı¼º: " + id);
+                Debug.Log("ìƒì„±: " + id);
             }
             else
             {
-                Debug.Log("¼öÁ¤: " + id);
+                Debug.Log("ìˆ˜ì •: " + id);
             }
 
             itemData.id = id;
@@ -82,7 +82,7 @@ public class ItemCSVImporter
             }
             else
             {
-                Debug.LogWarning($"{id}: ¾ÆÀÌÄÜ ¾øÀ½");
+                Debug.LogWarning($"{id}: ì•„ì´ì½˜ ì—†ìŒ");
             }
 
             EditorUtility.SetDirty(itemData);
@@ -91,7 +91,7 @@ public class ItemCSVImporter
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("¿Ï·á");
+        Debug.Log("ì™„ë£Œ");
     }
 
     private static List<List<string>> ParseCSV(string csv)

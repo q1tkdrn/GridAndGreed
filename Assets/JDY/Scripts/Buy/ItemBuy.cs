@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using TMPro;
 using UnityEngine.UI;
 public class ItemBuy : MonoBehaviour
@@ -26,18 +26,18 @@ public class ItemBuy : MonoBehaviour
                 InventoryManager.Instance.AddItem(itemSlot.item);
                 SetBuy();
                 IsBuy();
-                Debug.Log(itemSlot.item.name+"À» ±¸ÀÔ");
+                Debug.Log(itemSlot.item.name+"ì„ êµ¬ì…");
                 AchievementManager.Instance.AddProgress("ACH-6", 1);
             }
             else
             {
                 GameSfx.PlayDenied();
-                Debug.Log("ÀÜ¾×ºÎÁ·");
+                Debug.Log("ì”ì•¡ë¶€ì¡±");
             }
         }
         catch
         {
-            Debug.Log("Inventory Manager¸¦ Ã£À» ¼ö ¾ø´Â ¿À·ù");
+            Debug.Log("Inventory Managerë¥¼ ì°¾ì„ ìˆ˜ ì—†ëŠ” ì˜¤ë¥˜");
         }
     }
     public void SetBuy()

@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+Ôªøusing System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -61,7 +61,7 @@ public class SkinSlot : MonoBehaviour
 
                 skinName = character.npcSkinName;
                 nameText.text = skinName;
-                dialogs = DialogManager.Instance.GetDialogueGroup("ø¿≈∞µÂ", DialogType.Skin, "Ω√∏Æ¡Ó-ªÁΩ≈", 2);
+                dialogs = DialogManager.Instance.GetDialogueGroup("Ïò§ÌÇ§Îìú", DialogType.Skin, "ÏãúÎ¶¨Ï¶à-ÏÇ¨Ïã†", 2);
                 describeText.text = dialogs[0].text;
                 break;
 
@@ -72,7 +72,7 @@ public class SkinSlot : MonoBehaviour
 
                 skinName = character.insectSkinName;
                 nameText.text = skinName;
-                dialogs = DialogManager.Instance.GetDialogueGroup("ø¿≈∞µÂ", DialogType.Skin, "Ω√∏Æ¡Ó-∞Ô√Ê ¿Ãæﬂ±‚", 2);
+                dialogs = DialogManager.Instance.GetDialogueGroup("Ïò§ÌÇ§Îìú", DialogType.Skin, "ÏãúÎ¶¨Ï¶à-Í≥§Ï∂© Ïù¥ÏïºÍ∏∞", 2);
                 describeText.text = dialogs[0].text;
                 break;
             case Skin.BossSkin:
@@ -82,7 +82,7 @@ public class SkinSlot : MonoBehaviour
 
                 skinName = character.bossSkinName;
                 nameText.text = skinName;
-                dialogs = DialogManager.Instance.GetDialogueGroup("ø¿≈∞µÂ", DialogType.Skin, "Ω√∏Æ¡Ó-ø’±π", 2);
+                dialogs = DialogManager.Instance.GetDialogueGroup("Ïò§ÌÇ§Îìú", DialogType.Skin, "ÏãúÎ¶¨Ï¶à-ÏôïÍµ≠", 2);
                 describeText.text = dialogs[0].text;
                 break;
         }

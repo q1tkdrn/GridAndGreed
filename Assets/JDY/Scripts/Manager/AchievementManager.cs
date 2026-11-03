@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class AchievementManager : MonoBehaviour
 {
@@ -31,11 +31,11 @@ public class AchievementManager : MonoBehaviour
             {
                 if (current >= data.targetValue)
                 {
-                    PlayerPrefs.SetInt(id + "_Completed", 1);//ex)ACH-1_Completed = 1(´Ş¼º)
+                    PlayerPrefs.SetInt(id + "_Completed", 1);//ex)ACH-1_Completed = 1(ë‹¬ì„±)
                     AchievementToast.Enqueue(data);
                     PlayerPrefs.Save();
                     GetReward(id);
-                    Debug.Log("¾÷Àû ´Ş¼º : " + id);
+                    Debug.Log("ì—…ì  ë‹¬ì„± : " + id);
                 }
                 break;
             }
@@ -90,7 +90,7 @@ public class AchievementManager : MonoBehaviour
 
             PlayerPrefs.SetInt(id + "_Rewarded", 1);
 
-            Debug.Log("º¸»ó Áö±Ş: " + id);
+            Debug.Log("ë³´ìƒ ì§€ê¸‰: " + id);
             break;
         }
     }

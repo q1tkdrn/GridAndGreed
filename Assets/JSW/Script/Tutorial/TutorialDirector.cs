@@ -25,7 +25,11 @@ public sealed class TutorialDirector : MonoBehaviour
     private bool _showing;
     private bool _finishing;
 
-    private RectTransform _root, _bubble, _arrow, _highlight;
+    private const float FocusPad = 0f;   // 칸에 딱 맞게
+    private const float DimAlpha = 0.72f;
+
+    private RectTransform _root, _bubble, _arrow;
+    private readonly RectTransform[] _dim = new RectTransform[4];
     private TextMeshProUGUI _text, _hint;
     private CanvasGroup _bubbleGroup;
 
@@ -102,6 +106,7 @@ public sealed class TutorialDirector : MonoBehaviour
         _hint.gameObject.SetActive(s.act == TutorialAct.Next);
         // 행동 단계에서는 말풍선이 클릭·드래그를 가로채지 않게 한다.
         _bubbleGroup.blocksRaycasts = s.act == TutorialAct.Next;
+        foreach (var d in _dim) d.gameObject.SetActive(true);
         _bubble.gameObject.SetActive(true);
         LayoutRebuilder.ForceRebuildLayoutImmediate(_bubble);
         Place();
@@ -112,7 +117,7 @@ public sealed class TutorialDirector : MonoBehaviour
         _showing = false;
         _bubble.gameObject.SetActive(false);
         _arrow.gameObject.SetActive(false);
-        _highlight.gameObject.SetActive(false);
+        foreach (var d in _dim) d.gameObject.SetActive(false);
     }
 
     private void OnBubbleClicked()
@@ -131,7 +136,6 @@ public sealed class TutorialDirector : MonoBehaviour
         _hint.gameObject.SetActive(true);
         _bubbleGroup.blocksRaycasts = true;
         _bubble.gameObject.SetActive(true);
-        _highlight.gameObject.SetActive(false);
         LayoutRebuilder.ForceRebuildLayoutImmediate(_bubble);
         Place();
     }
@@ -148,11 +152,6 @@ public sealed class TutorialDirector : MonoBehaviour
     private void LateUpdate()
     {
         if (_bubble.gameObject.activeSelf) Place();
-        if (_highlight.gameObject.activeSelf)
-        {
-            float a = 0.35f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f);
-            _highlight.GetComponent<Image>().color = new Color(1f, 0.84f, 0.3f, a);
-        }
     }
 
     private RectTransform AnchorRect(TutorialStep s)
@@ -169,40 +168,57 @@ public sealed class TutorialDirector : MonoBehaviour
         }
     }
 
-    // 이동·배치할 칸을 금색으로 깜빡인다.
-    private RectTransform HighlightRect(TutorialStep s)
+    // 밝게 남길 영역: 시킨 행동에 필요한 곳만. 나머지는 어둡게 덮고 클릭도 막는다.
+    private bool TryFocus(TutorialStep s, out Rect focus)
     {
-        if (s == null || _battle == null) return null;
-        if (s.act == TutorialAct.Place || s.act == TutorialAct.Move) return _battle.GetCellRect(s.cell);
-        if (s.act == TutorialAct.Select) return _battle.GetWaitingRect(s.unit);
-        return null;
+        focus = default;
+        if (s == null || _battle == null) return false;
+        bool any = false;
+        Rect area = default;   // out 매개변수는 지역 함수 안에서 쓸 수 없어 따로 모은다
+        void Add(RectTransform rt)
+        {
+            if (rt == null || !rt.gameObject.activeInHierarchy || !TryScreenRect(rt, out var r)) return;
+            if (!any) { area = r; any = true; }
+            else area = Rect.MinMaxRect(Mathf.Min(area.xMin, r.xMin), Mathf.Min(area.yMin, r.yMin), Mathf.Max(area.xMax, r.xMax), Mathf.Max(area.yMax, r.yMax));
+        }
+        switch (s.act)
+        {
+            case TutorialAct.Select: Add(_battle.GetWaitingRect(s.unit)); break;
+            case TutorialAct.Place: Add(_battle.GetCellRect(s.cell)); break;
+            case TutorialAct.Move: Add(UnitCell(s.unit)); Add(_battle.GetCellRect(s.cell)); break;
+            case TutorialAct.Judge: Add(UnitCell(s.unit)); break;
+            default:
+                if (s.anchor == TutorialAnchor.Center) break;
+                Add(s.anchor == TutorialAnchor.Unit && s.unit >= 0 ? UnitCell(s.unit) : AnchorRect(s));
+                if (s.cellTo.HasValue) Add(_battle.GetCellRect(s.cellTo.Value));
+                break;
+        }
+        if (any) { area.xMin -= FocusPad; area.yMin -= FocusPad; area.xMax += FocusPad; area.yMax += FocusPad; }
+        focus = area;
+        return any;
     }
+
+    // 캐릭터 그림은 칸보다 커서, 캐릭터가 선 칸으로 밝힌다
+    private RectTransform UnitCell(int unit) => _battle.GetCellRect(_battle.GetUnitPos(unit));
 
     private void Place()
     {
         var s = _finishing ? null : Current;
-        var target = _finishing ? null : AnchorRect(s);
-        bool hasTarget = target != null && target.gameObject.activeInHierarchy && TryScreenRect(target, out _);
-
-        var hl = HighlightRect(s);
-        if (hl != null && TryScreenRect(hl, out var hlRect))
-        {
-            _highlight.gameObject.SetActive(true);
-            _highlight.anchoredPosition = hlRect.center;
-            _highlight.sizeDelta = hlRect.size;
-        }
-        else _highlight.gameObject.SetActive(false);
+        if (s != null) AnchorRect(s);   // _board, _battle 찾기
+        Rect focus = default;
+        bool hasFocus = !_finishing && TryFocus(s, out focus);
+        LayoutDim(hasFocus ? focus : (Rect?)null);
 
         var size = _bubble.rect.size;
         var half = _root.rect.size * 0.5f;
-        if (!hasTarget)
+        if (!hasFocus)
         {
             _bubble.anchoredPosition = new Vector2(0f, -half.y + size.y * 0.5f + 140f);
             _arrow.gameObject.SetActive(false);
             return;
         }
-        TryScreenRect(target, out var r);
-        // 기본은 대상 위. 화면 위가 모자라면 아래.
+        var r = focus;
+        // 기본은 밝힌 곳 위. 화면 위가 모자라면 아래.
         bool above = r.yMax + Gap + size.y < half.y - 10f;
         float y = above ? r.yMax + Gap + size.y * 0.5f : r.yMin - Gap - size.y * 0.5f;
         float x = Mathf.Clamp(r.center.x, -half.x + size.x * 0.5f + 16f, half.x - size.x * 0.5f - 16f);
@@ -213,6 +229,34 @@ public sealed class TutorialDirector : MonoBehaviour
         _arrow.anchoredPosition = new Vector2(Mathf.Clamp(r.center.x, x - size.x * 0.5f + 40f, x + size.x * 0.5f - 40f),
             above ? y - size.y * 0.5f - 10f : y + size.y * 0.5f + 10f);
         _arrow.localEulerAngles = new Vector3(0f, 0f, above ? 180f : 0f);
+    }
+
+    // 어두운 판 4장(위·아래·왼쪽·오른쪽)으로 구멍 하나를 남긴다. 구멍이 없으면 화면 전체를 덮는다.
+    private void LayoutDim(Rect? hole)
+    {
+        var half = _root.rect.size * 0.5f;
+        var screen = Rect.MinMaxRect(-half.x, -half.y, half.x, half.y);
+        if (!hole.HasValue)
+        {
+            SetDim(0, screen);
+            for (int i = 1; i < 4; i++) _dim[i].gameObject.SetActive(false);
+            return;
+        }
+        var h = hole.Value;
+        SetDim(0, Rect.MinMaxRect(screen.xMin, h.yMax, screen.xMax, screen.yMax));   // 위
+        SetDim(1, Rect.MinMaxRect(screen.xMin, screen.yMin, screen.xMax, h.yMin));   // 아래
+        SetDim(2, Rect.MinMaxRect(screen.xMin, h.yMin, h.xMin, h.yMax));             // 왼쪽
+        SetDim(3, Rect.MinMaxRect(h.xMax, h.yMin, screen.xMax, h.yMax));             // 오른쪽
+    }
+
+    private void SetDim(int i, Rect r)
+    {
+        var d = _dim[i];
+        bool show = r.width > 0.5f && r.height > 0.5f;
+        d.gameObject.SetActive(show);
+        if (!show) return;
+        d.anchoredPosition = r.center;
+        d.sizeDelta = r.size;
     }
 
     /// <summary>다른 캔버스의 RectTransform을 이 캔버스의 좌표(가운데 기준)로 바꾼다.</summary>
@@ -255,10 +299,14 @@ public sealed class TutorialDirector : MonoBehaviour
         _root.anchorMax = Vector2.one;
         _root.offsetMin = _root.offsetMax = Vector2.zero;
 
-        _highlight = NewRect("Highlight", _root);
-        var hl = _highlight.gameObject.AddComponent<Image>();
-        hl.raycastTarget = false;
-        _highlight.gameObject.SetActive(false);
+        // 밝힌 곳 말고는 어둡게. 어두운 판은 클릭을 막아서 시킨 곳만 누를 수 있다.
+        for (int i = 0; i < 4; i++)
+        {
+            _dim[i] = NewRect("Dim" + i, _root);
+            var dim = _dim[i].gameObject.AddComponent<Image>();
+            dim.color = new Color(0f, 0f, 0f, DimAlpha);
+            dim.raycastTarget = true;
+        }
 
         var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Light SDF");
 

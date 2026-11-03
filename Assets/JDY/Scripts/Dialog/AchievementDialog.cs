@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 public class AchievementDialog : MonoBehaviour
 {
@@ -18,14 +18,14 @@ public class AchievementDialog : MonoBehaviour
     }
     void Start()
     {
-        string npc = currentPhase == 2 ? "À¯" : "¾Æ½ºÆ÷µ¨";
+        string npc = currentPhase == 2 ? "ìœ " : "ì•„ìŠ¤í¬ë¸";
        
         dialogs = DialogManager.Instance.GetDialogueGroup(npc, DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {
-        string npc = currentPhase == 2 ? "À¯" : "¾Æ½ºÆ÷µ¨";
+        string npc = currentPhase == 2 ? "ìœ " : "ì•„ìŠ¤í¬ë¸";
         questionUI.ShowQuestions(npc, currentPhase);
     }
     public void StartAchievementDialog(AchievementData data)
@@ -35,23 +35,23 @@ public class AchievementDialog : MonoBehaviour
 
         if (currentPhase == 2)
         {
-            title = (data.id == "ACH-30" || data.id == "ACH-31")? data.title : "(³ª¸ÓÁö ¾÷Àûµé)";
-            npc = "À¯";
+            title = (data.id == "ACH-30" || data.id == "ACH-31")? data.title : "(ë‚˜ë¨¸ì§€ ì—…ì ë“¤)";
+            npc = "ìœ ";
         }
         else
         {
             title = data.title;
-            npc = "¾Æ½ºÆ÷µ¨";
+            npc = "ì•„ìŠ¤í¬ë¸";
         }
 
-        string targetName = title + (AchievementManager.Instance.IsCompleted(data.id) ? "(¿Ï·á ÈÄ)" : "(¿Ï·á Àü)");
+        string targetName = title + (AchievementManager.Instance.IsCompleted(data.id) ? "(ì™„ë£Œ í›„)" : "(ì™„ë£Œ ì „)");
 
         dialogs = DialogManager.Instance.GetDialogueGroup(npc, DialogType.Achievements, targetName, currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ExitDialog()
     {
-        string npc = currentPhase == 2 ? "À¯" : "¾Æ½ºÆ÷µ¨";
+        string npc = currentPhase == 2 ? "ìœ " : "ì•„ìŠ¤í¬ë¸";
         dialogs = DialogManager.Instance.GetDialogueGroup(npc, DialogType.Exit, "", currentPhase);
         dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }

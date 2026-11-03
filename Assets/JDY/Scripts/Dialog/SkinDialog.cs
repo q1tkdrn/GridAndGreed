@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 public class SkinDialog : MonoBehaviour
 {
@@ -16,22 +16,22 @@ public class SkinDialog : MonoBehaviour
     }
     void Start()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¿ÀÅ°µå", DialogType.Welcome, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ì˜¤í‚¤ë“œ", DialogType.Welcome, "", currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {
-        questionUI.ShowQuestions("¿ÀÅ°µå", currentPhase);
+        questionUI.ShowQuestions("ì˜¤í‚¤ë“œ", currentPhase);
     }
     public void StartSkinDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¿ÀÅ°µå", DialogType.Skin, skinSlot.skinName, currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ì˜¤í‚¤ë“œ", DialogType.Skin, skinSlot.skinName, currentPhase);
 
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ExitDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¿ÀÅ°µå", DialogType.Exit, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ì˜¤í‚¤ë“œ", DialogType.Exit, "", currentPhase);
         dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

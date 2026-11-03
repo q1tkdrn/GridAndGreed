@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 using UnityEditor;
 using System;
 using System.IO;
@@ -13,7 +13,7 @@ public class AchievementCSVImporter
 
         if (!File.Exists(csvPath))
         {
-            Debug.LogError("Achievements.csv ÆÄÀÏÀ» Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogError("Achievements.csv íŒŒì¼ì„ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
@@ -26,7 +26,7 @@ public class AchievementCSVImporter
 
         if (lines.Length <= 1)
         {
-            Debug.LogWarning("µ¥ÀÌÅÍ ¾øÀ½");
+            Debug.LogWarning("ë°ì´í„° ì—†ìŒ");
             return;
         }
 
@@ -44,20 +44,20 @@ public class AchievementCSVImporter
             string description = columns[2].Trim();
             if (!int.TryParse(columns[3].Trim(), out int targetValue))
             {
-                Debug.LogError($"{i + 1}: TargetValue ¿À·ù");
+                Debug.LogError($"{i + 1}: TargetValue ì˜¤ë¥˜");
                 continue;
             }
             string rewardTypeText = columns[4].Trim();
             string rewardID = columns[5].Trim();
             if (!int.TryParse(columns[6].Trim(), out int amount))
             {
-                Debug.LogError($"{i + 1}: Amount ¿À·ù");
+                Debug.LogError($"{i + 1}: Amount ì˜¤ë¥˜");
                 continue;
             }
             /*
             if (!int.TryParse(columns[7].Trim(), out int fromPhase))
             {
-                Debug.LogError($"{i + 1}: FromPhase ¿À·ù");
+                Debug.LogError($"{i + 1}: FromPhase ì˜¤ë¥˜");
                 continue;
             }
             */
@@ -71,13 +71,13 @@ public class AchievementCSVImporter
                 data.targetValue = targetValue;
 
                 string iconNumber = achievementID.Replace("ACH-", "");
-                string iconPath = $"Assets/JDY/Data/Achievements/Icons/¾÷Àû{iconNumber}.png";
+                string iconPath = $"Assets/JDY/Data/Achievements/Icons/ì—…ì {iconNumber}.png";
 
                 data.icon = AssetDatabase.LoadAssetAtPath<Sprite>(iconPath);
 
                 if (data.icon == null)
                 {
-                    Debug.LogWarning($"{achievementID}: ¾ÆÀÌÄÜ ¾øÀ½");
+                    Debug.LogWarning($"{achievementID}: ì•„ì´ì½˜ ì—†ìŒ");
                 }
 
                 data.rewards = new AchievementReward[0];
@@ -89,7 +89,7 @@ public class AchievementCSVImporter
 
             if (!Enum.TryParse(rewardTypeText, true, out RewardType rewardType))
             {
-                Debug.LogError($"{i + 1}: RewardType ¿À·ù");
+                Debug.LogError($"{i + 1}: RewardType ì˜¤ë¥˜");
                 continue;
             }
             AchievementReward reward = new AchievementReward();
@@ -132,7 +132,7 @@ public class AchievementCSVImporter
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("¿Ï·á");
+        Debug.Log("ì™„ë£Œ");
     }
     private static string[] ParseCSVLine(string line)
     {

@@ -1,4 +1,4 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 public class ItemManager : MonoBehaviour
 {
     public static ItemManager Instance;
@@ -24,7 +24,7 @@ public class ItemManager : MonoBehaviour
                 return item;
             }
         }
-        Debug.LogWarning("¾ÆÀÌÅÛ ¾øÀ½: " + itemId);
+        Debug.LogWarning("ì•„ì´í…œ ì—†ìŒ: " + itemId);
         return null;
     }
 }

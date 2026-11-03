@@ -30,10 +30,13 @@ public sealed class EscMenu : MonoBehaviour
     // 예시 이미지(1920x1080) 기준 배치 값.
     private const float VillageColumnX = -240f;   // 오른쪽 끝에서의 거리(글자 중심)
     private const float VillageSpacing = 128f;
-    private const float BattleColumnX = -80f;     // 화면 중앙에서의 거리
+    private const float BattleColumnX = 0f;       // 화면 중앙에서의 거리 (ESC_조정.png: 가운데 정렬)
     private const float BattleSpacing = 135f;
     private const float BattleButtonWidth = 430f;
     private const float BattleButtonHeight = 105f;
+    private const float BattleLongWidth = 470f;   // 긴 문구(타이틀화면으로) 버튼의 칸 너비
+    private const float BattleLongScale = 1.13f;  // 긴 문구 버튼은 해골까지 통째로 키운다 (ESC_조정.png)
+    private const float BattleGap = 30f;          // 버튼 사이 빈칸
 
     private Canvas _canvas;
     private RectTransform _root;
@@ -242,6 +245,22 @@ public sealed class EscMenu : MonoBehaviour
         items.Add(("설정", () => ShowPage(Page.Settings)));
         items.Add(("종료", Quit));
 
+        if (_style == Style.Battle)
+        {
+            // 전투: 버튼 높이(긴 문구는 더 큼) + 빈칸으로 쌓고, 묶음 전체를 화면 가운데에 둔다. (ESC_조정.png)
+            float total = -BattleGap;
+            foreach (var item in items) total += BattleHeight(item.label) + BattleGap;
+            float y = total * 0.5f + MenuCenterY;
+            foreach (var item in items)
+            {
+                float height = BattleHeight(item.label);
+                y -= height * 0.5f;
+                MakeMenuButton(item.label, y, item.action);
+                y -= height * 0.5f + BattleGap;
+            }
+            return;
+        }
+
         float firstY = (items.Count - 1) * Spacing * 0.5f + MenuCenterY;
         for (int i = 0; i < items.Count; i++)
             MakeMenuButton(items[i].label, firstY - Spacing * i, items[i].action);
@@ -311,7 +330,7 @@ public sealed class EscMenu : MonoBehaviour
 
     private float Spacing => _style == Style.Village ? VillageSpacing : BattleSpacing;
     private float ColumnX => _style == Style.Village ? VillageColumnX : BattleColumnX;
-    private float MenuCenterY => _style == Style.Village ? -40f : -30f;
+    private float MenuCenterY => _style == Style.Village ? -40f : 0f;
     private Vector2 ColumnAnchor => _style == Style.Village ? new Vector2(1f, 0.5f) : new Vector2(0.5f, 0.5f);
 
     private void MakeMenuButton(string label, float y, Action action)
@@ -337,9 +356,11 @@ public sealed class EscMenu : MonoBehaviour
     {
         var rect = NewRect(label, _root);
         rect.anchorMin = rect.anchorMax = ColumnAnchor;
-        float width = label.Length > 4 ? BattleButtonWidth + 90f : BattleButtonWidth;
-        rect.sizeDelta = new Vector2(width, BattleButtonHeight);
+        bool isLong = IsLongLabel(label);
+        rect.sizeDelta = new Vector2(isLong ? BattleLongWidth : BattleButtonWidth, BattleButtonHeight);
         rect.anchoredPosition = new Vector2(ColumnX, y);
+        // 마우스 올림 효과(UIHoverScale)가 이 크기를 기준으로 삼도록 AddButton보다 먼저 정한다.
+        if (isLong) rect.localScale = new Vector3(BattleLongScale, BattleLongScale, 1f);
         var image = rect.gameObject.AddComponent<Image>();
         if (_brush != null)
         {
@@ -365,6 +386,9 @@ public sealed class EscMenu : MonoBehaviour
         text.fontSizeMax = 46f;
         AddButton(rect.gameObject, image, action, 0.96f);
     }
+
+    private static bool IsLongLabel(string label) => label.Length > 4;
+    private static float BattleHeight(string label) => BattleButtonHeight * (IsLongLabel(label) ? BattleLongScale : 1f);
 
     // 예시 이미지처럼 짧은 단어는 글자 사이를 넓게 벌린다.
     private static float SpacingFor(string label) => label.Length switch

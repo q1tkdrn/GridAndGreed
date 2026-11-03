@@ -21,6 +21,10 @@ public class ItemUI : MonoBehaviour
 
     [SerializeField] private TextMeshProUGUI talkText;
 
+    [Header("잠금 (JSW)")]
+    [Tooltip("얻지 않은 아이템 위에 덮는 반투명 자물쇠 (JSW/UI/Formation/아이템_잠금.png)")]
+    [SerializeField] private GameObject lockCover;
+
     public void Init()
     {
         StopAllCoroutines();
@@ -38,19 +42,22 @@ public class ItemUI : MonoBehaviour
         nameText.text = itemData.itemName;
         descriptionText.text = itemData.description;
         image.sprite = itemData.icon;
-        image.gameObject.SetActive(unlock);
-        gameObject.SetActive(unlock);
+        // 얻지 않은 아이템도 판에 보여 주고, 자물쇠를 덮는다 (자물쇠 뒤로 아이템이 비침)
+        if (!unlock) descriptionText.text += "\n<color=#9A9A9A><size=85%>아직 얻지 못했어요</size></color>";
+        image.gameObject.SetActive(true);
+        gameObject.SetActive(true);
+        if (lockCover != null) lockCover.SetActive(!unlock);
     }
 
     public void OnMouseEnter()
     {
-        if(!unlock) return;
+        if (itemData == null) return;
         popup.SetActive(true);
     }
 
     public void OnMouseExit()
     {
-        if(!unlock) return;
+        if (itemData == null) return;
         popup.SetActive(false);
     }
 

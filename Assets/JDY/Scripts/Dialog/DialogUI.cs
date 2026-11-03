@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -33,7 +33,7 @@ public class DialogUI : MonoBehaviour
         questionPanel.SetActive(false);
         if (dialogs == null || dialogs.Count == 0)
         {
-            Debug.LogWarning("¾øÀ½");
+            Debug.LogWarning("ì—†ìŒ");
             return;
         }
         currentDialogs = dialogs;
@@ -125,16 +125,16 @@ public class DialogUI : MonoBehaviour
     {
         switch (data.special)
         {
-            case "À½¾Ç À½¼Ò°Å":
+            case "ìŒì•… ìŒì†Œê±°":
                 effectUI.MuteMusic();
                 break;
-            case "´Ù½Ã Àç»ı":
+            case "ë‹¤ì‹œ ì¬ìƒ":
                 effectUI.ResumeMusic();
                 break;
-            case "È­¸é ¾ÏÀü. ÅØ½ºÆ® Á¤ Áß¾Ó¿¡¼­ Ãâ·Â":
+            case "í™”ë©´ ì•”ì „. í…ìŠ¤íŠ¸ ì • ì¤‘ì•™ì—ì„œ ì¶œë ¥":
                 effectUI.FadeToBlack(data.text);
                 break;
-            case "ÇØ´ç ¼±ÅÃÁö ºñÈ°¼ºÈ­) ¹× ¾ÏÀü ÇØÁ¦, ÅØ½ºÆ® Ãâ·Â À§Ä¡ ¿ø·¡´ë·Î":
+            case "í•´ë‹¹ ì„ íƒì§€ ë¹„í™œì„±í™”) ë° ì•”ì „ í•´ì œ, í…ìŠ¤íŠ¸ ì¶œë ¥ ìœ„ì¹˜ ì›ë˜ëŒ€ë¡œ":
                 effectUI.Clear();
                 break;
             default: break;

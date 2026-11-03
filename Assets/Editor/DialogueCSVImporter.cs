@@ -1,4 +1,4 @@
-using System;
+ï»¿using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
@@ -14,7 +14,7 @@ public static class DialogueCSVImporter
     {
         if (!File.Exists(csvPath))
         {
-            Debug.LogError("Dialog.csv¸¦ Ã£À» ¼ö ¾ø½À´Ï´Ù.");
+            Debug.LogError("Dialog.csvë¥¼ ì°¾ì„ ìˆ˜ ì—†ìŠµë‹ˆë‹¤.");
             return;
         }
 
@@ -23,7 +23,7 @@ public static class DialogueCSVImporter
 
         if (rows.Count <= 1)
         {
-            Debug.LogError("µ¥ÀÌÅÍ ¾øÀ½");
+            Debug.LogError("ë°ì´í„° ì—†ìŒ");
             return;
         }
 
@@ -80,25 +80,25 @@ public static class DialogueCSVImporter
 
             if (string.IsNullOrWhiteSpace(typeText))
             {
-                Debug.LogWarning($"{id}: Type ´©¶ô");
+                Debug.LogWarning($"{id}: Type ëˆ„ë½");
                 continue;
             }
 
             if (!Enum.TryParse(typeText, true, out DialogType dialogueType))
             {
-                Debug.LogWarning($"{id}: Type ¿À·ù");
+                Debug.LogWarning($"{id}: Type ì˜¤ë¥˜");
                 continue;
             }
 
             if (!int.TryParse(fromPhaseText, out int fromPhase))
             {
-                Debug.LogWarning($"{id}: FromPhase ¿À·ù");
+                Debug.LogWarning($"{id}: FromPhase ì˜¤ë¥˜");
                 continue;
             }
 
             if (!int.TryParse(toPhaseText, out int toPhase))
             {
-                Debug.LogWarning($"{id}: ToPhase ¿À·ù");
+                Debug.LogWarning($"{id}: ToPhase ì˜¤ë¥˜");
                 continue;
             }
 
@@ -150,7 +150,7 @@ public static class DialogueCSVImporter
         AssetDatabase.SaveAssets();
         AssetDatabase.Refresh();
 
-        Debug.Log("¿Ï·á");
+        Debug.Log("ì™„ë£Œ");
     }
     private static List<string[]> ParseCSV(string csv)
     {
@@ -168,7 +168,7 @@ public static class DialogueCSVImporter
 
             if (c == '"')
             {
-                // "" ¡æ "
+                // "" â†’ "
                 if (
                     insideQuotes &&
                     i + 1 < csv.Length &&

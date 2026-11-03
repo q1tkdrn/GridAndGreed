@@ -1,15 +1,15 @@
-using UnityEngine;
+ï»¿using UnityEngine;
 
 public class SaveManager : MonoBehaviour
 {
     public void SaveGame()
     {
-        // µ· ÀúÀå
-        // ¾ÆÀÌÅÛ ÀúÀå
-        // ½ºÅ×ÀÌÁö ÀúÀå
-        // ¾÷Àû ÀúÀå
-        // Ä³¸¯ÅÍ ÇØ±İ ÀúÀå
-        // ¸Ş¸ğ¸®¾ó ÀúÀå
+        // ëˆ ì €ì¥
+        // ì•„ì´í…œ ì €ì¥
+        // ìŠ¤í…Œì´ì§€ ì €ì¥
+        // ì—…ì  ì €ì¥
+        // ìºë¦­í„° í•´ê¸ˆ ì €ì¥
+        // ë©”ëª¨ë¦¬ì–¼ ì €ì¥
 
         PlayerPrefs.Save();
     }

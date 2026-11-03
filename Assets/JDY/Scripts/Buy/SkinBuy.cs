@@ -1,4 +1,4 @@
-using TMPro;
+ï»¿using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 public class SkinBuy : MonoBehaviour
@@ -32,18 +32,18 @@ public class SkinBuy : MonoBehaviour
                 InventoryManager.Instance.UnlockSkin(skinSlot.character.id, skinSlot.currentSkin);
                 IsBuy();
                 SetBuy();
-                Debug.Log(skinSlot.character.name + "À» ±¸ÀÔ");
+                Debug.Log(skinSlot.character.name + "ì„ êµ¬ì…");
                 AchievementManager.Instance.AddProgress("ACH-22", 1);
             }
             else
             {
                 GameSfx.PlayDenied();
-                Debug.Log("ÀÜ¾×ºÎÁ·");
+                Debug.Log("ì”ì•¡ë¶€ì¡±");
             }
         }
         catch
         {
-            Debug.Log("Inventory Manager¸¦ Ã£À» ¼ö ¾ø´Â ¿À·ù");
+            Debug.Log("Inventory Managerë¥¼ ì°¾ì„ ìˆ˜ ì—†ëŠ” ì˜¤ë¥˜");
         }
     }
     public void SetBuy()

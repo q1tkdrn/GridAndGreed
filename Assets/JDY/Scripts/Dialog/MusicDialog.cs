@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Timeline;
 using static UnityEngine.Rendering.DebugUI;
@@ -18,22 +18,22 @@ public class MusicDialog : MonoBehaviour
     void Start()
     {
         string target = PlayerPrefs.GetFloat("MasterVolume", 1f) <= 0.001f || PlayerPrefs.GetFloat("BGMVolume", 1f) <= 0.001f
-            ? "(¸¶½ºÅÍ º¼·ý ¶Ç´Â BGM º¼·ýÀÌ 0ÀÏ ¶§)" : "";
-        dialogs = DialogManager.Instance.GetDialogueGroup("¸¶¸®°ñµå", DialogType.Welcome, target, currentPhase);
+            ? "(ë§ˆìŠ¤í„° ë³¼ë¥¨ ë˜ëŠ” BGM ë³¼ë¥¨ì´ 0ì¼ ë•Œ)" : "";
+        dialogs = DialogManager.Instance.GetDialogueGroup("ë§ˆë¦¬ê³¨ë“œ", DialogType.Welcome, target, currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {
-        questionUI.ShowQuestions("¸¶¸®°ñµå", currentPhase);
+        questionUI.ShowQuestions("ë§ˆë¦¬ê³¨ë“œ", currentPhase);
     }
     public void StartMusicDialog(string musicName)
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¸¶¸®°ñµå", DialogType.Music, musicName, currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ë§ˆë¦¬ê³¨ë“œ", DialogType.Music, musicName, currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ExitDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("¸¶¸®°ñµå", DialogType.Exit, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ë§ˆë¦¬ê³¨ë“œ", DialogType.Exit, "", currentPhase);
         dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }

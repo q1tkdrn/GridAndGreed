@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+ï»¿using System.Collections.Generic;
 using UnityEngine;
 public class MemorialDialog : MonoBehaviour
 {
@@ -17,23 +17,23 @@ public class MemorialDialog : MonoBehaviour
     void Start()
     {
         string target = PlayerPrefs.GetFloat("MasterVolume", 1f) <= 0.001f || PlayerPrefs.GetFloat("BGMVolume", 1f) <= 0.001f
-            ? "(¸¶½ºÅÍ º¼·ý ¶Ç´Â BGM º¼·ýÀÌ 0ÀÏ ¶§)" : "";
-        dialogs = DialogManager.Instance.GetDialogueGroup("È÷¾Æ½Å½º", DialogType.Welcome, target, currentPhase);
+            ? "(ë§ˆìŠ¤í„° ë³¼ë¥¨ ë˜ëŠ” BGM ë³¼ë¥¨ì´ 0ì¼ ë•Œ)" : "";
+        dialogs = DialogManager.Instance.GetDialogueGroup("ížˆì•„ì‹ ìŠ¤", DialogType.Welcome, target, currentPhase);
         dialogUI.StartDialog(dialogs, ShowQuestions);
     }
     public void ShowQuestions()
     {
-        questionUI.ShowQuestions("È÷¾Æ½Å½º", currentPhase);
+        questionUI.ShowQuestions("ížˆì•„ì‹ ìŠ¤", currentPhase);
     }
     public void StartMemorialDialog(MemorialButton memorialButton)
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("È÷¾Æ½Å½º", DialogType.Memory, "°øÅë", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ížˆì•„ì‹ ìŠ¤", DialogType.Memory, "ê³µí†µ", currentPhase);
 
         dialogUI.StartDialog(dialogs, () =>{memorialUI.ShowMemorial(memorialButton.memorialData, ShowQuestions);});
     }
     public void ExitDialog()
     {
-        dialogs = DialogManager.Instance.GetDialogueGroup("È÷¾Æ½Å½º", DialogType.Exit, "", currentPhase);
+        dialogs = DialogManager.Instance.GetDialogueGroup("ížˆì•„ì‹ ìŠ¤", DialogType.Exit, "", currentPhase);
         dialogUI.StartDialog(dialogs, exitButton.exitButton, false);
     }
 }
