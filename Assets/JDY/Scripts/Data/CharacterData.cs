@@ -9,8 +9,6 @@ public class CharacterData : ScriptableObject
     public Sprite npcSkin;
     public Sprite insectSkin;
     public Sprite bossSkin;
-    public int STR;
-    public int INT;
     public int price;
     public string npcSkinName;
     public string insectSkinName;

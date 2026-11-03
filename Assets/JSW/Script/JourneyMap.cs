@@ -362,7 +362,7 @@ public sealed class JourneyMap : MonoBehaviour
                 new ModalDialog.Option("확인", null));
             return;
         }
-        ModalDialog.Show(place.Title, $"{WithParticle(place.bossName)} 기다리고 있다.", "", null,
+        ModalDialog.Show(place.Title, $"{WithParticle(place.bossName)} 기다리고 있다.", "스테이지에 입장하시겠습니까?", null,
             new ModalDialog.Option("예", () => Enter(place)),
             new ModalDialog.Option("아니요", null));
     }

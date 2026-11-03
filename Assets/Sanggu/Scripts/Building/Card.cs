@@ -24,14 +24,10 @@ public class Card : MonoBehaviour
     public void Init()
     {
         popUpPanel.SetActive(false);
-        popupText.text = 
+        // 지금 규칙(v2)에서 쓰는 건 특성뿐 (힘·지능·부활 대기 시간은 안 씀)
+        popupText.text =
             $"<align=\"center\"><size=45>{unitTemp.unitName}</size></align>\n" +
-            $"<align=\"left\"><size=30>" +
-            $"힘: {unitTemp.power}\n" +
-            $"지능: {unitTemp.intelligence}\n" +
-            $"부활 대기 시간: {unitTemp.reviveCool}턴\n" +
-            $"능력: {unitTemp.abilityText}" +
-            $"</size>";
+            $"<align=\"left\"><size=30>{Unit.WrapWords(unitTemp.abilityText)}</size>";
         image.sprite = unitTemp.illustration;
         // 잠긴 캐릭터는 일러스트를 보여 주지 않는다 (해금하는 재미)
         image.gameObject.SetActive(!locked);

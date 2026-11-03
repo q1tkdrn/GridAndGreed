@@ -24,6 +24,7 @@ public sealed class TutorialDirector : MonoBehaviour
     private bool _place;
     private bool _showing;
     private bool _finishing;
+    private int _endIndex;
 
     private const float FocusPad = 0f;   // 칸에 딱 맞게
     private const float DimAlpha = 0.72f;
@@ -89,17 +90,32 @@ public sealed class TutorialDirector : MonoBehaviour
         Instance.TryShow();
     }
 
+    /// <summary>같은 턴에 이어질 대사가 남았으면 보스 공격(턴 끝)을 미룬다.</summary>
+    public static bool HoldsTurnEnd
+    {
+        get
+        {
+            if (!Active || Instance._finishing || !Instance._showing) return false;
+            var s = Instance.Current;
+            return s != null && s.act == TutorialAct.Next && !s.place && s.turn == Instance._turn && !Instance._place;
+        }
+    }
+
     private void Advance()
     {
         _index++;
         _showing = false;
         TryShow();
+        // 미뤄 둔 턴 끝이 있으면 이어서 진행
+        if (!_place && !HoldsTurnEnd && _board != null && _board.actionPoint <= 0 && _board.turn == BoardPanel.ETurn.Player) _board.TutorialContinue();
     }
 
     private void TryShow()
     {
-        var s = Current;
         if (_finishing) return;
+        // 지난 턴(또는 지난 배치 단계)에 남은 단계는 건너뛴다
+        while (Current != null && (Current.turn < _turn || (Current.turn == _turn && Current.place && !_place))) _index++;
+        var s = Current;
         if (s == null || s.turn != _turn || s.place != _place) { Hide(); return; }
         _showing = true;
         _text.text = s.text;
@@ -122,7 +138,14 @@ public sealed class TutorialDirector : MonoBehaviour
 
     private void OnBubbleClicked()
     {
-        if (_finishing) { Leave(); return; }
+        if (_finishing)
+        {
+            _endIndex++;
+            if (_endIndex >= TutorialScript.EndLines.Length) { Leave(); return; }
+            _text.text = TutorialScript.EndLines[_endIndex];
+            LayoutRebuilder.ForceRebuildLayoutImmediate(_bubble);
+            return;
+        }
         var s = Current;
         if (_showing && s != null && s.act == TutorialAct.Next) Advance();
     }
@@ -132,7 +155,8 @@ public sealed class TutorialDirector : MonoBehaviour
     {
         _finishing = true;
         _showing = true;
-        _text.text = TutorialScript.EndLine;
+        _endIndex = 0;
+        _text.text = TutorialScript.EndLines[0];
         _hint.gameObject.SetActive(true);
         _bubbleGroup.blocksRaycasts = true;
         _bubble.gameObject.SetActive(true);

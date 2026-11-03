@@ -88,6 +88,9 @@ public static class JourneyRefit
         _banner = null;
     }
 
+    /// <summary>여정 중 정비에서 이 캐릭터를 바꿀 수 없는지 (편성창 안내 문구용)</summary>
+    public static bool IsUnitLocked(UnitTemp unit) => Limited && unit != null && unit.id == ReaperId;
+
     public static bool CanSetUnit(UnitTemp[] units, ItemData[] items, int slot, UnitTemp next)
     {
         if (!Limited || next == null) return true;
@@ -177,14 +180,15 @@ public static class JourneyRefit
         br.anchorMin = br.anchorMax = new Vector2(0.5f, 1f);
         br.pivot = new Vector2(0.5f, 1f);
         br.anchoredPosition = new Vector2(0f, -64f);
-        br.sizeDelta = new Vector2(760f, 92f);
-        back.color = new Color(0f, 0f, 0f, 0.78f);
+        br.sizeDelta = new Vector2(620f, 92f);   // 아이템 화면 제목(왼쪽 위, x 636까지)과 겹치지 않게 (760 → 620)
+        back.sprite = FxSprites.FadeBar;           // 좌우 끝이 흐려지는 띠 (검은 상자 → 부드럽게)
+        back.color = new Color(0f, 0f, 0f, 0.9f);
         back.raycastTarget = false;
         _banner = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
         var tr = _banner.rectTransform;
         tr.SetParent(br, false);
         tr.anchorMin = Vector2.zero; tr.anchorMax = Vector2.one;
-        tr.offsetMin = tr.offsetMax = Vector2.zero;
+        tr.offsetMin = new Vector2(16f, 0f); tr.offsetMax = new Vector2(-16f, 0f);   // 긴 경고는 두 줄로 꺾인다
         var font = Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None).FirstOrDefault(t => t.font != null && t != _banner)?.font;
         if (font != null) _banner.font = font;
         _banner.fontSize = 34f;

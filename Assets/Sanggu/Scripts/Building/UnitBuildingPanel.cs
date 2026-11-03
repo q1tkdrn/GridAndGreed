@@ -2,7 +2,6 @@
 using System.Linq;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering;
 using UnityEngine.UI;
 
 public class UnitBuildingPanel : MonoBehaviour
@@ -11,14 +10,6 @@ public class UnitBuildingPanel : MonoBehaviour
     [SerializeField] private Unit[] unitObject = new Unit[3];
 
     [Header("UI")] [SerializeField] private GameObject formPanel;
-
-    [SerializeField] private GameObject popup1;
-
-    [SerializeField] private GameObject popup2;
-    [SerializeField] private Unit popupUnit;
-    [SerializeField] private GameObject arrow;
-    [SerializeField] private TextMeshProUGUI nameText;
-    [SerializeField] private TextMeshProUGUI descriptionText;
 
     [Space] [SerializeField] private GameObject changePanel;
     public Card[] cards = new Card[9];
@@ -53,34 +44,12 @@ public class UnitBuildingPanel : MonoBehaviour
         BattleDisplayManager.GetInstance().currentUnits = currentUnits;
     }
 
+    /// <summary>캐릭터를 누르면 바로 교체 화면으로 (예전 교체/정보 팝업은 없앰). -1 = 빈 곳 클릭</summary>
     public void OnMouseClick(int i)
     {
-        popup2.SetActive(false);
-        if (i == -1)
-        {
-            popup1.SetActive(false);
-            return;
-        }
-
-        popup1.SetActive(true);
-        var vector3 = popup1.transform.position;
-        vector3.x = unitObject[i].transform.position.x;
-        popup1.transform.position = vector3;
+        if (i < 0 || i >= unitObject.Length) return;
         _currentUnitIndex = i;
-    }
-
-    public void ShowInfo()
-    {
-        popup1.SetActive(false);
-        popup2.SetActive(true);
-        var vector3 = arrow.transform.position;
-        vector3.x = unitObject[_currentUnitIndex].transform.position.x;
-        arrow.transform.position = vector3;
-        popupUnit.unitTemp = currentUnits[_currentUnitIndex];
-        popupUnit.Init();
-
-        nameText.text = popupUnit.unitTemp.unitName;
-        descriptionText.text = popupUnit.unitTemp.abilityText;
+        OpenChangePanel();
     }
 
     public void OpenChangePanel()
@@ -118,8 +87,6 @@ public class UnitBuildingPanel : MonoBehaviour
     /// <summary>교체 화면의 '돌아가기': 바꾸지 않고 캐릭터 3명 화면으로 (JSW)</summary>
     public void CloseChangePanel()
     {
-        popup1.SetActive(false);
-        popup2.SetActive(false);
         changePanel.SetActive(false);
         formPanel.SetActive(true);
     }
@@ -129,9 +96,6 @@ public class UnitBuildingPanel : MonoBehaviour
         if (cards[i].locked) return;
         if (_currentCardIndex == i)
         {
-            popup1.SetActive(false);
-            popup2.SetActive(false);
-
             formPanel.SetActive(true);
             changePanel.SetActive(false);
 

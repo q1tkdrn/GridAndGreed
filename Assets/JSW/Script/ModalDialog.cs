@@ -18,14 +18,14 @@ public sealed class ModalDialog : MonoBehaviour
         public Option(string label, Action onClick) { Label = label; OnClick = onClick; }
     }
 
-    // 버튼 2개: ESC 메뉴의 다시 시작 확인 화면과 같은 배치.
-    private const float TwoButtonFirstY = -83f;
-    private const float TwoButtonSpacing = 93f;
-    // 버튼 3개 이상: 마지막 버튼이 하단 구분선(-251, 본문 기준)과 겹치지 않도록 위로 올리고 간격을 좁힌다.
-    private const float ManyButtonLastY = -199f;
-    private const float ManyButtonSpacing = 86f;
+    // 버튼 1~2개: 안내문 그림(JSW/UI/Notice)에 그려져 있던 버튼 칸 2개의 자리. (본문 기준 y, 본문은 패널 기준 -40)
+    private const float TwoButtonFirstY = -88f;
+    private const float TwoButtonSpacing = 101f;
+    // 버튼 3개 이상: 마지막 버튼이 그림의 하단 구분선(패널 기준 -306)과 겹치지 않도록 위로 올리고 간격을 좁힌다.
+    private const float ManyButtonLastY = -210f;
+    private const float ManyButtonSpacing = 92f;
     private const float ManyQuestionY = 125f;
-    private const float ManyExplanationY = 56f;
+    private const float ManyExplanationY = 62f;
     private const float ManyExplanationHeight = 70f;
 
     /// <summary>팝업이 열려 있으면 ESC 메뉴가 같은 키 입력으로 열리지 않게 한다.</summary>

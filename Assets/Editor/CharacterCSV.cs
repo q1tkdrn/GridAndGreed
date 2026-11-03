@@ -40,26 +40,15 @@ public class CharacterCSVImporter
 
             string id = values[0].Trim();
             string characterName = values[1].Trim();
-            string STRText = values[2].Trim();
-            string INTText = values[3].Trim();
-            string priceText = values[5].Trim();
-            string description = values[6];
-            string npcSkinName = values[7];
-            string insectSkinName = values[8];
-            string bossSkinName = values[9];
+            // 칸: ID, Name, Price, Description, NPC 스킨, 곤충 스킨, 보스 스킨 (힘·지능·부활 칸은 지금 규칙에서 안 써서 뺐다)
+            string priceText = values[2].Trim();
+            string description = values[3];
+            string npcSkinName = values[4];
+            string insectSkinName = values[5];
+            string bossSkinName = values[6];
             if (string.IsNullOrEmpty(id))
             {
                 Debug.LogError($"{i + 1}번째 줄 ID 누락");
-                continue;
-            }
-            if (!int.TryParse(STRText, out int STR))
-            {
-                Debug.LogError($"{i + 1}번째 줄 STR 오류");
-                continue;
-            }
-            if (!int.TryParse(INTText, out int INT))
-            {
-                Debug.LogError($"{i + 1}번째 줄 INT 오류");
                 continue;
             }
             if (!int.TryParse(priceText, out int price))
@@ -85,8 +74,6 @@ public class CharacterCSVImporter
 
             characterData.id = id;
             characterData.characterName = characterName;
-            characterData.STR = STR;
-            characterData.INT = INT;
             characterData.price = price;
             characterData.description = description;
             characterData.npcSkinName = npcSkinName;

@@ -191,6 +191,9 @@ public static class JudgeShot
         return null;
     }
 
+    /// <summary>판 위 동작 프레임 (편성창 미리보기용). 그림이 모자라면 null.</summary>
+    public static Sprite[] ActFrames(Profile p) => p != null && Load(p) ? _frames[p] : null;
+
     private static bool Load(Profile p)
     {
         if (_frames.TryGetValue(p, out var cached)) return cached != null;

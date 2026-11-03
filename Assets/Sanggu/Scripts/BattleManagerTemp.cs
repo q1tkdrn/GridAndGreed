@@ -20,7 +20,6 @@ public class BattleManagerTemp : MonoBehaviour
         public Vector2Int pos;
         public Image unit;
         public Image unitOnWaiting;
-        public CharacterPassiveState passive;
     }
     
     private Dictionary<Vector2Int, GameObject> _blankPos = new Dictionary<Vector2Int, GameObject>();
@@ -31,12 +30,10 @@ public class BattleManagerTemp : MonoBehaviour
     [SerializeField] private Sprite attackPreviewSprite;
     private readonly Dictionary<Vector2Int, Image> _attackPreviewPlates = new();
     private readonly Dictionary<Vector2Int, Image> _attackPlates = new();
-    private readonly Dictionary<Vector2Int, GameObject> _sanctuaryMarkers = new();
     private int _patternRevision;
     private HashSet<Vector2Int> _preparedDangerCells;
     private BossTemp _preparedBoss;
     private int _preparedTurn = -1;
-    private BattlePatternRules.ColorEffect _preparedEffect;
     [SerializeField] private Unit[] units = new Unit[3];
     
     [SerializeField] private EventSystem eventSystem;
@@ -46,18 +43,6 @@ public class BattleManagerTemp : MonoBehaviour
     private int _currentClickIndex = -1;
 
     private bool _isClicked = false;
-    private readonly BattlePatternRules.PlazaSequence _plazaSequence = new();
-    private readonly BattlePatternRules.MansionSequence _mansionSequence = new();
-    private readonly BattlePatternRules.CathedralSequence _cathedralSequence = new();
-    private readonly BattlePatternRules.DoorSequence _doorSequence = new();
-    private readonly BattlePatternRules.BasementSequence _basementSequence = new();
-    private readonly BattlePatternRules.LibrarySequence _librarySequence = new();
-    private readonly BattlePatternRules.TrainingSequence _trainingSequence = new();
-    private readonly BattlePatternRules.AfterlifePhase1Sequence _afterlifePhase1Sequence = new();
-    private readonly BattlePatternRules.AfterlifePhase2Sequence _afterlifePhase2Sequence = new();
-    private readonly BattlePatternRules.KingSequence _kingSequence = new();
-    private readonly BattlePatternRules.BellkeeperSequence _bellkeeperSequence = new();
-    private bool _preparedLastStep;
     [SerializeField] private float doubleClickDelay = 0.1f;
 
     //활성하시 클릭 가능한 칸 생성
@@ -67,22 +52,10 @@ public class BattleManagerTemp : MonoBehaviour
         ClearBossPatternPreview();
         _attackPreviewPlates.Clear();
         _attackPlates.Clear();
-        _sanctuaryMarkers.Clear();
         if (attackPreviewSprite == null)
         {
             attackPreviewSprite = Resources.Load<Sprite>("공격 예상");
         }
-        _plazaSequence.Reset();
-        _mansionSequence.Reset();
-        _cathedralSequence.Reset();
-        _doorSequence.Reset();
-        _basementSequence.Reset();
-        _librarySequence.Reset();
-        _trainingSequence.Reset();
-        _afterlifePhase1Sequence.Reset();
-        _afterlifePhase2Sequence.Reset();
-        _kingSequence.Reset();
-        _bellkeeperSequence.Reset();
         foreach (var blank in _blankPos.ToList())
         {
             Destroy(blank.Value);
@@ -149,40 +122,12 @@ public class BattleManagerTemp : MonoBehaviour
                 attackImage.enabled = false;
                 _attackPlates[new Vector2Int(x, y)] = attackImage;
 
-                // A separate gold label stays visible over attack/movement overlays.
-                var marker = new GameObject($"Sanctuary{x},{y}", typeof(RectTransform), typeof(Image));
-                marker.layer = go.layer;
-                var markerRect = (RectTransform)marker.transform;
-                markerRect.SetParent(go.transform, false);
-                markerRect.anchorMin = markerRect.anchorMax = new Vector2(0.5f, 0f);
-                markerRect.pivot = new Vector2(0.5f, 0f);
-                markerRect.sizeDelta = new Vector2(52f, 22f);
-                markerRect.anchoredPosition = new Vector2(0f, 3f);
-                var markerImage = marker.GetComponent<Image>();
-                markerImage.color = new Color(0.32f, 0.23f, 0.04f, 0.95f);
-                markerImage.raycastTarget = false;
-                var labelObject = new GameObject("Label", typeof(RectTransform), typeof(TextMeshProUGUI));
-                labelObject.layer = go.layer;
-                labelObject.transform.SetParent(marker.transform, false);
-                var label = labelObject.GetComponent<TextMeshProUGUI>();
-                label.font = boardPanel.UiFont;
-                label.text = "성역";
-                label.fontSize = 16;
-                label.color = new Color(1f, 0.85f, 0.35f);
-                label.alignment = TextAlignmentOptions.Center;
-                label.raycastTarget = false;
-                label.rectTransform.anchorMin = Vector2.zero;
-                label.rectTransform.anchorMax = Vector2.one;
-                label.rectTransform.offsetMin = label.rectTransform.offsetMax = Vector2.zero;
-                marker.SetActive(false);
-                _sanctuaryMarkers[new Vector2Int(x, y)] = marker;
             }
         }
         
         for (int i = 0; i < 3; i++)
         {
             units[i].unitTemp = BattleDisplayManager.GetInstance().currentUnits[i];
-            units[i].passive = new CharacterPassiveState(units[i].unitTemp.id);
             units[i].isPlaced = false;
             units[i].reviveRemainTurn = 0;
             units[i].pos = new Vector2Int(-1, -1);
@@ -190,26 +135,11 @@ public class BattleManagerTemp : MonoBehaviour
             units[i].unitOnWaiting.GetComponent<Image>().color = new Color(1, 1, 1, 1);
         }
         
-        RefreshSanctuary();
         boardPanel.NextTurn();
     }
 
     public void OnTurnStart()
     {
-        for (int i = 0; i < units.Length; i++)
-        {
-            units[i].passive.StartTurn();
-            if (units[i].reviveRemainTurn <= 0) continue;
-
-            units[i].reviveRemainTurn--;
-            if (units[i].reviveRemainTurn != 0) continue;
-
-            units[i].unit.gameObject.SetActive(true);
-            units[i].unit.GetComponent<RectTransform>().anchoredPosition =
-                _blankPos[units[i].pos].GetComponent<RectTransform>().anchoredPosition;
-            boardPanel.OnUnitRevived(i);
-        }
-
         var tb = false;
         foreach (var unit in units)
         {
@@ -347,12 +277,7 @@ public class BattleManagerTemp : MonoBehaviour
             units[_currentMoveIndex].pos = target.Key;
             GameSfx.PlayMove();
             UnitMotion.For(units[_currentMoveIndex].unit).Hop();
-            var passive = units[_currentMoveIndex].passive;
-            passive.Move();
             boardPanel.Trial?.OnUnitMoved(_currentMoveIndex);
-            boardPanel.OnAllyMoved();
-            boardPanel.AttackBossFromUnit(passive.MoveDamage + boardPanel.ItemEffects.MoveDamage, _currentMoveIndex);
-            if (boardPanel.Trial == null) boardPanel.HealReaper(passive.MoveHealing);
             OnPointerExit(_currentMoveIndex);
             OnPointerEnter(_currentMoveIndex);
             TutorialDirector.Notify(TutorialAct.Move, _currentMoveIndex);
@@ -381,17 +306,15 @@ public class BattleManagerTemp : MonoBehaviour
                 _currentClickIndex = -1;
                 return;
             }
-            var passive = units[i].passive;
-            int damage = GetIntelligence(i);
-            // 시험 규칙: 심판 횟수 제한, 치명타, 캐릭터 보너스를 적용한다.
-            if (boardPanel.Trial != null && !boardPanel.Trial.TryPrepareJudgment(i, ref damage))
+            int damage = 0;
+            // 피해는 모은 힘·특성·아이템으로 규칙(BellkeeperTrial)이 계산한다.
+            if (boardPanel.Trial == null || !boardPanel.Trial.TryPrepareJudgment(i, ref damage))
             {
                 _isClicked = false;
                 _currentClickIndex = -1;
                 return;
             }
             boardPanel.JudgeBossFromUnit(damage, i);
-            passive.AfterJudge();
             boardPanel.PlayJudgeAnim(i);
             TutorialDirector.Notify(TutorialAct.Judge, i);
             boardPanel.SpendAction(judgment: true);
@@ -409,35 +332,6 @@ public class BattleManagerTemp : MonoBehaviour
         _currentClickIndex = -1;
     }
 
-    public void Attack()
-    {
-        // 시험 규칙: 턴 끝 총 공격 없음.
-        if (boardPanel.Trial != null) return;
-        for (int i = 0; i < units.Length; i++)
-        {
-            if (boardPanel.IsBattleOver) break;
-            if (!units[i].isPlaced || units[i].reviveRemainTurn > 0) continue;
-            boardPanel.AutomaticAttackBossFromUnit(GetPower(i), i);
-            boardPanel.PlayAttackAnim(i);
-        }
-    }
-
-    public int GetPower(int i)
-    {
-        var unit = units[i];
-        if (unit.unitTemp == null) return 0;
-        return unit.unitTemp.power + (unit.passive?.PowerBonus ?? 0)
-            + boardPanel.ItemEffects.PowerBonus(unit.unitTemp.id, boardPanel.reaperCurrentHp);
-    }
-
-    public int GetIntelligence(int i)
-    {
-        var unit = units[i];
-        if (unit.unitTemp == null) return 0;
-        return unit.unitTemp.intelligence + (unit.passive?.IntelligenceBonus ?? 0)
-            + boardPanel.ItemEffects.IntelligenceBonus(unit.unitTemp.id, boardPanel.reaperCurrentHp);
-    }
-
     public void OnHit(int i)
     {
         if (boardPanel.IsBattleOver) return;
@@ -445,82 +339,17 @@ public class BattleManagerTemp : MonoBehaviour
         var trial = boardPanel.Trial;
         if (trial != null && !trial.RegisterHit(i))
         {
-            // 시험 규칙: 첫 피격은 부상만. 판에 남는다.
+            // 1·2번째 피격은 부상만. 판에 남는다.
             boardPanel.OnUnitRevived(i);
             return;
         }
+        // 3번째 피격 = 쓰러짐. 이번 전투에서 돌아오지 않는다.
         units[i].unit.gameObject.SetActive(false);
-        units[i].reviveRemainTurn = trial != null
-            ? int.MaxValue / 2 // 시험 규칙: 이번 전투에서 부활하지 않는다.
-            : boardPanel.ItemEffects.ReviveTurns(units[i].unitTemp.reviveCool);
-        units[i].passive.OnDeath();
-        // 전투 내 누적 효과는 자신이 사망/부활해도 유지한다.
-        foreach (var unit in units) unit.passive.OnAllyDeath();
-        boardPanel.OnAllyDeath();
-        if (units[i].passive.LosesBattleOnDeath) boardPanel.LoseBattle();
-        if (trial != null)
-        {
-            trial.OnUnitDown(i);
-            return;
-        }
-        // The watch can reduce a one-turn revival to zero, after death effects resolve.
-        if (!boardPanel.IsBattleOver && units[i].reviveRemainTurn == 0)
-        {
-            units[i].unit.gameObject.SetActive(true);
-            boardPanel.OnUnitRevived(i);
-        }
+        units[i].reviveRemainTurn = int.MaxValue / 2;
+        trial?.OnUnitDown(i);
     }
 
-    public bool TryBlockHit(int i)
-    {
-        // 시험 규칙: 캐릭터 특성(기사 피해 무효 등)을 끈다.
-        return boardPanel.Trial == null && units[i].passive.TryBlockHit();
-    }
-
-    public void OnTurnEnd()
-    {
-        if (boardPanel.Trial != null)
-        {
-            boardPanel.Trial.OnUnitTurnEnd();
-            return;
-        }
-        for (int i = 0; i < units.Length; i++)
-        {
-            if (boardPanel.IsBattleOver) break;
-            var unit = units[i];
-            if (unit.isPlaced && unit.reviveRemainTurn <= 0)
-            {
-                boardPanel.AttackBossFromUnit(unit.passive.TurnEndDamage, i);
-                boardPanel.HealReaper(unit.passive.TurnEndHealing);
-            }
-        }
-    }
-
-    public void RefreshSanctuary()
-    {
-        foreach (var marker in _sanctuaryMarkers)
-            if (marker.Value != null) marker.Value.SetActive(boardPanel.IsSanctuary(marker.Key));
-    }
-
-    public bool IsUnitOnSanctuary(int i)
-    {
-        return i >= 0 && i < units.Length && units[i].isPlaced && boardPanel.IsSanctuary(units[i].pos);
-    }
-
-    public void RelocateJudgmentUser(int i)
-    {
-        if (i < 0 || i >= units.Length || !units[i].isPlaced || units[i].reviveRemainTurn > 0) return;
-        // Include the caster's old cell and revival reservations: always move without stacking units.
-        var occupied = new HashSet<Vector2Int>(units.Where(u => u.isPlaced).Select(u => u.pos));
-        var destinations = BattlePatternRules.PickRelocationCells(1, occupied);
-        if (destinations.Count == 0) return;
-        OnPointerExit(i);
-        units[i].pos = destinations[0];
-        units[i].unit.rectTransform.anchoredPosition = _blankPos[destinations[0]].GetComponent<RectTransform>().anchoredPosition;
-        UnitMotion.For(units[i].unit).Hop();
-        _currentMoveIndex = -1;
-        // Forced movement costs no extra action and does not trigger character/item movement effects.
-    }
+    public void OnTurnEnd() => boardPanel.Trial?.OnUnitTurnEnd();
 
     public void PrepareBossPattern(BossTemp boss, int turnCount)
     {
@@ -528,27 +357,16 @@ public class BattleManagerTemp : MonoBehaviour
         if (_preparedDangerCells != null && _preparedBoss == boss && _preparedTurn == turnCount) return;
 
         ClearBossPatternPreview();
-        if (boardPanel.Trial != null)
-        {
-            _preparedEffect = BattlePatternRules.ColorEffect.None;
-            _preparedDangerCells = boardPanel.Trial.BuildDangerCells(turnCount);
-            _preparedLastStep = false;
-        }
-        else
-        {
-            var pattern = GetPattern(boss, turnCount);
-            _preparedEffect = BattlePatternRules.GetColorEffect(pattern);
-            _preparedDangerCells = BattlePatternRules.GetDangerCells(pattern);
-        }
+        _preparedDangerCells = boardPanel.Trial != null ? boardPanel.Trial.BuildDangerCells(turnCount) : new HashSet<Vector2Int>();
         _preparedBoss = boss;
         _preparedTurn = turnCount;
         foreach (var cell in _preparedDangerCells)
         {
             if (_attackPreviewPlates.TryGetValue(cell, out var preview))
             {
-                preview.color = GetPatternColor(_preparedEffect, true);
-                // 시험 규칙: 예고는 기본적으로 숨긴다(귀 기울이기로만 공개).
-                preview.enabled = boardPanel.Trial == null || boardPanel.Trial.PreviewRevealed;
+                preview.color = GetPatternColor(true);
+                // 예고는 기본적으로 숨긴다(귀 기울이기로만 공개).
+                preview.enabled = boardPanel.Trial != null && boardPanel.Trial.PreviewRevealed;
             }
         }
     }
@@ -563,8 +381,6 @@ public class BattleManagerTemp : MonoBehaviour
         _preparedDangerCells = null;
         _preparedBoss = null;
         _preparedTurn = -1;
-        _preparedEffect = BattlePatternRules.ColorEffect.None;
-        _preparedLastStep = false;
         foreach (var attack in _attackPlates.Values)
         {
             if (attack != null) attack.enabled = false;
@@ -577,24 +393,19 @@ public class BattleManagerTemp : MonoBehaviour
         PrepareBossPattern(boss, turnCount);
         // 예고한 좌표를 그대로 공격하며, 다음 패턴을 새로 뽑지 않는다.
         var dangerCells = _preparedDangerCells;
-        var effect = _preparedEffect;
         var revision = _patternRevision;
         foreach (var preview in _attackPreviewPlates.Values)
         {
             if (preview != null) preview.enabled = false;
         }
-        if (dangerCells.Count == 0)
-        {
-            if (_preparedLastStep) boardPanel.OnBossPatternGroupCompleted();
-            yield break;
-        }
+        if (dangerCells.Count == 0) yield break;
 
         foreach (var cell in dangerCells)
         {
             if (_attackPlates.TryGetValue(cell, out var attack) && attack != null)
             {
                 attack.enabled = true;
-                attack.color = GetPatternColor(effect, false);
+                attack.color = GetPatternColor(false);
             }
         }
 
@@ -604,51 +415,21 @@ public class BattleManagerTemp : MonoBehaviour
         yield return new WaitForSeconds(previewSeconds);
         if (revision != _patternRevision) yield break;
 
-        var damage = boss != null && boss.patternDamage > 0 ? boss.patternDamage : 5;
-        damage = AfterlifePassiveRules.GetBossAttackDamage(boss != null ? boss.bossId : null, damage);
         var hitUnits = new List<int>();
         var hitAnimations = new List<Coroutine>();
         for (int i = 0; i < units.Length; i++)
         {
             if (!units[i].isPlaced || units[i].reviveRemainTurn > 0) continue;
             if (!dangerCells.Contains(units[i].pos)) continue;
-            if (TryBlockHit(i)) continue;
-
             hitUnits.Add(i);
             var hitAnimation = boardPanel.HitAttack(i);
             if (hitAnimation != null) hitAnimations.Add(hitAnimation);
         }
 
-        // 피격 캐릭터 수와 관계없이 이번 패턴의 공유 HP 피해는 한 번만 적용한다.
-        // 시험 규칙: 맞은 캐릭터 1명당 플레이어 HP를 깎는다.
-        if (hitUnits.Count > 0) boardPanel.OnBossAttack(boardPanel.Trial != null ? boardPanel.Trial.HitDamageTotal(hitUnits) : damage);
-        boardPanel.Trial?.AfterBossAttack(hitUnits);
-
-        if (!boardPanel.IsBattleOver)
-        {
-            switch (effect)
-            {
-                case BattlePatternRules.ColorEffect.Relocate:
-                    RelocateHitUnits(hitUnits);
-                    break;
-                case BattlePatternRules.ColorEffect.ReduceNextActionPoints:
-                    boardPanel.ReduceNextTurnActionPoints(hitUnits.Count);
-                    break;
-                case BattlePatternRules.ColorEffect.DamageBossOnDodge:
-                    if (hitUnits.Count == 0) boardPanel.AttackBoss(3);
-                    break;
-                case BattlePatternRules.ColorEffect.IncreaseKingWillPower:
-                    if (hitUnits.Count > 0)
-                        boardPanel.UpdateBossWillPower(boardPanel.willPower + hitUnits.Count);
-                    break;
-                case BattlePatternRules.ColorEffect.HealKing:
-                    boardPanel.HealBoss(3 * hitUnits.Count);
-                    break;
-                case BattlePatternRules.ColorEffect.RelocateKingTargets:
-                    RelocateHitUnits(hitUnits);
-                    break;
-            }
-        }
+        // 맞은 캐릭터 1명당 플레이어 HP를 깎는다.
+        var trial = boardPanel.Trial;
+        if (hitUnits.Count > 0 && trial != null) boardPanel.OnBossAttack(trial.HitDamageTotal(hitUnits));
+        trial?.AfterBossAttack(hitUnits);
 
         // 동일한 1초 타이머끼리 경쟁하지 않고 실제 피격/사망 처리가 끝날 때까지 기다린다.
         foreach (var hitAnimation in hitAnimations)
@@ -667,66 +448,6 @@ public class BattleManagerTemp : MonoBehaviour
             }
         }
         // 다음 턴의 Prepare 호출까지 확정 좌표를 유지한다.
-        if (_preparedLastStep) boardPanel.OnBossPatternGroupCompleted();
-    }
-
-    private BattlePatternRules.PatternSequence GetSequence(BossTemp boss) => boss?.bossId switch
-    {
-        "death1" => _afterlifePhase1Sequence,
-        "death2" => _afterlifePhase2Sequence,
-        "king" => _kingSequence,
-        "noble" => _mansionSequence,
-        "fusion" => _plazaSequence,
-        "door" => _doorSequence,
-        "subject" => _basementSequence,
-        "secretary" => _librarySequence,
-        "instructor" => _trainingSequence,
-        "pope" => _cathedralSequence,
-        "bellkeeper" => _bellkeeperSequence,
-        _ => null
-    };
-
-    public bool HasBossPattern(BossTemp boss)
-        => GetSequence(boss) != null || (boss?.patterns != null && boss.patterns.Length > 0);
-
-    private BattlePatternRules.Pattern GetPattern(BossTemp boss, int turnCount)
-    {
-        var sequence = GetSequence(boss);
-        if (sequence != null)
-        {
-            var pattern = sequence.Next();
-            _preparedLastStep = sequence.IsLastStep;
-            return pattern;
-        }
-
-        var patterns = boss?.patterns;
-        if (patterns != null && patterns.Length > 0)
-        {
-            // Custom arrays are treated as one complete pattern group.
-            _preparedLastStep = turnCount % patterns.Length == 0;
-            return patterns[(turnCount - 1) % patterns.Length];
-        }
-
-        // 미설정 보스에게 대저택 패턴을 대신 적용하지 않는다.
-        return BattlePatternRules.Pattern.None;
-    }
-
-    private void RelocateHitUnits(List<int> hitUnits)
-    {
-        var occupied = new HashSet<Vector2Int>();
-        for (int i = 0; i < units.Length; i++)
-            if (units[i].isPlaced && !hitUnits.Contains(i)) occupied.Add(units[i].pos);
-        var destinations = BattlePatternRules.PickRelocationCells(hitUnits.Count, occupied);
-        for (int n = 0; n < destinations.Count; n++)
-        {
-            int i = hitUnits[n];
-            units[i].pos = destinations[n];
-            units[i].unit.rectTransform.anchoredPosition = _blankPos[destinations[n]].GetComponent<RectTransform>().anchoredPosition;
-            UnitMotion.For(units[i].unit).Hop();
-        }
-        // 강제 이동은 아군의 이동 행동이 아니므로 이동 패시브/행동력은 발동하지 않는다.
-        OnPointerExit(-1);
-        _currentMoveIndex = -1;
     }
 
     // ───── 시험 규칙(BellkeeperTrial)용 조회 ─────
@@ -757,22 +478,11 @@ public class BattleManagerTemp : MonoBehaviour
         foreach (var cell in _preparedDangerCells)
             if (_attackPreviewPlates.TryGetValue(cell, out var preview) && preview != null)
             {
-                preview.color = GetPatternColor(_preparedEffect, true);
+                preview.color = GetPatternColor(true);
                 preview.enabled = true;
             }
     }
 
-    private static Color GetPatternColor(BattlePatternRules.ColorEffect effect, bool preview)
-    {
-        return effect switch
-        {
-            BattlePatternRules.ColorEffect.Relocate => new Color(1f, 0.2f, 0.2f, 0.65f),
-            BattlePatternRules.ColorEffect.ReduceNextActionPoints => new Color(0.2f, 0.85f, 0.35f, 0.65f),
-            BattlePatternRules.ColorEffect.DamageBossOnDodge => new Color(1f, 0.85f, 0.15f, 0.65f),
-            BattlePatternRules.ColorEffect.IncreaseKingWillPower => new Color(0.65f, 0.25f, 0.22f, 0.65f),
-            BattlePatternRules.ColorEffect.HealKing => new Color(0.2f, 0.55f, 0.3f, 0.65f),
-            BattlePatternRules.ColorEffect.RelocateKingTargets => new Color(0.62f, 0.61f, 0.39f, 0.65f),
-            _ => preview ? new Color(1f, 1f, 1f, 0.65f) : new Color(1f, 0.2f, 0.2f, 0.65f)
-        };
-    }
+    private static Color GetPatternColor(bool preview)
+        => preview ? new Color(1f, 1f, 1f, 0.65f) : new Color(1f, 0.2f, 0.2f, 0.65f);
 }

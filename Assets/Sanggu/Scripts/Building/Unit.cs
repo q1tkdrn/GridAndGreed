@@ -12,13 +12,11 @@ public class Unit : MonoBehaviour
     
     public void Init()
     {
-        powerText.text = $"<color=#FFB080>힘 {unitTemp.power}</color>";
-        intelligenceText.text = $"<color=#88CEFF>지능 {unitTemp.intelligence}</color>";
-        if (!powerText.enableAutoSizing) powerText.fontSizeMax = powerText.fontSize;
-        if (!intelligenceText.enableAutoSizing) intelligenceText.fontSizeMax = intelligenceText.fontSize;
-        powerText.fontSizeMin = intelligenceText.fontSizeMin = 18;
-        powerText.enableAutoSizing = intelligenceText.enableAutoSizing = true;
-        powerText.textWrappingMode = intelligenceText.textWrappingMode = TextWrappingModes.NoWrap;
+        // 지금 규칙(v2)은 캐릭터 고유 힘·지능을 쓰지 않는다 → 이름과 특성을 보여 준다
+        powerText.text = $"{unitTemp.unitName}\n<size=78%><color=#C8C8C8>{WrapWords(unitTemp.abilityText)}</color></size>";
+        powerText.enableAutoSizing = false;
+        powerText.textWrappingMode = TextWrappingModes.Normal;
+        if (intelligenceText != null) intelligenceText.gameObject.SetActive(false);
         if (!unitTemp.IsSkinUnlocked(unitTemp.currentSkin)) unitTemp.currentSkin = 0;
         sd.sprite = unitTemp.currentSkin switch
         {
@@ -28,5 +26,18 @@ public class Unit : MonoBehaviour
             3 => unitTemp.skin3,
             _ => sd.sprite
         };
+
+        // 편성창 연출: 빛·숨쉬기·마우스 올리면 심판 동작 (JSW/Script/FormationUnitFx.cs)
+        var fx = GetComponent<FormationUnitFx>();
+        if (fx == null) fx = gameObject.AddComponent<FormationUnitFx>();
+        fx.Setup(sd, unitTemp, powerText);
+    }
+
+    /// <summary>한글이 단어 중간에서 꺾이지 않게 띄어쓰기 단위로 묶는다.</summary>
+    public static string WrapWords(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        var words = text.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+        return string.Join(" ", Array.ConvertAll(words, w => $"<nobr>{w}</nobr>"));
     }
 }

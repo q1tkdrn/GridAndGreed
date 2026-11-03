@@ -423,6 +423,8 @@ public class BattleDisplayManager : MonoBehaviour
             currentUnits[k] = unit;
         }
         currentItems = new ItemData[3];
+        // 튜토리얼 아이템: 소금물 (4턴에 HP +1)
+        if (ItemManager.Instance != null) currentItems[0] = ItemManager.Instance.items.FirstOrDefault(it => it != null && it.id == TutorialScript.ItemId);
 
         entrancePanel.gameObject.SetActive(false);
         cutScenePanel.gameObject.SetActive(false);

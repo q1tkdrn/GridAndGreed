@@ -38,7 +38,7 @@ public class DisplayDebug: Editor
             _ => string.IsNullOrWhiteSpace(boss.stageName)
                 ? boss.bossName : $"{boss.stageName} · {boss.bossName}"
         };
-        return $"{name} 바로 시작 (HP {boss.maxHp} / 의지 {boss.initialWillPower})";
+        return $"{name} 바로 시작";
     }
     
     public override void OnInspectorGUI()

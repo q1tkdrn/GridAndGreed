@@ -1,0 +1,9 @@
+Assets/Sanggu/ScriptableObjects/Units/1.Knight.asset|0|False|True|False
+Assets/Sanggu/ScriptableObjects/Units/2.Archer.asset|0|False|False|False
+Assets/Sanggu/ScriptableObjects/Units/3.Rogue.asset|0|False|False|False
+Assets/Sanggu/ScriptableObjects/Units/4.Bishop.asset|0|False|False|False
+Assets/Sanggu/ScriptableObjects/Units/5.Dancer.asset|0|False|False|False
+Assets/Sanggu/ScriptableObjects/Units/6.Scavenger.asset|0|False|False|False
+Assets/Sanggu/ScriptableObjects/Units/7.Wizard.asset|0|False|False|False
+Assets/Sanggu/ScriptableObjects/Units/8.Fanatic.asset|0|False|False|False
+Assets/Sanggu/ScriptableObjects/Units/9.Reaper.asset|0|False|False|False

@@ -51,7 +51,7 @@ public sealed class BellkeeperTrial
         ["subject"] = (162, new[] { new[] { "MidRows", "Left3", "MidRows", "Right3" }, new[] { "Edge1x", "Pursuit3" }, new[] { "Xm4", "Ym4", "Center5" }, new[] { "Diag" } }),
         ["death1"] = (130, new[] { new[] { "Mansion1", "Mansion2", "Pursuit3" }, new[] { "Top3", "SideCols", "Inner7" }, new[] { "Diag", "Inner7" }, new[] { "Cross1", "Pursuit3" } }),
         ["death2"] = (55, new[] { new[] { "PendX", "Pursuit3" }, new[] { "Border2", "Center5" }, new[] { "Mansion1", "Mansion2" }, new[] { "Ring3", "Pursuit3" } }),
-        ["tutorial"] = (TutorialScript.BossHp, new[] { new[] { "TutRow", "TutCol", "Tut3x3", "Tut3x3" } }),   // 튜토리얼: 묶음 하나, 순서 고정
+        ["tutorial"] = (TutorialScript.BossHp, new[] { new[] { "TutRow", "TutCol", "Tut3x3", "TutRow", "TutRow" } }),   // 튜토리얼: 묶음 하나, 순서 고정
         ["king"] = (157, new[] { new[] { "MidRows", "KingA2", "Border2x" }, new[] { "Diag", "Ring3full" }, new[] { "Cross1", "Pursuit3" }, new[] { "Xm4", "Ym4", "Center5", "Pursuit3" }, new[] { "Diag" } }),
     };
 
@@ -324,7 +324,7 @@ public sealed class BellkeeperTrial
             _opening = _nextOpening; _nextOpening = false;
             _judgesThisTurn = 0; _turnDamage = 0;
             for (int i = 0; i < 3; i++) { _movedThisTurn[i] = false; _movesThisTurn[i] = 0; _danceGiven[i] = false; }
-            if (turnCount % 2 == 0 && HasItem("4")) { _board.HealReaper(1); _board.PrintText("[소금물] 플레이어 HP +1"); }                       // 소금물
+            if (turnCount % 2 == 0 && HasItem("4") && (!IsTutorial || turnCount == 4)) { _board.HealReaper(1); _board.PrintText("[소금물] 플레이어 HP +1"); }                       // 소금물
             if (turnCount % 2 == 0 && HasItem("16")) { _board.UpdateReaperHp(_board.reaperCurrentHp - 1); _board.PrintText("[담배] 플레이어 HP -1"); } // 담배
             CheckSurvival();
             _board.UpdateBossWillPower(WillAt(turnCount));
@@ -960,6 +960,9 @@ public sealed class BellkeeperTrial
             Add(_markers, CreateCellLabel(_lucky.Value, "행운+4", 17f, new Color(0.85f, 0.95f, 1f), new Color(0.1f, 0.25f, 0.4f, 0.92f), new Vector2(0f, -27f), new Vector2(66f, 24f)));
         foreach (var pair in _powerCells)
         {
+            // 칸 그림(JSW/Resources/전투_힘칸·전투_욕심칸)이 있으면 칸 전체를 그 그림으로, 없으면 예전 글자 표시
+            var tile = CreatePowerTile(pair.Key, pair.Value);
+            if (tile != null) { Add(_markers, tile); continue; }
             if (pair.Value)
                 Add(_markers, CreateCellLabel(pair.Key, $"+{GreedStepValue}/+{GreedStandValue}", 17f, new Color(1f, 0.86f, 0.35f), new Color(0.36f, 0.24f, 0.02f, 0.95f), new Vector2(0f, -27f), new Vector2(66f, 24f)));
             else
@@ -989,6 +992,98 @@ public sealed class BellkeeperTrial
     private static void Add(List<GameObject> list, GameObject go)
     {
         if (go != null) list.Add(go);
+    }
+
+    // ── 힘 칸 · 욕심 칸 그림 ──
+    // 숫자 없는 그림(_빈)이 있으면 숫자는 코드로 쓴다 → 수치·아이템이 바뀌어도 그림을 다시 그릴 필요 없음.
+    // _빈 그림은 원래 그림에서 숫자만 지운 것 (2026-11-03). 사용자가 직접 그린 숫자 없는 그림으로 같은 이름에 덮어써도 됨.
+    // 숫자 위치·높이는 원래 그림 속 숫자 자리 (그림 픽셀, 왼쪽 아래 기준 가운데 x, y, 글자 높이)
+    private static readonly Color PowerInk = new Color(0.60f, 0.72f, 0.54f);
+    private static readonly Color GreedInk = new Color(0.74f, 0.73f, 0.56f);
+    private static readonly Color BoostInk = new Color(1f, 0.97f, 0.86f);   // 아이템으로 늘어난 값은 더 밝게
+    private static Sprite _powerBlank, _greedBlank;
+    private static Sprite PowerBlankSprite => _powerBlank != null ? _powerBlank : _powerBlank = FirstSprite("전투_힘칸_빈");
+    private static Sprite GreedBlankSprite => _greedBlank != null ? _greedBlank : _greedBlank = FirstSprite("전투_욕심칸_빈");
+
+    /// <summary>이 판에서 누구나 받는 값 (도적처럼 캐릭터마다 다른 보너스는 빼고, 모두에게 붙는 아이템 보너스는 넣음)</summary>
+    private int ShownGreedStep => GreedStepValue + (HasItem("3") ? 1 : 0);   // 세 번째 단검
+
+    private GameObject CreatePowerTile(Vector2Int cell, bool greed)
+    {
+        var blank = greed ? GreedBlankSprite : PowerBlankSprite;
+        if (blank == null) return CreateCellTile(cell, greed ? GreedTileSprite : PowerTileSprite);   // 숫자가 그려진 옛 그림
+        var go = CreateCellTile(cell, blank);
+        if (go == null) return null;
+        if (greed)
+        {
+            AddTileDigit(go, blank, ShownGreedStep, GreedStepValue, 42.5f, 60.5f, 20f, GreedInk);
+            AddTileDigit(go, blank, GreedStandValue, GreedStandValue, 64f, 17.5f, 24f, GreedInk);
+        }
+        else
+        {
+            AddTileDigit(go, blank, SafeValue, SafeValue, 49f, 56f, 25f, PowerInk);
+        }
+        return go;
+    }
+
+    private void AddTileDigit(GameObject tile, Sprite art, int value, int baseValue, float cx, float cy, float height, Color ink)
+    {
+        var tileRect = (RectTransform)tile.transform;
+        float sx = tileRect.sizeDelta.x / art.rect.width, sy = tileRect.sizeDelta.y / art.rect.height;
+        var go = new GameObject("Digit", typeof(RectTransform), typeof(TextMeshProUGUI));
+        go.layer = tile.layer;
+        var rect = (RectTransform)go.transform;
+        rect.SetParent(tileRect, false);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = new Vector2((cx + 0.5f - art.rect.width * 0.5f) * sx, (cy + 0.5f - art.rect.height * 0.5f) * sy);
+        rect.sizeDelta = new Vector2(height * 1.5f * sx, height * 1.5f * sy);
+        var text = go.GetComponent<TextMeshProUGUI>();
+        if (_board.UiFont != null) text.font = _board.UiFont;
+        text.text = value.ToString();
+        float size = height / 0.8f * sy;    // 숫자 높이 ≈ 글자 크기의 80% (그림 속 손글씨 숫자 높이에 맞춤)
+        text.enableAutoSizing = true;       // 두 자리가 되면 칸 안에서 줄어듦
+        text.fontSizeMax = size;
+        text.fontSizeMin = size * 0.5f;
+        text.fontSize = size;
+        text.color = value > baseValue ? BoostInk : ink;
+        text.alignment = TextAlignmentOptions.Center;
+        text.textWrappingMode = TextWrappingModes.NoWrap;
+        text.raycastTarget = false;
+    }
+
+    private static Sprite _powerTile, _greedTile;
+    private static Sprite PowerTileSprite => _powerTile != null ? _powerTile : _powerTile = FirstSprite("전투_힘칸");
+    private static Sprite GreedTileSprite => _greedTile != null ? _greedTile : _greedTile = FirstSprite("전투_욕심칸");
+
+    private static Sprite FirstSprite(string path)
+    {
+        var all = Resources.LoadAll<Sprite>(path);
+        return all != null && all.Length > 0 ? all[0] : null;
+    }
+
+    /// <summary>
+    /// 칸 그림을 칸 바로 아래 층에 깐다. 칸 자체는 평소 투명이라 그림이 보이고,
+    /// 이동 가능 표시(칸 흰색)·공격 예고·실제 공격(칸의 자식)·캐릭터는 모두 그 위에 그대로 보인다.
+    /// </summary>
+    private GameObject CreateCellTile(Vector2Int cell, Sprite sprite)
+    {
+        if (sprite == null) return null;
+        var cellRect = _battle.GetCellRect(cell);
+        if (cellRect == null || cellRect.parent == null) return null;
+        var go = new GameObject("TrialTile", typeof(RectTransform), typeof(Image));
+        go.layer = cellRect.gameObject.layer;
+        var rect = (RectTransform)go.transform;
+        rect.SetParent(cellRect.parent, false);
+        rect.anchorMin = cellRect.anchorMin;
+        rect.anchorMax = cellRect.anchorMax;
+        rect.pivot = cellRect.pivot;
+        rect.sizeDelta = cellRect.sizeDelta;
+        rect.anchoredPosition = cellRect.anchoredPosition;
+        rect.SetSiblingIndex(cellRect.GetSiblingIndex());   // 칸 바로 앞 = 칸 아래
+        var image = go.GetComponent<Image>();
+        image.sprite = sprite;
+        image.raycastTarget = false;
+        return go;
     }
 
     private GameObject CreateCellLabel(Vector2Int cell, string value, float size, Color textColor, Color background, Vector2 offset, Vector2 boxSize)

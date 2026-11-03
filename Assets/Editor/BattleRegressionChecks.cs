@@ -32,7 +32,6 @@ public static class BattleRegressionChecks
         Check(board != null, "Battle scene must bind its board");
         CheckPlacementSelection(board);
         CheckTurnEnd(board, display);
-        CheckBossPassives(board);
         CheckVisualReset(board);
         CheckSkins();
         CheckAssetsAndRoute(display);
@@ -41,8 +40,7 @@ public static class BattleRegressionChecks
         Check(bellkeeper.bossSprite != null && bellkeeper.stageSprite != null, "Bellkeeper sprite references resolve");
         Check(display.remainBoss.Contains(bellkeeper), "Bellkeeper is available in the journey pool");
         Check(bellkeeper.bgmLoop != null, "Bellkeeper has battle music");
-        var battle = UnityEngine.Object.FindFirstObjectByType<BattleManagerTemp>(FindObjectsInactive.Include);
-        Check(battle.HasBossPattern(bellkeeper), "Bellkeeper uses its dedicated pattern sequence");
+        Check(BellkeeperTrial.IsTrialBoss(bellkeeper), "Bellkeeper uses the battle rules");
         Debug.Log($"PASS: {checks} battle regression assertions");
     }
 
@@ -112,105 +110,6 @@ public static class BattleRegressionChecks
         Set(board, "_isPrinting", true); // Queue logs without starting edit-mode coroutines.
         Set(board, "_isBossPrinting", true);
         Set(board, "<ItemEffects>k__BackingField", items ?? new ItemBattleState(null));
-        Set(board, "_bossPassives", new BossPassiveState(boss.bossId));
-    }
-
-    private static void CheckBossPassives(BoardPanel board)
-    {
-        Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Noble.asset"), 15, 0);
-        board.bossCurrentHp = 55;
-        board.OnAllyMoved();
-        Check(board.bossCurrentHp == 57, "Noble heals two on ally movement");
-        board.OnAllyMoved();
-        board.OnAllyMoved();
-        Check(board.bossCurrentHp == 60, "Movement healing is capped at maximum HP");
-        Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Fusion.asset"), 15, 5);
-        board.JudgeBoss(4);
-        board.JudgeBoss(5);
-        Check(board.willPower == 7 && board.bossCurrentHp == 51, "Judgment events must apply fusion will gain as well as damage");
-        Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Subject.asset"), 15, 5);
-        board.OnAllyDeath();
-        board.OnAllyDeath();
-        Check(board.willPower == 7, "Every actual death event increments subject will power");
-
-        Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/instructor.asset"), 15, 5);
-        board.AutomaticAttackBoss(9);
-        Check(board.bossCurrentHp == 59 && board.reaperCurrentHp == 12, "First strength attack is reduced and countered");
-        board.AutomaticAttackBoss(9);
-        Check(board.bossCurrentHp == 58 && board.reaperCurrentHp == 12, "Additional attacks do not counter again");
-        board.JudgeBoss(6);
-        Check(board.bossCurrentHp == 46 && board.reaperCurrentHp == 12, "Judgment doubles without countering");
-
-        Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Secretary.asset"), 15, 6);
-        board.AttackBoss(10);
-        board.JudgeBoss(10);
-        board.AutomaticAttackBoss(10);
-        Check(board.bossCurrentHp == 57, "All three damage entry points use odd-turn reduction");
-        ((BossPassiveState)Get(board, "_bossPassives")).StartTurn(2, (min, max) => min);
-        board.AttackBoss(10);
-        Check(board.bossCurrentHp == 47, "Even-turn item damage is restored");
-
-        var battle = (BattleManagerTemp)Get(board, "battleManagerTemp");
-        var units = (Array)Get(battle, "units");
-        var original = units.GetValue(0);
-        var originalSecond = units.GetValue(1);
-        var unit = units.GetValue(0);
-        var unitType = unit.GetType();
-        unitType.GetField("isPlaced").SetValue(unit, true);
-        unitType.GetField("reviveRemainTurn").SetValue(unit, 0);
-        unitType.GetField("pos").SetValue(unit, new Vector2Int(0, 0));
-        units.SetValue(unit, 0);
-        try
-        {
-            Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Pope.asset"), 15, 5);
-            ((BossPassiveState)Get(board, "_bossPassives")).StartTurn(1, (min, max) => min);
-            board.JudgeBossFromUnit(9, 0);
-            board.AutomaticAttackBossFromUnit(9, 0);
-            board.AttackBossFromUnit(9, 0);
-            Check(board.bossCurrentHp == 60, "Sanctuary blocks every character damage entry point");
-            board.AttackBoss(3);
-            Check(board.bossCurrentHp == 57, "Independent item damage is not attributed to a sanctuary unit");
-            unitType.GetField("pos").SetValue(unit, new Vector2Int(8, 8));
-            units.SetValue(unit, 0);
-            board.JudgeBossFromUnit(9, 0);
-            Check(board.bossCurrentHp == 48, "Damage checks current logical position after movement");
-
-            Prepare(board, Asset<BossTemp>("Assets/Sanggu/ScriptableObjects/Boss/Door.asset"), 15, 5);
-            var blanks = (System.Collections.Generic.Dictionary<Vector2Int, GameObject>)Get(battle, "_blankPos");
-            for (int y = 0; y < 9; y++)
-                for (int x = 0; x < 9; x++)
-                {
-                    var cell = new GameObject("RegressionCell", typeof(RectTransform));
-                    cell.GetComponent<RectTransform>().anchoredPosition = new Vector2(x * 82, y * 82);
-                    blanks.Add(new Vector2Int(x, y), cell);
-                }
-            try
-            {
-                var second = units.GetValue(1);
-                unitType.GetField("isPlaced").SetValue(second, true);
-                unitType.GetField("pos").SetValue(second, new Vector2Int(4, 4));
-                units.SetValue(second, 1);
-                board.JudgeBossFromUnit(4, 0);
-                var moved = units.GetValue(0);
-                var destination = (Vector2Int)unitType.GetField("pos").GetValue(moved);
-                var image = (Image)unitType.GetField("unit").GetValue(moved);
-                Check(destination != new Vector2Int(8, 8) && destination != new Vector2Int(4, 4),
-                    "Door relocates the caster without keeping the old cell or overlapping another unit");
-                Check(image.rectTransform.anchoredPosition == blanks[destination].GetComponent<RectTransform>().anchoredPosition,
-                    "Door relocation updates the visible and logical positions together");
-                Check(board.bossCurrentHp == 56 && board.reaperCurrentHp == 15, "Forced movement causes no extra passive damage/healing");
-            }
-            finally
-            {
-                foreach (var cell in blanks.Values) UnityEngine.Object.DestroyImmediate(cell);
-                blanks.Clear();
-            }
-        }
-        finally
-        {
-            units.SetValue(original, 0);
-            units.SetValue(originalSecond, 1);
-        }
     }
 
     private static void CheckTurnEnd(BoardPanel board, BattleDisplayManager display)
@@ -232,10 +131,6 @@ public static class BattleRegressionChecks
         board.reaperCurrentHp = 4;
         Call(board, "EndBossTurn");
         Check(board.IsBattleOver, "The contract cannot rescue twice in the same battle");
-        Prepare(board, display.bossDeath2, 4, 7);
-        board.bossCurrentHp = 1;
-        Call(board, "EndBossTurn");
-        Check(board.bossCurrentHp == 0 && board.reaperCurrentHp == 4, "Victory stops further will power damage");
     }
 
     private static void CheckVisualReset(BoardPanel board)
@@ -317,15 +212,6 @@ public static class BattleRegressionChecks
 
     private static void CheckAssetsAndRoute(BattleDisplayManager display)
     {
-        foreach (var guid in AssetDatabase.FindAssets("t:UnitTemp"))
-        {
-            var unit = Asset<UnitTemp>(AssetDatabase.GUIDToAssetPath(guid));
-            if (unit.id == 9) continue;
-            int expected = unit.id == 8 ? 2 : 3;
-            Check(unit.reviveCool == expected, "All revivable units gain one cooldown turn");
-            Check(new ItemBattleState(new[] { "9" }).ReviveTurns(unit.reviveCool) == expected - 1,
-                "The watch still reduces the new cooldown by one");
-        }
         for (int i = 1; i <= 8; i++)
             Check(Asset<CharacterData>($"Assets/JDY/Data/Characters/Character_{i}.asset").price == 500, "Unit price is 500");
         foreach (var guid in AssetDatabase.FindAssets("t:ItemData"))

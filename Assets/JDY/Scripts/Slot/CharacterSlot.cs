@@ -16,8 +16,6 @@ public class CharacterSlot : MonoBehaviour
     [Header("Character Info")]
     [SerializeField] private TMP_Text nameText;
     [SerializeField] private TMP_Text priceText;
-    [SerializeField] private TMP_Text STRText;
-    [SerializeField] private TMP_Text INTText;
     [SerializeField] private TMP_Text describeText;
 
     public CharacterData character;//buy
@@ -39,8 +37,6 @@ public class CharacterSlot : MonoBehaviour
         nameText.text = character.characterName;
         describeText.text = character.description;
         priceText.text = character.price.ToString();
-        STRText.text = character.STR.ToString();
-        INTText.text = character.INT.ToString();
     }
 
     public void LeftButton()
