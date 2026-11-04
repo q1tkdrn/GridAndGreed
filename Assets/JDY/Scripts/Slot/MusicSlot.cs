@@ -17,17 +17,18 @@ public class MusicSlot : MonoBehaviour
     [SerializeField] private Image playButtonImage;
     [Tooltip("재생 중에 보여줄 일시정지 그림. 비워 두면 Resources/음악_재생 을 쓴다.")]
     [SerializeField] private Sprite pauseSprite;
-    [Header("재생 중인 곡 강조")]
-    [Tooltip("재생 중인 곡이 가운데에 있을 때, 가운데 바로 옆 곡의 밝기(알파).")]
-    [SerializeField, Range(0f, 1f)] private float nearAlpha = 0.6f;
-    [Tooltip("재생 중인 곡이 가운데에 있을 때, 맨 끝 곡의 밝기(알파).")]
-    [SerializeField, Range(0f, 1f)] private float farAlpha = 0.35f;
+    [Header("가운데 곡 강조")]
+    [Tooltip("가운데 바로 옆 칸(테두리·버튼·글자)의 밝기. 1이면 원래 색, 0이면 검정.")]
+    [SerializeField, Range(0f, 1f)] private float nearBrightness = 0.35f;
+    [Tooltip("맨 끝 칸(테두리·버튼·글자)의 밝기. 1이면 원래 색, 0이면 검정.")]
+    [SerializeField, Range(0f, 1f)] private float farBrightness = 0.15f;
     private Sprite playSprite;
     private bool isOwnPlayback; // 이 화면의 재생 버튼으로 튼 곡인지 (들어올 때 나오는 배경음은 아님)
     private bool isPaused;
     void Start()
     {
         currentIndex = PlayerPrefs.GetInt("MainMusic", 0);
+        ApplyDim();
         SetSlot();
         if (playButtonImage != null) playSprite = playButtonImage.sprite;
         if (pauseSprite == null)
@@ -48,7 +49,6 @@ public class MusicSlot : MonoBehaviour
             nameText[i].text = MusicTitle.Of(manager.musics[index]);   // 분류어 뗀 제목 (JSW/Script/MusicTitle.cs)
         }
         PlayerPrefs.SetInt("MainMusic", currentIndex);
-        RefreshHighlight();
     }
     void Update()
     {
@@ -64,7 +64,6 @@ public class MusicSlot : MonoBehaviour
             dialog.StartMusicDialog(MusicTitle.Of(manager.musics[currentIndex]));
         }
         RefreshPlayIcon();
-        RefreshHighlight();
     }
 
     // 지금 고른 곡이 재생 중이면 일시정지(‖), 아니면 재생(▶) 그림을 보여준다.
@@ -76,20 +75,24 @@ public class MusicSlot : MonoBehaviour
         if (playButtonImage.sprite != sprite) playButtonImage.sprite = sprite;
     }
 
-    // 재생 중인 곡(들어올 때 나오는 곡 포함, 일시정지는 제외)이 가운데에 있으면
-    // 가운데는 그대로 두고 나머지는 멀수록 어둡게. 가운데에서 벗어나면 모두 같은 밝기로 되돌린다.
-    private void RefreshHighlight()
+    // 가운데 칸은 그대로 두고, 나머지 칸은 테두리·재생 버튼·글자까지 멀수록 검게 누른다 (2026-11-04).
+    // 칸은 움직이지 않고 글자만 바뀌므로 시작할 때 한 번만 칠한다. 알파는 건드리지 않아 뒤가 비치지 않는다.
+    private void ApplyDim()
     {
-        if (nameText == null || audioSource == null || manager == null || manager.musics.Length == 0) return;
-        var playing = audioSource.isPlaying ? audioSource.resource as AudioClip : null;
-        bool highlight = playing != null && playing == manager.musics[currentIndex];
+        if (nameText == null) return;
         int center = nameText.Length / 2;
         for (int i = 0; i < nameText.Length; i++)
         {
             if (nameText[i] == null) continue;
             int distance = Mathf.Abs(i - center);
-            float alpha = !highlight || distance == 0 ? 1f : distance == 1 ? nearAlpha : farAlpha;
-            if (!Mathf.Approximately(nameText[i].alpha, alpha)) nameText[i].alpha = alpha;
+            if (distance == 0) continue;
+            float k = distance == 1 ? nearBrightness : farBrightness;
+            var frame = nameText[i].transform.parent;   // Frame1~5: 테두리 그림, 재생 버튼, 곡 이름
+            foreach (var g in frame.GetComponentsInChildren<Graphic>(true))
+            {
+                var c = g.color;
+                g.color = new Color(c.r * k, c.g * k, c.b * k, c.a);
+            }
         }
     }
     private void PrevMusic()
@@ -132,6 +135,5 @@ public class MusicSlot : MonoBehaviour
             isPaused = false;
         }
         RefreshPlayIcon();
-        RefreshHighlight();
     }
 }

@@ -268,6 +268,12 @@ public sealed class JourneyMap : MonoBehaviour
         var hover = go.AddComponent<HoverRelay>();
         hover.onEnter = ShowFormationButton;
         hover.onExit = HideFormationButtonSoon;
+        // 사신(이름표보다 먼저 만들어짐)의 자식이라 이름표 아래에 그려지고 클릭도 이름표에 막혔다 (2026-11-04).
+        // 자기 캔버스로 정렬 순서를 지도 위로 올려 항상 맨 앞에 보이고 눌리게 한다. ESC 메뉴(550)·확인 팝업(600)보다는 아래.
+        var front = go.AddComponent<Canvas>();
+        front.overrideSorting = true;
+        front.sortingOrder = SortingOrder + 10;
+        go.AddComponent<GraphicRaycaster>();
         _formationButton = go;
         go.SetActive(false);
     }

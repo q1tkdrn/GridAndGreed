@@ -7,12 +7,14 @@ using UnityEngine.UI;
 // - 배경: Resources/Images/Opening 의 컷신 중 한 장을 랜덤으로 살짝 확대해 보여준다.
 //         왼쪽 위에서 시작해 오른쪽 아래로 흘러가고, 그 뒤로도 사진의 네 모서리를 천천히 돌아다닌다.
 // - 사진 위에 어두운 막과 비네팅을 깔아 글자를 읽기 쉽게 한다.
-// - 로고(title.png)를 가운데 위로 옮기고 뒤에 은은한 빛을 둔다.
+// - 로고(Resources/메인화면_로고, 없으면 title.png)를 가운데 위로 옮기고 뒤에 은은한 빛을 둔다.
 // - 메뉴를 가운데에 세로로 정렬하고, 이미지에 박혀 있던 글자 대신 명조 텍스트를 쓴다.
 //   마우스를 올렸을 때의 하이라이트 바(choice_button)는 기존 그대로다.
 public sealed class TitleScreenLayout : MonoBehaviour
 {
     private const string OpeningPath = "Images/Opening";
+    // 새 로고 그림 (2026-11-04). 없으면 씬에 있는 title.png 의 로고를 잘라 쓴다.
+    private const string LogoPath = "메인화면_로고";
     // 오프닝 컷신 중 타이틀 배경에서 뺄 그림 (11: 종루 컷, 숫자가 아닌 이름: 콘티 스크린샷 등).
     private static readonly HashSet<string> ExcludedBackgrounds = new HashSet<string> { "11" };
 
@@ -28,6 +30,7 @@ public sealed class TitleScreenLayout : MonoBehaviour
 
     [Header("로고")]
     [SerializeField] private Vector2 logoCenter = new Vector2(0f, 270f);
+    [Tooltip("기존 title.png 로고의 너비. 새 로고는 이 너비일 때의 기존 로고 높이에 맞춘다.")]
     [SerializeField, Min(10f)] private float logoWidth = 620f;
     [SerializeField, Range(0f, 1f)] private float glowAlpha = 0.15f;
 
@@ -202,26 +205,41 @@ public sealed class TitleScreenLayout : MonoBehaviour
         var title = menuPanel.Find("Title0")?.GetComponent<Image>();
         if (title == null || title.sprite == null) return;
 
-        // title.png 는 화면 전체 크기 그림이라 로고 부분만 잘라 쓴다.
+        // 기존 title.png 는 화면 전체 크기 그림이라 로고 부분만 잘라 쓴다. 새 로고의 높이도 이 크기에 맞춘다.
         var source = title.sprite;
         var crop = FindOpaqueBounds(source);
-        var logo = Sprite.Create(source.texture, crop, new Vector2(0.5f, 0.5f), source.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+        float height = logoWidth * crop.height / crop.width;   // 기존 로고가 화면에 보이던 높이
+        float width = logoWidth;
+
+        Sprite logo;
+        var newLogo = Resources.Load<Sprite>(LogoPath);
+        if (newLogo != null)
+        {
+            // 새 로고: 바깥 투명 여백을 잘라 내고, 기존 로고와 같은 높이로 보이게 한다.
+            var newCrop = NewLogoBounds(newLogo);
+            logo = Sprite.Create(newLogo.texture, newCrop, new Vector2(0.5f, 0.5f), newLogo.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+            width = height * newCrop.width / newCrop.height;
+        }
+        else
+        {
+            logo = Sprite.Create(source.texture, crop, new Vector2(0.5f, 0.5f), source.pixelsPerUnit, 0, SpriteMeshType.FullRect);
+        }
         logo.name = "Title Logo";
 
         var rect = (RectTransform)title.transform;
         rect.anchorMin = rect.anchorMax = rect.pivot = new Vector2(0.5f, 0.5f);
-        rect.sizeDelta = new Vector2(logoWidth, logoWidth * crop.height / crop.width);
+        rect.sizeDelta = new Vector2(width, height);
         rect.anchoredPosition = logoCenter;
         title.sprite = logo;
         title.preserveAspect = true;
         title.raycastTarget = false;
 
-        // 로고 뒤 은은한 빛.
+        // 로고 뒤 은은한 빛. 로고 너비를 따라가고, 높이는 기존과 같다.
         glow = NewUiObject("Title Glow", menuPanel);
         glow.SetSiblingIndex(title.transform.GetSiblingIndex());
         glow.anchorMin = glow.anchorMax = glow.pivot = new Vector2(0.5f, 0.5f);
         glow.anchoredPosition = logoCenter;
-        glow.sizeDelta = new Vector2(logoWidth * 1.9f, logoWidth * 1.25f);
+        glow.sizeDelta = new Vector2(width * 1.9f, logoWidth * 1.25f);
         var glowImage = glow.gameObject.AddComponent<RawImage>();
         glowImage.texture = CreateGlowTexture();
         glowImage.color = new Color(1f, 1f, 1f, glowAlpha);
@@ -236,6 +254,22 @@ public sealed class TitleScreenLayout : MonoBehaviour
         float sx = tex.width / 1920f, sy = tex.height / 1080f;
         const float left = 97f, top = 78f, right = 715f, bottom = 417f, pad = 6f;
         var rect = new Rect((left - pad) * sx, (1080f - bottom - pad) * sy, (right - left + pad * 2f) * sx, (bottom - top + pad * 2f) * sy);
+        return ClampToTexture(rect, tex);
+    }
+
+    // 메인화면_로고.png 의 불투명 영역도 같은 이유로 고정값 (556x359 기준, 아래에서부터 x 66~482, y 77~306).
+    // 그림을 바꿔서 크기가 달라지면 비율로 맞추고, 그래도 이상하면 이 값을 다시 잰다.
+    private static Rect NewLogoBounds(Sprite source)
+    {
+        var r = source.rect;   // textureRect 는 투명 여백이 잘린 값이라 쓰지 않는다
+        float sx = r.width / 556f, sy = r.height / 359f;
+        const float left = 66f, bottom = 77f, right = 483f, top = 307f, pad = 6f;
+        var rect = new Rect(r.x + (left - pad) * sx, r.y + (bottom - pad) * sy, (right - left + pad * 2f) * sx, (top - bottom + pad * 2f) * sy);
+        return ClampToTexture(rect, source.texture);
+    }
+
+    private static Rect ClampToTexture(Rect rect, Texture2D tex)
+    {
         rect.xMin = Mathf.Max(0f, rect.xMin);
         rect.yMin = Mathf.Max(0f, rect.yMin);
         rect.xMax = Mathf.Min(tex.width, rect.xMax);
