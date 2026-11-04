@@ -89,6 +89,7 @@ public class UnitBuildingPanel : MonoBehaviour
     {
         changePanel.SetActive(false);
         formPanel.SetActive(true);
+        Init();   // 교체 화면에서 스킨만 바꾸고 돌아와도 3명 그림에 바로 반영 (2026-11-04)
     }
 
     public void OnCardClick(int i)

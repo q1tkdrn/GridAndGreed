@@ -376,7 +376,7 @@ public sealed class BellkeeperTrial
                 if (_battle.IsUnitOnBoard(i) && UnitId(i) == 4 && _board.reaperCurrentHp <= 10) _board.HealReaper(1);   // 비숍
             if (_bossId == "secretary")                                                                             // 장부
                 for (int i = 0; i < 3; i++)
-                    if (_battle.IsUnitOnBoard(i) && _charge[i] >= 15) { _charge[i] -= 4; _greed[i] = Math.Min(_greed[i], _charge[i]); _board.PrintText($"[장부] {_battle.GetUnitName(i)}의 힘 -4"); GameSfx.PlayTrait(); }
+                    if (_battle.IsUnitOnBoard(i) && _charge[i] >= 15) { Gain(i, -4, "장부", ChargePopup.Lose, tag: "보스 특성"); _board.PrintText($"[장부] {_battle.GetUnitName(i)}의 힘 -4"); GameSfx.PlayTrait(); }
             if (_bossId == "door")                                                                                  // 차원 이동
             {
                 int top = -1;
@@ -674,16 +674,18 @@ public sealed class BellkeeperTrial
 
         _movedThisTurn[i] = true;
         _movesThisTurn[i]++;
-        if (UnitId(i) == 5 && _movesThisTurn[i] >= 3 && !_danceGiven[i]) { _danceGiven[i] = true; _charge[i] += 2; }   // 무희
-        if (_lucky.HasValue && _lucky.Value == pos) { _lucky = null; _charge[i] += 4; _board.PrintText($"[주사위] 행운 칸, {_battle.GetUnitName(i)} 힘 +4"); GameSfx.PlayGreedPickup(); }                            // 주사위 행운 칸
+        if (UnitId(i) == 5 && _movesThisTurn[i] >= 3 && !_danceGiven[i]) { _danceGiven[i] = true; Gain(i, 2, "무희", ChargePopup.Trait); }   // 무희
+        if (_lucky.HasValue && _lucky.Value == pos) { _lucky = null; Gain(i, 4, "행운 칸", ChargePopup.Greed); _board.PrintText($"[주사위] 행운 칸, {_battle.GetUnitName(i)} 힘 +4"); GameSfx.PlayGreedPickup(); }                            // 주사위 행운 칸
         if (_powerCells.TryGetValue(pos, out bool greed))
         {
             _powerCells.Remove(pos);
             int extra = UnitId(i) == 3 ? 1 : 0;                                                                  // 도적
             if (greed)
             {
-                int g = GreedStepValue + extra + (HasItem("3") ? 1 : 0);                                         // 세 번째 단검
-                _charge[i] += g; _greed[i] += g;
+                // 욕심 칸 힘은 심판 피해가 2배(마법사 2.5배)라, 떠오르는 숫자도 그만큼 (머리 위 피해 숫자와 같게)
+                Gain(i, GreedStepValue, "욕심 칸", ChargePopup.Greed, greed: true);
+                if (extra > 0) Gain(i, extra, "도적", ChargePopup.Trait, greed: true);
+                if (HasItem("3")) Gain(i, 1, "세 번째 단검", ChargePopup.Item, greed: true);   // 세 번째 단검
                 if (HasItem("3")) _board.PrintText("[세 번째 단검] 욕심 칸 힘 +1");
                 _standing[i] = true;
                 _standCell[i] = pos;
@@ -693,11 +695,13 @@ public sealed class BellkeeperTrial
             else
             {
                 int sv = SafeValue + extra;
-                _charge[i] += sv;
+                bool book = HasItem("7") && _bookTurn != _turnsPlayed;                                            // 마법서: 턴의 첫 힘 칸은 욕심 힘
+                Gain(i, SafeValue, "힘 칸", ChargePopup.Cell, greed: book, tag: book ? "마법서" : null);
+                if (extra > 0) Gain(i, extra, "도적", ChargePopup.Trait, greed: book);
                 GameSfx.PlayPickup();
-                if (HasItem("7") && _bookTurn != _turnsPlayed)                                                   // 마법서: 턴의 첫 힘 칸은 욕심 힘
+                if (book)
                 {
-                    _bookTurn = _turnsPlayed; _greed[i] += sv;
+                    _bookTurn = _turnsPlayed;
                     _board.PrintText($"[마법서] {_battle.GetUnitName(i)}의 힘 +{sv}은 욕심 힘 (피해 2배)");
                 }
             }
@@ -728,7 +732,7 @@ public sealed class BellkeeperTrial
         _judgesThisTurn++;
         _lastJudgeTurn[i] = _turnsPlayed;
         if (_bossId == "fusion") { _willBonus++; _board.UpdateBossWillPower(_board.willPower + 1); _board.PrintText("[흡수] 의지력 +1"); }
-        for (int k = 0; k < 3; k++) if (k != i && _battle.IsUnitOnBoard(k) && UnitId(k) == 9) _charge[k] += 3;   // 꼬마 사신
+        for (int k = 0; k < 3; k++) if (k != i && _battle.IsUnitOnBoard(k) && UnitId(k) == 9) Gain(k, 3, "꼬마 사신", ChargePopup.Trait);   // 꼬마 사신
         BattleLog.Line($"심판 {UnitTag(i)} @{P(_battle.GetUnitPos(i))} 힘 {charge} → 피해 {damage} | 행동력 남음 {_board.actionPoint - 1}, 보스 HP {_board.bossCurrentHp}→{Math.Max(0, _board.bossCurrentHp - damage)}");
         string mult = charge >= 10 ? " x2" : charge >= 5 ? " x1.5" : "";
         _charge[i] = 0; _greed[i] = 0;
@@ -833,7 +837,7 @@ public sealed class BellkeeperTrial
         if (hitUnits != null && hitUnits.Count > 0)
         {
             _hitHpTotal += HitDamage * hitUnits.Count;
-            foreach (int k in hitUnits) for (int s2 = 0; s2 < 3; s2++) if (s2 != k && _battle.IsUnitOnBoard(s2) && UnitId(s2) == 6) _charge[s2] += 2;   // 스캐빈져
+            foreach (int k in hitUnits) for (int s2 = 0; s2 < 3; s2++) if (s2 != k && _battle.IsUnitOnBoard(s2) && UnitId(s2) == 6) Gain(s2, 2, "스캐빈저", ChargePopup.Trait);   // 스캐빈져
             if (_pattern.EndsWith("KingA2")) { _board.HealBoss(3 * hitUnits.Count); _board.PrintText($"[왕의 위엄] 보스 HP +{3 * hitUnits.Count}"); GameSfx.PlayTrait(); }                                         // 왕 회복
             if (_pattern.EndsWith("Ring3full") && _bossId == "king") { _willBonus += hitUnits.Count; _board.UpdateBossWillPower(_board.willPower + hitUnits.Count); _board.PrintText($"[왕의 위엄] 의지력 +{hitUnits.Count}"); GameSfx.PlayTrait(); }
             _hitsByToll[CurrentName] = (_hitsByToll.TryGetValue(CurrentName, out var n) ? n : 0) + hitUnits.Count;
@@ -845,8 +849,9 @@ public sealed class BellkeeperTrial
                 {
                     int gain = HitBonus[_hits[i] - 1] + (UnitId(i) == 8 ? 5 : 0);                       // 광신도 +5
                     bool stood = _standing[i] && _battle.GetUnitPos(i) == _standCell[i];
-                    if (stood) { _greed[i] += GreedStandValue; _charge[i] += GreedStandValue; _greedStood++; GameSfx.PlayGreedStand(); }
-                    _charge[i] += gain;
+                    if (stood) { Gain(i, GreedStandValue, "버티기", ChargePopup.Greed, greed: true); _greedStood++; GameSfx.PlayGreedStand(); }
+                    Gain(i, HitBonus[_hits[i] - 1], "피격", ChargePopup.Hit);
+                    if (UnitId(i) == 8) Gain(i, 5, "광신도", ChargePopup.Trait);
                     var image = _battle.GetUnitImage(i);
                     if (image != null) image.color = _hits[i] == 1 ? new Color(1f, 0.8f, 0.8f, 1f) : new Color(1f, 0.55f, 0.55f, 1f);
                 }
@@ -949,6 +954,31 @@ public sealed class BellkeeperTrial
 
     // ───────────────────────── 화면 표시 ─────────────────────────
 
+    /// <summary>힘을 바꾸고 그 캐릭터 머리 위에 이유를 띄운다 (JSW/Script/Trial/ChargePopup.cs). 힘을 바꾸는 곳은 모두 여기로.</summary>
+    /// <param name="greed">욕심 힘으로 쌓이는지 (욕심 칸·버티기·마법서). 심판 피해 2배(마법사 2.5배).</param>
+    /// <param name="tag">이유 옆 괄호 (예: 보스 특성). 없으면 캐릭터 특성으로 값이 달라질 때만 '캐릭터 특성'을 붙인다.</param>
+    private void Gain(int unit, int amount, string reason, Color color, bool greed = false, string tag = null)
+    {
+        float before = PowerWorth(unit);
+        _charge[unit] += amount;
+        if (greed) _greed[unit] += amount;
+        _greed[unit] = Math.Max(0, Math.Min(_greed[unit], _charge[unit]));
+        if (_battle == null) return;
+        // 떠오르는 숫자 = 머리 위 '심판 피해' 숫자가 오르는 만큼 (힘 자체가 아니라 힘의 피해 값)
+        float worth = PowerWorth(unit) - before;
+        float plain = greed ? amount * 2f : amount;   // 보통 캐릭터라면 오를 값
+        if (tag == null && UnitId(unit) == 7 && Mathf.Abs(worth - plain) > 0.01f) tag = "캐릭터 특성";   // 마법사
+        ChargePopup.Show(_battle.GetUnitImage(unit), worth, reason + (tag != null ? $" ({tag})" : ""), color, _board.UiFont);
+    }
+
+    /// <summary>쌓인 힘이 심판 피해로 몇이 되는지 (RawDamage의 힘 부분과 같은 식, 소수점 그대로). 고정 보너스(궁수 +8 등)는 뺀다.</summary>
+    private float PowerWorth(int i)
+    {
+        int charge = Math.Max(0, _charge[i]);
+        int g = Math.Min(_greed[i], charge), safe = charge - g;
+        return UnitId(i) == 7 ? safe * 0.5f + g * 2.5f : safe + g * 2f;
+    }
+
     private void RefreshMarkers()
     {
         foreach (var marker in _markers) if (marker != null) UnityEngine.Object.Destroy(marker);
@@ -971,7 +1001,9 @@ public sealed class BellkeeperTrial
         for (int i = 0; i < 3; i++)
         {
             if (!_standing[i] || !_battle.IsUnitOnBoard(i)) continue;
-            Add(_markers, CreateCellLabel(_standCell[i], $"버티면+{GreedStandValue}", 15f, new Color(1f, 0.86f, 0.35f), new Color(0.36f, 0.24f, 0.02f, 0.95f), new Vector2(0f, -28f), new Vector2(72f, 22f)));
+            // 욕심 칸에서 버티는 중: 글자 상자 대신 발밑 금빛 (2026-11-04). 버틴 뒤 값은 머리 위 숫자에 '8 → 24'로
+            var cell = _standCell[i];
+            Add(_markers, StandGlow.Create(_battle.GetCellRect(cell), () => _lastDanger != null && _lastDanger.Contains(cell)));
         }
     }
 
@@ -985,8 +1017,28 @@ public sealed class BellkeeperTrial
             // 지금 심판하면 보스에게 들어갈 피해만 보여준다.
             int d = _charge[i] > 0 ? PreviewJudgment(i) : 0;
             var color = d >= 20 ? new Color(1f, 0.82f, 0.3f) : d >= 10 ? new Color(1f, 0.65f, 0.4f) : Color.white;
-            Add(_chargeLabels, CreateCellLabel(_battle.GetUnitPos(i), d.ToString(), 20f, color, new Color(0f, 0f, 0f, 0.8f), new Vector2(0f, 29f), new Vector2(44f, 24f)));
+            if (_standing[i] && _battle.GetUnitPos(i) == _standCell[i])
+            {
+                // 욕심 칸에서 버티는 중: '지금 치면 d → 맞고 버티면 s'. 다음 피격에 쓰러지면 '→ 쓰러짐'
+                int s = StandPreview(i);
+                string next = s < 0 ? "<color=#FF8A80>→ 쓰러짐</color>" : $"<color=#FFD27A>→ {s}</color>";
+                Add(_chargeLabels, CreateCellLabel(_battle.GetUnitPos(i), $"{d} {next}", 22f, color, Color.clear, new Vector2(0f, 29f), new Vector2(s < 0 ? 118f : 92f, 24f)));
+                continue;
+            }
+            Add(_chargeLabels, CreateCellLabel(_battle.GetUnitPos(i), d.ToString(), 22f, color, Color.clear, new Vector2(0f, 29f), new Vector2(44f, 24f)));
         }
+    }
+
+    /// <summary>욕심 칸에서 다음 공격을 맞고 버티면 심판 피해가 얼마가 되는지. 다음 피격에 쓰러지면 -1.</summary>
+    private int StandPreview(int i)
+    {
+        if (_hits[i] + 1 >= DownAtHit) return -1;
+        int charge = _charge[i], greed = _greed[i];
+        _charge[i] += GreedStandValue + HitBonus[_hits[i]] + (UnitId(i) == 8 ? 5 : 0);   // 버티기 + 피격 (+ 광신도)
+        _greed[i] += GreedStandValue;
+        int value = PreviewJudgment(i);
+        _charge[i] = charge; _greed[i] = greed;
+        return value;
     }
 
     private static void Add(List<GameObject> list, GameObject go)
@@ -1120,6 +1172,14 @@ public sealed class BellkeeperTrial
         text.alignment = TextAlignmentOptions.Center;
         text.textWrappingMode = TextWrappingModes.NoWrap;
         text.raycastTarget = false;
+        if (background.a <= 0f)
+        {
+            // 바탕 상자 없이 (머리 위 힘 숫자, 2026-11-04): 굵게 + 검은 테두리로 어느 칸 위에서도 읽히게
+            image.enabled = false;
+            text.fontStyle = FontStyles.Bold;
+            text.outlineWidth = 0.25f;
+            text.outlineColor = new Color32(0, 0, 0, 235);
+        }
         return go;
     }
 

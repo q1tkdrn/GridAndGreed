@@ -38,7 +38,7 @@ public class ItemUI : MonoBehaviour
             return;
         }
         id = int.Parse(itemData.id);
-        unlock = InventoryManager.Instance.HasItem(id.ToString());
+        unlock = InventoryManager.Instance != null && InventoryManager.Instance.HasItem(id.ToString());   // 새 게임 첫 튜토리얼엔 InventoryManager가 없음
         nameText.text = itemData.itemName;
         descriptionText.text = itemData.description;
         image.sprite = itemData.icon;
@@ -47,6 +47,18 @@ public class ItemUI : MonoBehaviour
         image.gameObject.SetActive(true);
         gameObject.SetActive(true);
         if (lockCover != null) lockCover.SetActive(!unlock);
+    }
+
+    /// <summary>
+    /// 전투 화면 아이템 칸용: 얻었는지와 상관없이 지금 들고 있는 아이템으로 보여 준다 (자물쇠·'아직 얻지 못했어요' 없음).
+    /// 튜토리얼은 갖고 있지 않은 소금물을 빌려 주므로 이게 없으면 자물쇠가 보였다 (2026-11-04).
+    /// </summary>
+    public void ShowAsEquipped()
+    {
+        if (itemData == null) return;
+        unlock = true;
+        descriptionText.text = itemData.description;
+        if (lockCover != null) lockCover.SetActive(false);
     }
 
     public void OnMouseEnter()

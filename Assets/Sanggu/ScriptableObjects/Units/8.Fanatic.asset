@@ -14,9 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::UnitTemp
   unitName: "\uAD11\uC2E0\uB3C4"
   id: 8
-  power: 3
-  intelligence: 2
-  reviveCool: 2
   abilityText: "\uB9DE\uC744 \uB54C \uC5BB\uB294 \uD798 +5 \uB354"
   illustration: {fileID: 21300000, guid: 5584f93c4df0dc249a86d2457e557fb2, type: 3}
   defaultSkin: {fileID: 21300000, guid: c123d00807b344f4eabb6b59bda8538c, type: 3}

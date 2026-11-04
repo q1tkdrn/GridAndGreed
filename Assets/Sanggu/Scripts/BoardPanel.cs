@@ -222,6 +222,7 @@ public class BoardPanel : MonoBehaviour
             
             items[i].itemData = BattleDisplayManager.GetInstance().currentItems[i];
             items[i].Init();
+            items[i].ShowAsEquipped();   // 전투 칸은 들고 온 아이템이라 자물쇠 없음 (튜토리얼은 소금물을 빌려 줌)
         }
         if (_info == null) _info = new UnitInfoView(units.Select(u => u.image).ToArray(), UiFont);
         ResetUnitVisuals();

@@ -142,6 +142,9 @@ public class BattleDisplayManager : MonoBehaviour
     private bool _victoryRewardClaimed;
     private GameObject _victoryContinueButton;
     private Button _soulRewardButton;
+
+    [Tooltip("튜토리얼에서 빌려 주는 소금물(Item_4). 새 게임 첫 튜토리얼은 ItemManager가 없어서 여기서 가져온다.")]
+    [SerializeField] private ItemData tutorialItem;
     private TextMeshProUGUI _soulRewardText;
 
     private UnitTemp[] FormationRoster() => unitBuildingPanel.GetComponentInChildren<UnitBuildingPanel>(true)
@@ -535,6 +538,8 @@ public class BattleDisplayManager : MonoBehaviour
         currentItems = new ItemData[3];
         // 튜토리얼 아이템: 소금물 (4턴에 HP +1)
         if (ItemManager.Instance != null) currentItems[0] = ItemManager.Instance.items.FirstOrDefault(it => it != null && it.id == TutorialScript.ItemId);
+        // 새 게임 첫 튜토리얼은 마을을 안 거쳐서 ItemManager가 아직 없다 → 씬에 직접 연결해 둔 소금물을 쓴다 (2026-11-04)
+        if (currentItems[0] == null) currentItems[0] = tutorialItem;
 
         entrancePanel.gameObject.SetActive(false);
         cutScenePanel.gameObject.SetActive(false);

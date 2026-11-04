@@ -14405,6 +14405,7 @@ MonoBehaviour:
     stageName: {fileID: 1031422350}
     stageImage: {fileID: 128691941}
   arrow: {fileID: 1257074566}
+  tutorialItem: {fileID: 11400000, guid: 734d023517247354094c8b3f3afb992f, type: 2}
   bgmSource: {fileID: 1813555535}
   bgmSourceLoop: {fileID: 1539866124}
   sfxSource: {fileID: 546649858}
