@@ -247,26 +247,125 @@ public class BattleDisplayManager : MonoBehaviour
     [DebugButton]
     public void ShowVictoryPanel()
     {
-        SetupVictoryReward();
-        _victoryRewardClaimed = false;
-        if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
-        if (_soulRewardButton != null) _soulRewardButton.interactable = true;
-        if (_soulRewardText != null) _soulRewardText.text = $"소울 {VictorySoul}";
-        victoryPanel.SetActive(true);
+        OpenVictoryScreen();
         if (appearedBoss.Count > 0)
         {
             var boss = appearedBoss[^1];
             ClearBoss(boss);
             if (IsEndingBoss(boss)) RunSave.Delete();   // 엔딩까지 끝낸 여정은 이어할 것이 없다.
-            else RunSave.MarkCurrentCleared();         // 보상 받기 전에 꺼도 승리 화면부터 이어한다.
+            else RunSave.MarkCurrentCleared();         // 지급 직전에 꺼도 승리 화면부터 이어한다.
         }
+        ClaimVictorySoul();   // 이기면 소울은 자동 지급 (2026-11-03: 보상 말풍선 클릭 없앰)
+    }
+
+    /// <summary>승리 화면을 연다. 소울 말풍선은 누르는 버튼이 아니라 받은 양을 보여 주는 표시.</summary>
+    private void OpenVictoryScreen()
+    {
+        SetupVictoryReward();
+        _victoryRewardClaimed = false;
+        if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
+        if (_soulRewardText != null) _soulRewardText.text = "소울 +0";
+        victoryPanel.SetActive(true);
+        ShowVictoryLines(appearedBoss.Count > 0 ? appearedBoss[^1] : null);
+    }
+
+    // ── 승리 후 꼬마 사신의 혼잣말 (JSW/Script/StageText.cs, 2026-11-04) ──
+    private RectTransform _victoryLinesRoot;
+    private TextMeshProUGUI[] _victoryLines;
+    private Coroutine _victoryLinesRoutine;
+
+    private void ShowVictoryLines(BossTemp boss)
+    {
+        var lines = StageText.Find(boss)?.victory;
+        if (_victoryLinesRoot == null)
+        {
+            TMP_FontAsset font = null;
+            foreach (var t in victoryPanel.GetComponentsInChildren<TextMeshProUGUI>(true))
+                if (t.font != null && t.font.name.Contains("Light")) { font = t.font; break; }
+            if (font == null) font = victoryPanel.GetComponentInChildren<TextMeshProUGUI>(true)?.font;
+
+            _victoryLinesRoot = new GameObject("Reaper Lines", typeof(RectTransform), typeof(Image)).GetComponent<RectTransform>();
+            _victoryLinesRoot.SetParent(victoryPanel.transform, false);
+            _victoryLinesRoot.anchorMin = _victoryLinesRoot.anchorMax = new Vector2(0.5f, 0.5f);
+            _victoryLinesRoot.anchoredPosition = new Vector2(0f, -150f);   // VICTORY와 소울 말풍선 사이
+            _victoryLinesRoot.sizeDelta = new Vector2(1500f, 210f);
+            var band = _victoryLinesRoot.GetComponent<Image>();
+            band.sprite = FxSprites.FadeBar;   // 좌우 끝이 흐려지는 어두운 띠 (흰 붓 자국 위에서도 글이 읽히게)
+            band.color = new Color(0f, 0f, 0f, 0.72f);
+            band.raycastTarget = false;
+            _victoryLines = new TextMeshProUGUI[3];
+            for (int i = 0; i < 3; i++)
+            {
+                var t = new GameObject("Line" + i, typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
+                var r = t.rectTransform;
+                r.SetParent(_victoryLinesRoot, false);
+                r.anchorMin = r.anchorMax = new Vector2(0.5f, 0.5f);
+                r.anchoredPosition = new Vector2(0f, 60f - i * 60f);
+                r.sizeDelta = new Vector2(1400f, 56f);
+                if (font != null) t.font = font;
+                t.fontSize = 38f;
+                t.color = Color.white;
+                t.alignment = TextAlignmentOptions.Center;
+                t.textWrappingMode = TextWrappingModes.NoWrap;
+                t.raycastTarget = false;
+                _victoryLines[i] = t;
+            }
+        }
+        if (_victoryLinesRoutine != null) StopCoroutine(_victoryLinesRoutine);
+        bool any = lines != null && lines.Length > 0;
+        _victoryLinesRoot.gameObject.SetActive(any);
+        if (any) _victoryLinesRoutine = StartCoroutine(PlayVictoryLines(lines));
+    }
+
+    /// <summary>한 줄씩 천천히 떠오른다. 사신이 혼잣말하는 속도.</summary>
+    private System.Collections.IEnumerator PlayVictoryLines(string[] lines)
+    {
+        for (int i = 0; i < _victoryLines.Length; i++)
+        {
+            _victoryLines[i].text = i < lines.Length ? lines[i] : "";
+            _victoryLines[i].alpha = 0f;
+        }
+        yield return new WaitForSecondsRealtime(1.0f);
+        for (int i = 0; i < _victoryLines.Length && i < lines.Length; i++)
+        {
+            var r = _victoryLines[i].rectTransform;
+            var home = new Vector2(0f, 60f - i * 60f);
+            for (float e = 0f; e < 0.9f; e += Time.unscaledDeltaTime)
+            {
+                float k = Mathf.Clamp01(e / 0.9f);
+                _victoryLines[i].alpha = k;
+                r.anchoredPosition = home + new Vector2(0f, -10f * (1f - k));
+                yield return null;
+            }
+            _victoryLines[i].alpha = 1f;
+            r.anchoredPosition = home;
+            yield return new WaitForSecondsRealtime(lines[i].Trim('…', '.').Length == 0 ? 1.2f : 0.9f);   // "……" 한 줄은 조금 더 머문다
+        }
+        _victoryLinesRoutine = null;
+    }
+
+    private Coroutine _soulCountRoutine;
+
+    private System.Collections.IEnumerator CountUpSoul(int target)
+    {
+        const float duration = 0.9f;
+        yield return new WaitForSecondsRealtime(0.35f);   // VICTORY 그림이 먼저 자리 잡게
+        for (float e = 0f; e < duration; e += Time.unscaledDeltaTime)
+        {
+            float k = 1f - Mathf.Pow(1f - Mathf.Clamp01(e / duration), 3f);   // 끝에서 느려짐
+            if (_soulRewardText != null) _soulRewardText.text = $"소울 +{Mathf.RoundToInt(target * k)}";
+            yield return null;
+        }
+        if (_soulRewardText != null) _soulRewardText.text = $"소울 +{target}";
+        GameSfx.PlayPickup();
+        _soulCountRoutine = null;
     }
 
     private static bool IsEndingBoss(BossTemp boss) => boss != null && boss.bossId is "king" or "death2";
 
     private void SetupVictoryReward()
     {
-        if (victoryPanel == null || _soulRewardButton != null) return;
+        if (victoryPanel == null || _victorySetupDone) return;
 
         // The victory illustration already contains four hand-painted reward bubbles.
         // Turn them into the requested reward UI while preserving the scene artwork.
@@ -277,34 +376,45 @@ public class BattleDisplayManager : MonoBehaviour
             return;
         }
 
+        _victorySetupDone = true;
         TMP_FontAsset font = victoryPanel.GetComponentInChildren<TextMeshProUGUI>(true)?.font;
-        AddRewardText(rewards.GetChild(0), "보상", font, 42);
 
+        // 소울은 자동 지급이라 고를 것이 없다: '보상' 제목·회복·'상관없음' 말풍선은 끄고(그림은 남겨 둠, 나중에 보상 선택용),
+        // 소울 말풍선 하나만 가운데에 두고 받은 양을 숫자로 올려 보여 준다. 누르는 버튼이 아니다.
+        for (int i = 0; i < rewards.childCount; i++) rewards.GetChild(i).gameObject.SetActive(i == 1);
         Transform soulBubble = rewards.GetChild(1);
-        _soulRewardText = AddRewardText(soulBubble, $"소울 {VictorySoul}", font, 44);
-        _soulRewardButton = soulBubble.gameObject.GetComponent<Button>();
-        if (_soulRewardButton == null) _soulRewardButton = soulBubble.gameObject.AddComponent<Button>();
-        _soulRewardButton.targetGraphic = soulBubble.GetComponent<Graphic>();
-        _soulRewardButton.onClick.AddListener(ClaimVictorySoul);
+        var soulRect = (RectTransform)soulBubble;
+        soulRect.anchoredPosition = new Vector2(0f, soulRect.anchoredPosition.y);
+        var bubbleGraphic = soulBubble.GetComponent<Graphic>();
+        if (bubbleGraphic != null) bubbleGraphic.raycastTarget = false;
+        _soulRewardText = AddRewardText(soulBubble, "소울 +0", font, 44);
 
-        // HP is reset for each normal battle; keep the heal bubble hidden.
-        for (int i = 2; i < rewards.childCount; i++) rewards.GetChild(i).gameObject.SetActive(false);
-
-        if (rewards.childCount > 3)
-        {
-            Transform skipBubble = rewards.GetChild(3);
-            skipBubble.gameObject.SetActive(true);
-            AddRewardText(skipBubble, "상관없음", font, 44);
-            var skipButton = skipBubble.gameObject.GetComponent<Button>();
-            if (skipButton == null) skipButton = skipBubble.gameObject.AddComponent<Button>();
-            skipButton.targetGraphic = skipBubble.GetComponent<Graphic>();
-            // Match the existing victory arrow: continue to the next stage selection.
-            skipButton.onClick.AddListener(ShowWaysPanel);
-        }
-
+        // 넘어가는 길은 오른쪽 아래 화살표 하나. 게임 표준 버튼처럼 글자를 붙인다(패배 화면 '나가기' 글자 모양 사용).
         _victoryContinueButton = victoryPanel.transform.childCount > 0
             ? victoryPanel.transform.GetChild(0).gameObject
             : null;
+        LabelContinueArrow(_victoryContinueButton, "계속");
+    }
+
+    private bool _victorySetupDone;
+
+    private void LabelContinueArrow(GameObject arrowRoot, string value)
+    {
+        if (arrowRoot == null) return;
+        var label = arrowRoot.GetComponentInChildren<TextMeshProUGUI>(true);
+        var arrow = arrowRoot.transform.childCount > 0 ? arrowRoot.transform.GetChild(0) as RectTransform : null;
+        if (label == null || arrow == null) return;
+        var like = defeatPanel != null ? defeatPanel.GetComponentInChildren<TextMeshProUGUI>(true) : null;   // 패배 화면 '나가기'
+        if (like != null) { label.font = like.font; label.fontSize = like.fontSize; label.color = like.color; label.fontStyle = like.fontStyle; }
+        label.text = value;
+        label.alignment = TextAlignmentOptions.Left;
+        label.textWrappingMode = TextWrappingModes.NoWrap;
+        label.raycastTarget = false;
+        var lr = label.rectTransform;
+        lr.anchorMin = lr.anchorMax = new Vector2(1f, 0.5f);   // 화살표 오른쪽에 붙임
+        lr.pivot = new Vector2(0f, 0.5f);
+        lr.anchoredPosition = new Vector2(6f, 0f);
+        lr.sizeDelta = new Vector2(160f, arrow.rect.height);
     }
 
     private static TextMeshProUGUI AddRewardText(Transform parent, string value, TMP_FontAsset font, float fontSize)
@@ -345,9 +455,9 @@ public class BattleDisplayManager : MonoBehaviour
             PlayerPrefs.Save();
         }
 
-        if (_soulRewardButton != null) _soulRewardButton.interactable = false;
-        if (_soulRewardText != null) _soulRewardText.text = $"소울 {VictorySoul} 획득";
         if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
+        if (_soulCountRoutine != null) StopCoroutine(_soulCountRoutine);
+        _soulCountRoutine = StartCoroutine(CountUpSoul(VictorySoul));
     }
 
     [DebugButton]
@@ -582,12 +692,8 @@ public class BattleDisplayManager : MonoBehaviour
         {
             // 보상을 받기 전에 나간 경우: 업적/처치 기록은 이미 남았으므로 승리 화면만 다시 연다.
             boardPanel.boss = appearedBoss[^1];
-            SetupVictoryReward();
-            _victoryRewardClaimed = false;
-            if (_victoryContinueButton != null) _victoryContinueButton.SetActive(true);
-            if (_soulRewardButton != null) _soulRewardButton.interactable = true;
-            if (_soulRewardText != null) _soulRewardText.text = $"소울 {VictorySoul}";
-            victoryPanel.SetActive(true);
+            OpenVictoryScreen();
+            ClaimVictorySoul();   // 지급 직전에 꺼졌던 경우: 여기서 한 번 지급 (대기 표시도 지워짐)
         }
         else
         {

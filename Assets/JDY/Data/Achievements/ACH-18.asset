@@ -18,6 +18,6 @@ MonoBehaviour:
   description: "\uC54C\uD604\uC2E4 \uC2A4\uD14C\uC774\uC9C0\uC5D0 \uC785\uC7A5\uD558\uC138\uC694"
   targetValue: 1
   rewards:
-  - type: 2
-    rewardID: 22
+  - type: 3
+    rewardID: 9
     amount: 1

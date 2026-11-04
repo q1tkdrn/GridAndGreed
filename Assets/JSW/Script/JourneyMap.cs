@@ -329,6 +329,22 @@ public sealed class JourneyMap : MonoBehaviour
             mark.anchorMin = mark.anchorMax = new Vector2(0f, 0.5f);
             mark.pivot = new Vector2(1f, 0.5f);
             // 이름표 그림 왼쪽에 투명 여백(356px 중 46px)이 있어서, 보이는 이름표 바로 왼쪽에 붙인다.
+            var clearSprite = ClearMarkSprite();
+            if (clearSprite != null)
+            {
+                // 처치 표시(해골+뼈, JSW/Resources/여정_스테이지클리어_X표시)는 글자 바로 왼쪽에 붙인다.
+                // 글자 시작점은 이름표마다 달라서(145~156px) 그림에서 직접 찾는다. 표시 그림 오른쪽 투명 여백 약 3px 포함해 보이는 틈 약 6px.
+                mark.anchoredPosition = new Vector2(TextLeft(sprite) * LabelScale - 3f, 0f);
+                const float markHeight = 54f;
+                mark.sizeDelta = new Vector2(markHeight * clearSprite.rect.width / clearSprite.rect.height, markHeight);
+                var icon = NewImage("Icon", mark, Color.white);
+                icon.sprite = clearSprite;
+                icon.preserveAspect = true;
+                icon.raycastTarget = false;
+                Stretch(icon.rectTransform);
+                return;
+            }
+            // 그림이 없으면 예전처럼 코드로 그린 빨간 X
             mark.anchoredPosition = new Vector2(size.x * (46f / 356f) - 4f, 0f);
             mark.sizeDelta = new Vector2(44f, 44f);
             foreach (float angle in new[] { 45f, -45f })
@@ -352,6 +368,52 @@ public sealed class JourneyMap : MonoBehaviour
 
     // ───────────────────────────── 입장 ─────────────────────────────
 
+    private static Sprite _clearMark;
+    private static readonly Dictionary<Sprite, float> _textLeft = new Dictionary<Sprite, float>();
+
+    /// <summary>이름표 그림에서 글자(어두운 픽셀)가 시작하는 x (그림 픽셀). 못 찾으면 예전 값(투명 여백 끝).</summary>
+    private static float TextLeft(Sprite label)
+    {
+        if (_textLeft.TryGetValue(label, out float cached)) return cached;
+        float result = label.rect.width * (46f / 356f);
+        var tex = label.texture;
+        var rt = RenderTexture.GetTemporary(tex.width, tex.height, 0);
+        Graphics.Blit(tex, rt);
+        var prev = RenderTexture.active;
+        RenderTexture.active = rt;
+        var r = label.rect;
+        var copy = new Texture2D((int)r.width, (int)r.height, TextureFormat.RGBA32, false);
+        copy.ReadPixels(new Rect(r.x, r.y, r.width, r.height), 0, 0);
+        copy.Apply();
+        RenderTexture.active = prev;
+        RenderTexture.ReleaseTemporary(rt);
+        var px = copy.GetPixels32();
+        int w = copy.width, h = copy.height;
+        Destroy(copy);
+        for (int x = 0; x < w; x++)
+        {
+            int dark = 0;
+            for (int y = 0; y < h; y++)
+            {
+                var c = px[y * w + x];
+                if (c.a > 128 && (c.r + c.g + c.b) / 3 < 90) dark++;
+            }
+            if (dark >= 2) { result = x; break; }
+        }
+        _textLeft[label] = result;
+        return result;
+    }
+
+    /// <summary>처치 표시 그림. 시안 시트(1920×1080)에서 가장 큰 조각(해골+뼈)을 쓴다. 작은 조각은 거의 투명한 잡티.</summary>
+    private static Sprite ClearMarkSprite()
+    {
+        if (_clearMark != null) return _clearMark;
+        var parts = Resources.LoadAll<Sprite>("여정_스테이지클리어_X표시");
+        foreach (var s in parts)
+            if (_clearMark == null || s.rect.width * s.rect.height > _clearMark.rect.width * _clearMark.rect.height) _clearMark = s;
+        return _clearMark;
+    }
+
     private void OnPlaceClicked(Place place, int clearedCount)
     {
         if (_busy) return;
@@ -360,6 +422,15 @@ public sealed class JourneyMap : MonoBehaviour
             string question = place.afterlifeOnly ? "저승의 문이 아직 열리지 않았다." : "아직 문이 굳게 닫혀 있다.";
             ModalDialog.Show(place.Title, question, $"처치 {clearedCount} / {ClearsForFinal}", null,
                 new ModalDialog.Option("확인", null));
+            return;
+        }
+        if (!RunSave.HasRun)
+        {
+            // 여정 첫 출발: 정비 기회가 적으니 지금 편성을 보여 주고 확인받는다 (JSW/Script/FormationPreview.cs, 2026-11-04)
+            var dialog = ModalDialog.Show(place.Title, "이 편성으로 출발할까요?", "", null,
+                new ModalDialog.Option("이대로 출발", () => Enter(place)),
+                new ModalDialog.Option("편성 바꾸기", OpenFormation));
+            FormationPreview.Attach(dialog);
             return;
         }
         ModalDialog.Show(place.Title, $"{WithParticle(place.bossName)} 기다리고 있다.", "스테이지에 입장하시겠습니까?", null,

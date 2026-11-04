@@ -5,6 +5,9 @@ using UnityEngine;
 // 새로 달성한 업적만 순서대로 표시한다. 씬 이동과 일시정지 중에도 알림을 유지한다.
 public sealed class AchievementToast : MonoBehaviour
 {
+    // 오른쪽 아래 표준 버튼('돌아가기'·'계속', 높이 약 60)을 가리지 않게 그 위에 띄운다 (2026-11-03)
+    private const float BottomGap = 104f;
+
     private static AchievementToast instance;
     private readonly Queue<AchievementData> pending = new Queue<AchievementData>();
     private RectTransform safeArea;
@@ -54,7 +57,7 @@ public sealed class AchievementToast : MonoBehaviour
         scaler.matchWidthOrHeight = 0.5f;
         safeArea = Rect("SafeArea", transform, Vector2.zero, Vector2.one, Vector2.zero, Vector2.zero);
         panel = Rect("Notification", safeArea, new Vector2(1, 0), new Vector2(1, 0),
-            new Vector2(-24, 24), new Vector2(440, 104));
+            new Vector2(-24, BottomGap), new Vector2(440, 104));
         panel.pivot = new Vector2(1, 0);
         Picture(panel, new Color(0.75f, 0.73f, 0.68f, 1));
         var background = Rect("Background", panel, Vector2.zero, Vector2.one, Vector2.zero, new Vector2(-4, -4));
@@ -99,7 +102,7 @@ public sealed class AchievementToast : MonoBehaviour
         float alpha = elapsed < FadeIn ? elapsed / FadeIn
             : elapsed < FadeIn + Hold ? 1 : 1 - (elapsed - FadeIn - Hold) / FadeOut;
         group.alpha = Mathf.Clamp01(alpha);
-        panel.anchoredPosition = new Vector2(-24, 24 - 14 * (1 - group.alpha));
+        panel.anchoredPosition = new Vector2(-24, BottomGap - 14 * (1 - group.alpha));
         if (elapsed >= FadeIn + Hold + FadeOut)
         {
             showing = false;

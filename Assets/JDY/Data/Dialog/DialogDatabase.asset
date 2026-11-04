@@ -2767,7 +2767,7 @@ MonoBehaviour:
     groupId: 102
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: "\uB9C8\uC744 Dismantled"
+    target: Dismantled
     fromPhase: 0
     toPhase: 2
     text: "\uC74C, \uC774\uAC70 \uC88B\uC9C0."
@@ -2776,7 +2776,7 @@ MonoBehaviour:
     groupId: 103
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: "\uCE90\uB9AD\uD130 \uC0C1\uC810 OST 2 - Harmonic Magic (Loopable)"
+    target: Harmonic Magic
     fromPhase: 0
     toPhase: 2
     text: "\uC774\uAC83\uB3C4 \uC88B\uC9C0"
@@ -2785,7 +2785,7 @@ MonoBehaviour:
     groupId: 104
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: "\uC544\uC774\uD15C \uC0C1\uC810 OST 1 - Sunset Serenade (Loopable)"
+    target: Sunset Serenade
     fromPhase: 0
     toPhase: 2
     text: "\uB0B4 \uAE30\uD0C0\uB97C \uACE0\uCE58\uB7EC \uD55C\uBC88 \uAC04 \uC801\uC774
@@ -2795,7 +2795,7 @@ MonoBehaviour:
     groupId: 105
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: "\uC2A4\uD0A8 \uC0C1\uC810 OST 3 - Strings of Resonance (Loopable)"
+    target: Strings of Resonance
     fromPhase: 0
     toPhase: 2
     text: "\uC88B\uC740 \uB178\uB798\uC57C."
@@ -2804,7 +2804,7 @@ MonoBehaviour:
     groupId: 106
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: "\uBA54\uBAA8\uB9AC\uC5BC  OST 5 - Celestial Dreams (Loopable)"
+    target: Celestial Dreams
     fromPhase: 0
     toPhase: 2
     text: "(\uC606\uC5D0\uC11C \uB204\uAD70\uAC00 \uC2F1\uAE0B \uC6C3\uC5B4\uC8FC\uC5C8\uB2E4.)"
@@ -2813,7 +2813,7 @@ MonoBehaviour:
     groupId: 107
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: "\uC5C5\uC801 OST 4 - In the Torchlight"
+    target: In the Torchlight
     fromPhase: 0
     toPhase: 2
     text: "\uCD5C\uC120\uC744 \uB2E4 \uD574\uBCFC\uAC8C."
@@ -2822,7 +2822,7 @@ MonoBehaviour:
     groupId: 108
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: "\uBE0C\uAE08 \uBCC0\uACBD OST 2 - Tale of the Wanderer (Loopable)"
+    target: Tale of the Wanderer
     fromPhase: 0
     toPhase: 2
     text: "\uD558\uD558. \uBCF4\uB294 \uB208\uC774 \uC788\uB124."
@@ -2849,7 +2849,7 @@ MonoBehaviour:
     groupId: 111
     npcName: "\uB9C8\uB9AC\uACE8\uB4DC"
     type: 5
-    target: OST 3 - A Rest at Last (Loopable)
+    target: A Rest at Last
     fromPhase: 0
     toPhase: 2
     text: "\uBA4B\uC9C4 \uB178\uB798\uC57C."

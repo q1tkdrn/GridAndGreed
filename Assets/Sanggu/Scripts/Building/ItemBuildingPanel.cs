@@ -38,15 +38,23 @@ public class ItemBuildingPanel : MonoBehaviour
         for (int i = 0; i < slots.Length; i++)
         {
             var item = display.currentItems[i];
-            bool equipped = item != null;
-            slots[i].itemId = equipped ? int.Parse(item.id) : 0;
-            slots[i].name.text = equipped ? item.itemName : "";
-            slots[i].description.text = equipped ? item.description : "";
-            slots[i].image.sprite = equipped ? item.icon : null;
-            slots[i].name.gameObject.SetActive(equipped);
-            slots[i].description.gameObject.SetActive(equipped);
-            slots[i].image.gameObject.SetActive(equipped);
+            ShowSlot(i, item, item != null ? int.Parse(item.id) : 0);
         }
+    }
+
+    private const string EmptyLabel = "<color=#4A4A4A>비어있음</color>";
+
+    /// <summary>장착 칸 하나를 그린다. 비어 있으면 설명 자리(칸 가운데)에 '비어있음'만 보여 준다. (빈 칸 판단은 itemId == 0)</summary>
+    private void ShowSlot(int i, ItemData item, int id)
+    {
+        bool equipped = item != null;
+        slots[i].itemId = equipped ? id : 0;
+        slots[i].name.text = equipped ? item.itemName : "";
+        slots[i].description.text = equipped ? item.description : EmptyLabel;
+        slots[i].image.sprite = equipped ? item.icon : null;
+        slots[i].name.gameObject.SetActive(equipped);
+        slots[i].description.gameObject.SetActive(true);
+        slots[i].image.gameObject.SetActive(equipped);
     }
 
     [ContextMenu("Setting")]
@@ -72,22 +80,15 @@ public class ItemBuildingPanel : MonoBehaviour
             var display = BattleDisplayManager.GetInstance();
             int slot = -1;
             for (int i = 0; i < slots.Length; i++)
-                if (item.isEquip ? slots[i].itemId == id : slots[i].name.text == "") { slot = i; break; }
+                if (item.isEquip ? slots[i].itemId == id : slots[i].itemId == 0) { slot = i; break; }
             if (slot >= 0 && !JourneyRefit.CanSetItem(display.currentUnits, display.currentItems, slot, item.isEquip ? null : item.itemData)) return;
         }
         if (!item.isEquip)
         {
             for (int i = 0; i < slots.Length; i++)
             {
-                var slot = slots[i];
-                if(slot.name.text != "") continue;
-                slot.name.text = item.itemData.itemName;
-                slot.description.text = item.itemData.description;
-                slot.image.sprite = item.itemData.icon;
-                slots[i].itemId = id;
-                slot.name.gameObject.SetActive(true);
-                slot.image.gameObject.SetActive(true);
-                slot.description.gameObject.SetActive(true);
+                if (slots[i].itemId != 0) continue;
+                ShowSlot(i, item.itemData, id);
                 BattleDisplayManager.GetInstance().currentItems[i] = item.itemData;
                 items[id - 1].isEquip = true;
                 break;
@@ -97,13 +98,8 @@ public class ItemBuildingPanel : MonoBehaviour
         {
             for (int i = 0; i < slots.Length; i++)
             {
-                var slot = slots[i];
-                if (slot.itemId != id) continue;
-                slots[i].itemId = 0;
-                slot.name.text = "";
-                slot.name.gameObject.SetActive(false);
-                slot.description.gameObject.SetActive(false);
-                slot.image.gameObject.SetActive(false);
+                if (slots[i].itemId != id) continue;
+                ShowSlot(i, null, 0);
                 BattleDisplayManager.GetInstance().currentItems[i] = null;
                 items[id - 1].isEquip = false;
                 break;
@@ -116,17 +112,13 @@ public class ItemBuildingPanel : MonoBehaviour
     public void UnEquipItemInSlot(int i)
     {
         if (i < 0 || i >= slots.Length) return;
-        if(!slots[i].name.gameObject.activeSelf) return;
+        if (slots[i].itemId == 0) return;
         if(!items[slots[i].itemId - 1].isEquip) return;
         var refitDisplay = BattleDisplayManager.GetInstance();
         if (!JourneyRefit.CanSetItem(refitDisplay.currentUnits, refitDisplay.currentItems, i, null)) return;
         items[slots[i].itemId - 1].isEquip = false;
-        slots[i].name.text = "";
-        slots[i].name.gameObject.SetActive(false);
-        slots[i].description.gameObject.SetActive(false);
-        slots[i].image.gameObject.SetActive(false);
+        ShowSlot(i, null, 0);
         BattleDisplayManager.GetInstance().currentItems[i] = null;
-        slots[i].itemId = 0;
         BattleDisplayManager.GetInstance().SaveFormation();
         JourneyRefit.Refresh(refitDisplay.currentUnits, refitDisplay.currentItems);
     }

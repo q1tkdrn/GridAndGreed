@@ -1148,7 +1148,7 @@ public sealed class BellkeeperTrial
         lines.Add("");
         lines.Add("<color=#FFD27A>힌트</color>");
         lines.Add(Hint());
-        _report = TrialHud.CreateReport(_board, string.Join("\n", lines));
+        _report = TrialHud.CreateReport(_board, string.Join("\n", lines), _bell ? null : StageText.Art(_board.boss));
     }
 
     private string Hint()
@@ -1236,13 +1236,23 @@ public sealed class TrialHud : MonoBehaviour
         }
     }
 
-    public static GameObject CreateReport(BoardPanel board, string body)
+    public static GameObject CreateReport(BoardPanel board, string body, Sprite place = null)
     {
         var root = NewCanvas("BellkeeperTrialReport", 45);
         var dim = NewBox(root.transform, "Dim", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(4000f, 4000f), new Color(0f, 0f, 0f, 0.55f));
         dim.GetComponent<Image>().raycastTarget = true;
-        var box = NewBox(root.transform, "Box", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 760f), new Color(0.05f, 0.05f, 0.05f, 1f));
-        var text = NewText(box.transform, "Body", board.UiFont, 24f, Color.white, new Vector2(0f, 30f), new Vector2(820f, 640f));
+        // 장소 그림이 있으면 상자를 위로 200 늘리고 맨 위에 머리 그림으로 (어디서 졌는지 한눈에, 2026-11-04)
+        float head = place != null ? 200f : 0f;
+        var box = NewBox(root.transform, "Box", new Vector2(0.5f, 0.5f), Vector2.zero, new Vector2(900f, 760f + head), new Color(0.05f, 0.05f, 0.05f, 1f));
+        if (place != null)
+        {
+            var art = NewBox(box.transform, "Place", new Vector2(0.5f, 1f), new Vector2(0f, -30f - 85f), new Vector2(place.rect.width, place.rect.height) * (170f / place.rect.height), Color.white);
+            var artImage = art.GetComponent<Image>();
+            artImage.sprite = place;
+            artImage.preserveAspect = true;
+            artImage.color = new Color(1f, 1f, 1f, 0.85f);
+        }
+        var text = NewText(box.transform, "Body", board.UiFont, 24f, Color.white, new Vector2(0f, 30f - head * 0.5f), new Vector2(820f, 640f));
         text.alignment = TextAlignmentOptions.TopLeft;
         text.textWrappingMode = TextWrappingModes.Normal;
         text.text = body;

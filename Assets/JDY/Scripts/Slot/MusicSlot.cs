@@ -40,7 +40,7 @@ public class MusicSlot : MonoBehaviour
         for (int i = 0; i < nameText.Length; i++)
         {
             int index = GetIndex(i - 2);
-            nameText[i].text = manager.musics[index].name;
+            nameText[i].text = MusicTitle.Of(manager.musics[index]);   // 분류어 뗀 제목 (JSW/Script/MusicTitle.cs)
         }
         PlayerPrefs.SetInt("MainMusic", currentIndex);
     }
@@ -50,12 +50,12 @@ public class MusicSlot : MonoBehaviour
         if (Keyboard.current.downArrowKey.wasPressedThisFrame || scroll.y < 0)
         {
             NextMusic();
-            dialog.StartMusicDialog(manager.musics[currentIndex].name);
+            dialog.StartMusicDialog(MusicTitle.Of(manager.musics[currentIndex]));
         }
         if (Keyboard.current.upArrowKey.wasPressedThisFrame || scroll.y > 0)
         {
             PrevMusic();
-            dialog.StartMusicDialog(manager.musics[currentIndex].name);
+            dialog.StartMusicDialog(MusicTitle.Of(manager.musics[currentIndex]));
         }
         RefreshPlayIcon();
     }

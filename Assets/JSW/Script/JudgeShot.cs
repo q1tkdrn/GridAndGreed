@@ -178,8 +178,26 @@ public static class JudgeShot
         for (int i = 0; i < frames.Length; i++)
             frames[i] = Resources.Load<Sprite>($"Anim/{p.folder}/Cut/{p.cutPrefix}_{i + 1}");
         bool ok = Array.TrueForAll(frames, f => f != null);
-        if (!ok) Debug.LogWarning($"JudgeShot: Resources/Anim/{p.folder}/Cut 그림이 모자라서 {p.cutPrefix} 컷인을 건너뜀");
+        // 아직 그림을 하나도 넣지 않은 컷인(스킨 등)은 조용히 건너뛴다. 일부만 있으면 알려 준다.
+        if (!ok && Array.Exists(frames, f => f != null)) Debug.LogWarning($"JudgeShot: Resources/Anim/{p.folder}/Cut 그림이 모자라서 {p.cutPrefix} 컷인을 건너뜀");
         return _cutFrames[p] = ok ? frames : null;
+    }
+
+    /// <summary>
+    /// 컷인만 찾는다 (판 위 그림은 없어도 됨). 이 스킨의 컷인 그림이 없으면 기본 스킨 컷인으로 대신한다.
+    /// 둘 다 없으면 null. (skin: 0 기본, 1 곤충, 2 보스)
+    /// </summary>
+    public static Profile FindCut(int unitId, int skin = 0)
+    {
+        Profile exact = null, basic = null;
+        foreach (var p in Profiles)
+        {
+            if (p.unitId != unitId) continue;
+            if (p.skin == skin) exact = p;
+            if (p.skin == 0) basic = p;
+        }
+        if (CutFrames(exact) != null) return exact;
+        return CutFrames(basic) != null ? basic : null;
     }
     private static readonly List<GameObject> _live = new List<GameObject>();
 

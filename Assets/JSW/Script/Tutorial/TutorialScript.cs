@@ -156,7 +156,7 @@ public static class TutorialScript
         S(5, TutorialAct.Judge, 2, 0, 0, TutorialAnchor.Unit, $"어설프게 덤볐다간 한 대 더 얻어맞을 테니께!\n도적을 {H}더블클릭{E}혀!"),
     };
 
-    /// <summary>안내자 보스 데이터. 에셋 없이 코드로 만든다. 배경음은 다른 보스 것을 빌린다.</summary>
+    /// <summary>안내자 보스 데이터. 에셋 없이 코드로 만든다. 배경음은 전용 음악(JSW/Resources), 없으면 다른 보스 것을 빌린다.</summary>
     public static BossTemp CreateBoss(BossTemp musicFrom)
     {
         var boss = ScriptableObject.CreateInstance<BossTemp>();
@@ -171,7 +171,13 @@ public static class TutorialScript
         }
         boss.battleStart = "";
         boss.win = "";
-        if (musicFrom != null) { boss.bgmStart = musicFrom.bgmStart; boss.bgmLoop = musicFrom.bgmLoop; }
+        // 전용 음악: 파일 이름과 역할이 반대다 (2026-11-03 파형으로 확인).
+        //   튜토리얼보스_음악(6.7초) = 무음에서 시작하는 시작부 → 한 번
+        //   튜토리얼보스_입장음악(93.5초) = 시작부 끝에 매끄럽게 이어지는 반복부 → 반복
+        var intro = Resources.Load<AudioClip>("튜토리얼보스_음악");
+        var loop = Resources.Load<AudioClip>("튜토리얼보스_입장음악");
+        if (loop != null) { boss.bgmStart = intro; boss.bgmLoop = loop; }
+        else if (musicFrom != null) { boss.bgmStart = musicFrom.bgmStart; boss.bgmLoop = musicFrom.bgmLoop; }
         return boss;
     }
 }

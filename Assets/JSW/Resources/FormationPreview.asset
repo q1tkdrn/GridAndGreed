@@ -1,0 +1,148 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 98836becd5efa0d4ba2f8d8f75e3b6a1, type: 3}
+  m_Name: FormationPreview
+  m_EditorClassIdentifier: Assembly-CSharp::FormationPreviewCatalog
+  units:
+  - id: 1
+    name: "\uAE30\uC0AC"
+    skins:
+    - {fileID: 21300000, guid: 366cdeb7f22f48549927ab26adff1d18, type: 3}
+    - {fileID: 21300000, guid: d411692ae68803940a0116b6a34fb338, type: 3}
+    - {fileID: 21300000, guid: 8b96d0b6e29ec484191e53bd58424c8b, type: 3}
+    - {fileID: 21300000, guid: 9998a9c1440416845adf90f90bf9b7cd, type: 3}
+  - id: 2
+    name: "\uAD81\uC218"
+    skins:
+    - {fileID: 21300000, guid: 8882d04e0d7ff05458d494b3a104f94f, type: 3}
+    - {fileID: 21300000, guid: 78d47f364c9ef664a890d5bc324fb336, type: 3}
+    - {fileID: 21300000, guid: eba45bcd12c8e9845bcbc7a975d8f7d8, type: 3}
+    - {fileID: 21300000, guid: 11e44196ddfdd0944a9a65c004d1c9ff, type: 3}
+  - id: 3
+    name: "\uB3C4\uC801"
+    skins:
+    - {fileID: 21300000, guid: 6cbbed80cd10954479dee0d57bd8bc5f, type: 3}
+    - {fileID: 21300000, guid: 15ac6dc3c5db1124187bdc14d49d5ee1, type: 3}
+    - {fileID: 21300000, guid: 8ae1694d9458ac741a6361d1770a8dcb, type: 3}
+    - {fileID: 21300000, guid: 37c33988615bd974a93f136a0ed54d2c, type: 3}
+  - id: 4
+    name: "\uC0AC\uC81C"
+    skins:
+    - {fileID: 21300000, guid: c637ee42d33b61d42a9067d2ca78f49a, type: 3}
+    - {fileID: 21300000, guid: 25ad960fe618e1d4a918637043c0c343, type: 3}
+    - {fileID: 21300000, guid: 5bb30bdf4b5ed9f44854ec73605c284c, type: 3}
+    - {fileID: 21300000, guid: ce4fe1d2ed3909e4d8e3c053b77dbf5a, type: 3}
+  - id: 5
+    name: "\uBB34\uD76C"
+    skins:
+    - {fileID: 21300000, guid: 76524af218a8ff94d95826ec03a31594, type: 3}
+    - {fileID: 21300000, guid: af5c8c14bdef9314dbdac05ad8cc96c3, type: 3}
+    - {fileID: 21300000, guid: ee132a90e5c41464da5acd902d6a028c, type: 3}
+    - {fileID: 21300000, guid: 896b6e2e389ecd14c96bb6454c2caf18, type: 3}
+  - id: 6
+    name: "\uC2A4\uCE90\uBE48\uC800"
+    skins:
+    - {fileID: 21300000, guid: 9250aa9e5afed23439a62065377ccf51, type: 3}
+    - {fileID: 21300000, guid: f7dc8ca7369107a4eb07cb5e413913a2, type: 3}
+    - {fileID: 21300000, guid: 592ad71e30c34544caabb0915f11d133, type: 3}
+    - {fileID: 21300000, guid: ac9f130bc0d1c114c8171463c0332275, type: 3}
+  - id: 7
+    name: "\uB9C8\uBC95\uC0AC"
+    skins:
+    - {fileID: 21300000, guid: d3b7c7f109fc66c40a5f0a924550ab89, type: 3}
+    - {fileID: 21300000, guid: 747e8d39433bb764c86e677ea239d966, type: 3}
+    - {fileID: 21300000, guid: 97831ef0f031e184986a33101ed729f3, type: 3}
+    - {fileID: 21300000, guid: 90a93d27d8ba4e04aaa040a12e06a2c6, type: 3}
+  - id: 8
+    name: "\uAD11\uC2E0\uB3C4"
+    skins:
+    - {fileID: 21300000, guid: c123d00807b344f4eabb6b59bda8538c, type: 3}
+    - {fileID: 21300000, guid: 4c2bb2da022a02d4baf35913b2655a98, type: 3}
+    - {fileID: 21300000, guid: 66dc1757b76c8c5478a205c3c735930e, type: 3}
+    - {fileID: 21300000, guid: a9877d0aded4f0d45a4d9704326197f1, type: 3}
+  - id: 9
+    name: "\uAF2C\uB9C8\uC0AC\uC2E0"
+    skins:
+    - {fileID: 21300000, guid: 90851a03f4576f8499530efa62904d99, type: 3}
+    - {fileID: 0}
+    - {fileID: 0}
+    - {fileID: 0}
+  items:
+  - id: 1
+    name: "\uB179\uC2A8 \uAC80"
+    icon: {fileID: 21300000, guid: e0eebaca2f28e724ba6fc1565ea2e757, type: 3}
+  - id: 2
+    name: "\uD654\uC0B4"
+    icon: {fileID: 21300000, guid: 9141444287585b14d9b02806ba60f154, type: 3}
+  - id: 3
+    name: "\uC138 \uBC88\uC9F8 \uB2E8\uAC80"
+    icon: {fileID: 21300000, guid: 9a6dc15d21bf2c241aeb9e16c6af47f7, type: 3}
+  - id: 4
+    name: "\uC18C\uAE08\uBB3C"
+    icon: {fileID: 21300000, guid: 07f898b721ee3064cb69b5593fb7ac3d, type: 3}
+  - id: 5
+    name: "\uBD80\uCC44"
+    icon: {fileID: 21300000, guid: f8a46cd11a8f8c34491a01ffae30ced8, type: 3}
+  - id: 6
+    name: "\uC0DD\uC874 \uBC95\uCE59"
+    icon: {fileID: 21300000, guid: 916d9313023423245a4849af3eb03eab, type: 3}
+  - id: 7
+    name: "\uB9C8\uBC95\uC11C"
+    icon: {fileID: 21300000, guid: e482206c48b9c174baefb6b5a485c2eb, type: 3}
+  - id: 8
+    name: "\uAD11\uAE30"
+    icon: {fileID: 21300000, guid: 976f0c37e5c8c4b4cbe923f7ad65e5cd, type: 3}
+  - id: 9
+    name: "\uD68C\uC911\uC2DC\uACC4"
+    icon: {fileID: 21300000, guid: 5981be818bc78554f99340b96bae9200, type: 3}
+  - id: 10
+    name: Mr. COCKROACH
+    icon: {fileID: 21300000, guid: 25afad9a4b57f4c43a58d32a1d14b445, type: 3}
+  - id: 11
+    name: "\uD3EC\uB3C4\uC8FC"
+    icon: {fileID: 21300000, guid: 6fd385e55883d3c48b38fe36ffe053d4, type: 3}
+  - id: 12
+    name: "\uC8FC\uC0AC\uC704"
+    icon: {fileID: 21300000, guid: cebaccbc200670e46abb90254fe143f2, type: 3}
+  - id: 13
+    name: "\uB9C8\uC9C0\uB9C9 \uC78E\uC0C8"
+    icon: {fileID: 21300000, guid: fbe27afd9a63c7d4d9ff3db4657fc830, type: 3}
+  - id: 14
+    name: "\uC548\uACBD"
+    icon: {fileID: 21300000, guid: 81b636455aaccf54cad6681562b1a425, type: 3}
+  - id: 15
+    name: "\uB108\uD074"
+    icon: {fileID: 21300000, guid: b0312dd6bd3051e43a93ae21dbb47024, type: 3}
+  - id: 16
+    name: "\uB2F4\uBC30"
+    icon: {fileID: 21300000, guid: 5d7e091cd5b310a4fa69b854716d8237, type: 3}
+  - id: 17
+    name: Mr. FLOWER
+    icon: {fileID: 21300000, guid: 95e8c766f6037c9438e6dc3343cc17ba, type: 3}
+  - id: 18
+    name: Miss. GHOST
+    icon: {fileID: 21300000, guid: 30ee1a4c2f0ab26448b723d239202fbd, type: 3}
+  - id: 19
+    name: "\uC7AC\uBD09\uD2C0"
+    icon: {fileID: 21300000, guid: f0f01514e0c1a144fa7221c3a012c854, type: 3}
+  - id: 20
+    name: "\uC19C\uBB49\uCE58"
+    icon: {fileID: 21300000, guid: 000f833752389334ab199368fc046d02, type: 3}
+  - id: 21
+    name: "\uB0A1\uC740 \uAE30\uD0C0"
+    icon: {fileID: 21300000, guid: 0cde9083e0fef4744be276a8007950e6, type: 3}
+  - id: 22
+    name: "\uC0AC\uC2E0\uC758 \uB0AB"
+    icon: {fileID: 21300000, guid: bcc27898c80a78b4db91fbfe4112b6cc, type: 3}
+  - id: 23
+    name: "\uACC4\uC57D\uC11C"
+    icon: {fileID: 21300000, guid: 19322441c00bde54fb2af2d176662ce7, type: 3}

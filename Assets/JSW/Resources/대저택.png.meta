@@ -100,23 +100,23 @@ TextureImporter:
     serializedVersion: 2
     sprites:
     - serializedVersion: 2
-      name: "\uB300\uC800\uD0DD_0"
+      name: "\uB300\uC800\uD0DD_\uC7A5\uC18C"
       rect:
         serializedVersion: 2
-        x: 145
-        y: 26
-        width: 765
-        height: 415
+        x: 142
+        y: 230
+        width: 412
+        height: 216
       alignment: 0
-      pivot: {x: 0, y: 0}
+      pivot: {x: 0.5, y: 0.5}
       border: {x: 0, y: 0, z: 0, w: 0}
       customData: 
       outline: []
       physicsShape: []
-      tessellationDetail: -1
+      tessellationDetail: 0
       bones: []
-      spriteID: c1b34c7307cbdd9c0800000000000000
-      internalID: -3900754512075015396
+      spriteID: 0464f78fcf2e2c64bb09b74f77107bdc
+      internalID: -1849895364
       vertices: []
       indices: 
       edges: []
@@ -125,7 +125,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: 
+    spriteID: a3adea12d5413974b822957baf7bb8e6
     internalID: 0
     vertices: []
     indices: 
@@ -136,6 +136,7 @@ TextureImporter:
       entries: []
     nameFileIdTable:
       "\uB300\uC800\uD0DD_0": -3900754512075015396
+      "\uB300\uC800\uD0DD_\uC7A5\uC18C": -1849895364
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

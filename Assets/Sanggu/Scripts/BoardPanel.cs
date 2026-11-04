@@ -260,10 +260,15 @@ public class BoardPanel : MonoBehaviour
         bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
         bossNameText.text = BattleDisplayManager.GetInstance().appearedBoss[^1].bossName;
         cutScene.SetActive(true);
-        reaperCutScene.anchoredPosition = new Vector2(-1440, 0);
-        bossCutScene.anchoredPosition = new Vector2(1440, 0);
         BattleDisplayManager.GetInstance().PlayBGM(boss.bgmLoop, boss.bgmStart);
-        StartCoroutine(PlayCutSceneAnim());
+        // 입장 화면 (JSW/Script/StageIntro.cs, 2026-11-04): 보스 일러스트 + 스테이지 문구. 예전 VS 애니메이션(PlayCutSceneAnim)은 안 씀
+        var intro = cutScene.GetComponent<StageIntro>();
+        if (intro == null) intro = cutScene.AddComponent<StageIntro>();
+        StartCoroutine(intro.Play(BattleDisplayManager.GetInstance().appearedBoss[^1], () =>
+        {
+            cutScene.SetActive(false);
+            Init();
+        }));
     }
 
     public IEnumerator PlayCutSceneAnim()
@@ -890,10 +895,29 @@ public class BoardPanel : MonoBehaviour
     {
         if(units[i].isAnimPlaying) return;
         if (TryPlayJudgeShot(i)) return;
-        GameSfx.PlayJudgment();
         units[i].isAnimPlaying = true;
-        
-        _moveAnimations[i] = StartCoroutine(MoveUI(i, new Vector2(0, -10f), 0.2f, 0.1f, new Vector2(100f, 60f)));
+        _moveAnimations[i] = StartCoroutine(PlainJudgeSequence(i));
+    }
+
+    // 4번째 스킨 칸은 기본 그림 임시
+    private static int JudgeSkin(UnitTemp data) => data.currentSkin == 3 ? 0 : data.currentSkin;
+
+    // 판 위 연출 그림이 없는 캐릭터(스킨 등): 컷인이 있으면 컷인(없으면 기본 스킨 컷인) → 기존의 통통 튀는 동작
+    private IEnumerator PlainJudgeSequence(int i)
+    {
+        var data = BattleDisplayManager.GetInstance().currentUnits[i];
+        var cut = data == null ? null : JudgeShot.FindCut(data.id, JudgeSkin(data));
+        var cutFrames = JudgeShot.CutFrames(cut);
+        if (cutFrames != null)
+        {
+            // 컷인 동안에는 HP 바가 미리 줄지 않게 붙잡아 두고, 컷인이 끝나면 줄인다
+            if (_bossHpFx != null) _bossHpFx.HoldDisplay(3f);
+            yield return JudgeCutIn.Play(cutFrames, cut.cutTimes, cut.cutRelease, GameSfx.PlayJudgment);
+            if (_bossHpFx != null) _bossHpFx.ReleaseDisplay();
+        }
+        else GameSfx.PlayJudgment();
+
+        yield return MoveUI(i, new Vector2(0, -10f), 0.2f, 0.1f, new Vector2(100f, 60f));
     }
     
     // 기본 스킨 캐릭터의 심판 연출 (JSW/Script/JudgeShot.cs, JudgeCutIn.cs)
@@ -904,7 +928,7 @@ public class BoardPanel : MonoBehaviour
     {
         var data = BattleDisplayManager.GetInstance().currentUnits[i];
         if (data == null || i >= _shotRestoreSprites.Length) return false;
-        var profile = JudgeShot.Find(data.id, data.currentSkin == 3 ? 0 : data.currentSkin);   // 4번째 스킨 칸은 기본 그림 임시
+        var profile = JudgeShot.Find(data.id, JudgeSkin(data));
         if (profile == null) return false;
 
         units[i].isAnimPlaying = true;
@@ -916,9 +940,11 @@ public class BoardPanel : MonoBehaviour
 
     private IEnumerator JudgeSequence(int i, JudgeShot.Profile profile)
     {
-        var cutFrames = JudgeShot.CutFrames(profile);
+        // 판 위 그림은 있는데 컷인 그림이 없는 스킨이면 기본 스킨 컷인으로 대신한다
+        var cut = JudgeShot.FindCut(profile.unitId, profile.skin);
+        var cutFrames = JudgeShot.CutFrames(cut);
         if (cutFrames != null)
-            yield return JudgeCutIn.Play(cutFrames, profile.cutTimes, profile.cutRelease, GameSfx.PlayJudgment);
+            yield return JudgeCutIn.Play(cutFrames, cut.cutTimes, cut.cutRelease, GameSfx.PlayJudgment);
         yield return JudgeShot.Play(this, profile, units[i].unit, bossImage.rectTransform,
             onRelease: cutFrames == null ? GameSfx.PlayJudgment : (Action)null,
             onHit: index =>
