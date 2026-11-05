@@ -679,6 +679,7 @@ public sealed class BellkeeperTrial
         if (_powerCells.TryGetValue(pos, out bool greed))
         {
             _powerCells.Remove(pos);
+            BattleJuice.PowerPickup(_battle.GetUnitImage(i), greed);   // 발밑 빛 고리
             int extra = UnitId(i) == 3 ? 1 : 0;                                                                  // 도적
             if (greed)
             {
@@ -726,6 +727,7 @@ public sealed class BellkeeperTrial
         if (usedItems.Count > 0) _board.PrintText("[추가 피해] " + string.Join(" · ", usedItems));
         if (damage <= 0) damage = 0;
         AnnounceJudgeTrait(raw, damage);
+        BattleJuice.SetJudgeDetail(raw, damage, usedItems);   // 피해 숫자 아래 설명
         GameSfx.NextJudgmentBig = damage >= BigJudgmentDamage;
         GameSfx.NextJudgmentTrait = damage < raw || _bossId == "fusion";
         _turnDamage += damage;
@@ -849,7 +851,7 @@ public sealed class BellkeeperTrial
                 {
                     int gain = HitBonus[_hits[i] - 1] + (UnitId(i) == 8 ? 5 : 0);                       // 광신도 +5
                     bool stood = _standing[i] && _battle.GetUnitPos(i) == _standCell[i];
-                    if (stood) { Gain(i, GreedStandValue, "버티기", ChargePopup.Greed, greed: true); _greedStood++; GameSfx.PlayGreedStand(); }
+                    if (stood) { Gain(i, GreedStandValue, "버티기", ChargePopup.Greed, greed: true); _greedStood++; GameSfx.PlayGreedStand(); BattleJuice.GreedStand(_battle.GetUnitImage(i)); }
                     Gain(i, HitBonus[_hits[i] - 1], "피격", ChargePopup.Hit);
                     if (UnitId(i) == 8) Gain(i, 5, "광신도", ChargePopup.Trait);
                     var image = _battle.GetUnitImage(i);

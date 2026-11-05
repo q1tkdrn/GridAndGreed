@@ -101,6 +101,7 @@ public class BoardPanel : MonoBehaviour
     [SerializeField] private TextMeshProUGUI willPowerText;
     [SerializeField] private Slider bossSlider;
     [SerializeField] private Image bossImage;
+    public Image BossImage => bossImage;   // 전투 연출(BattleJuice)에서 보스를 흔든다
     private BossHpBarFx _bossHpFx;        // 잔상 + 심판 미리보기 (JSW/Script/BossHpBarFx.cs)
     private int _judgmentPreviewUnit = -1; // 마우스를 올린 캐릭터 (-1이면 없음)
 
@@ -744,6 +745,7 @@ public class BoardPanel : MonoBehaviour
         {
             PrintText(GetBossText(boss.willDecline, turnCount / 5));
         }
+        BattleJuice.WillPowerChanged(willPowerText, willPower, value);   // 오르면 숫자가 붉게 튄다
         willPower = value;
         willPowerText.text = $"의지력: {willPower}";
     }

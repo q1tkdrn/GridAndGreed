@@ -184,6 +184,7 @@ public static class JourneyRefit
         back.sprite = FxSprites.FadeBar;           // 좌우 끝이 흐려지는 띠 (검은 상자 → 부드럽게)
         back.color = new Color(0f, 0f, 0f, 0.9f);
         back.raycastTarget = false;
+        back.enabled = false;   // 검은 띠는 숨기고 글자만 보인다 (2026-11-05). 글자 자리 잡는 틀로만 쓴다.
         _banner = new GameObject("Text", typeof(RectTransform), typeof(TextMeshProUGUI)).GetComponent<TextMeshProUGUI>();
         var tr = _banner.rectTransform;
         tr.SetParent(br, false);

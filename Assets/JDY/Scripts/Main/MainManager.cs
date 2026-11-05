@@ -32,6 +32,8 @@ public class MainManager : MonoBehaviour
     private int currentIndex = 1;
     private bool isTransitioning;
     private Coroutine bannerRoutine;
+    /// <summary>마을 화면을 넘길 때 덮이는 어두운 막의 진하기(0~1). 화면 톱니(GearHud)가 같이 사라졌다 나타나는 데 쓴다.</summary>
+    public float TransitionAlpha => transitionOverlay != null ? transitionOverlay.alpha : 0f;
 
     void Start()
     {

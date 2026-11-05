@@ -470,7 +470,27 @@ public class BattleDisplayManager : MonoBehaviour
         // 패배하면 여정은 끝난다. 다음 출격은 새 여정이다.
         RunSave.Delete();
         RecordAchievement("ACH-7", 100);
-        
+        StartCoroutine(FadeToDefeatMusic());   // 전투 음악 → 패배 음악 (JSW, 2026-11-05)
+    }
+
+    // 전투 음악을 1초 동안 줄인 뒤 패배 음악(Resources/패배시음악)을 반복 재생한다.
+    private System.Collections.IEnumerator FadeToDefeatMusic()
+    {
+        var clip = Resources.Load<AudioClip>("패배시음악");
+        if (clip == null) yield break;
+        const float fade = 1f;
+        float v1 = bgmSource != null ? bgmSource.volume : 1f;
+        float v2 = bgmSourceLoop != null ? bgmSourceLoop.volume : 1f;
+        for (float t = 0f; t < fade; t += Time.unscaledDeltaTime)
+        {
+            float k = 1f - t / fade;
+            if (bgmSource != null) bgmSource.volume = v1 * k;
+            if (bgmSourceLoop != null) bgmSourceLoop.volume = v2 * k;
+            yield return null;
+        }
+        PlayBGM(clip);   // 반복 재생 (loop)
+        if (bgmSource != null) bgmSource.volume = v1;
+        if (bgmSourceLoop != null) bgmSourceLoop.volume = v2;
     }
 
     // 승리 화면에서 넘어갈 때(화살표·"상관없음"): 마을의 여정 지도로 돌아가 다음 장소를 고른다.

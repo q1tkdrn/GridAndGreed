@@ -344,6 +344,7 @@ public class BattleManagerTemp : MonoBehaviour
             return;
         }
         // 3번째 피격 = 쓰러짐. 이번 전투에서 돌아오지 않는다.
+        BattleJuice.UnitDown(units[i].unit);   // 잔상이 쓰러지며 사라진다
         units[i].unit.gameObject.SetActive(false);
         units[i].reviveRemainTurn = int.MaxValue / 2;
         trial?.OnUnitDown(i);
@@ -412,7 +413,11 @@ public class BattleManagerTemp : MonoBehaviour
         var previewSeconds = boss != null && boss.patternPreviewSeconds > 0f
             ? boss.patternPreviewSeconds
             : 1f;
-        yield return new WaitForSeconds(previewSeconds);
+        // 공격 칸이 가운데부터 번지고 맞기 직전 깜빡인다 (JSW/Script/BattleJuice.cs). 걸리는 시간은 그대로.
+        var telegraph = new List<(Image, Vector2Int)>();
+        foreach (var cell in dangerCells)
+            if (_attackPlates.TryGetValue(cell, out var plate) && plate != null) telegraph.Add((plate, cell));
+        yield return BattleJuice.Telegraph(telegraph, previewSeconds);
         if (revision != _patternRevision) yield break;
 
         var hitUnits = new List<int>();
@@ -425,6 +430,10 @@ public class BattleManagerTemp : MonoBehaviour
             var hitAnimation = boardPanel.HitAttack(i);
             if (hitAnimation != null) hitAnimations.Add(hitAnimation);
         }
+
+        var hitImages = new List<Image>();
+        foreach (int h in hitUnits) hitImages.Add(units[h].unit);
+        BattleJuice.UnitsHit(boardPanel, hitImages);   // 맞은 캐릭터 번쩍임 + 판 흔들림
 
         // 맞은 캐릭터 1명당 플레이어 HP를 깎는다.
         var trial = boardPanel.Trial;

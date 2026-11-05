@@ -185,6 +185,8 @@ public sealed class BossHpBarFx : MonoBehaviour
         {
             // 새로 깎였다: 잔상을 잠깐 멈춰 둔다.
             hold = HoldTime;
+            int maxHit = maxHp != null ? maxHp() : 0;
+            if (maxHit > 0) BattleJuice.BossDamaged(Mathf.RoundToInt((lastValue - value) * maxHit), (RectTransform)slider.transform);   // 보스 흔들림 + 피해 숫자
             drainSpeed = 0f;
         }
         else if (hold > 0f)

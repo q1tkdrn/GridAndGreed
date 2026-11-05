@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -56,7 +56,36 @@ public class Card : MonoBehaviour
     public void OnMouseEnter()
     {
         if (locked) return;
+        FitPopup();
         popUpPanel.SetActive(true);
+    }
+
+    // 설명 창을 카드 안쪽, 아래 글자 띠('장착됨' 등) 위까지만 차지하게 맞춘다 (JSW, 2026-11-05).
+    // 예전엔 350x300으로 카드(254)보다 넓어 옆 카드와 띠를 덮었다.
+    private const float PopupSide = 8f;      // 카드 좌우·위 여백
+    private const float PopupGap = 6f;       // 글자 띠와의 틈
+    private const float PopupPadding = 14f;  // 창 안쪽 글자 여백
+
+    private void FitPopup()
+    {
+        var pr = (RectTransform)popUpPanel.transform;
+        float bottom = PopupSide;
+        if (labelBack != null && labelBack.gameObject.activeSelf)
+            bottom = labelBack.anchoredPosition.y + labelBack.sizeDelta.y + PopupGap;
+        pr.anchorMin = Vector2.zero;
+        pr.anchorMax = Vector2.one;
+        pr.pivot = new Vector2(0.5f, 0.5f);
+        pr.offsetMin = new Vector2(PopupSide, bottom);
+        pr.offsetMax = new Vector2(-PopupSide, -PopupSide);
+
+        var tr = popupText.rectTransform;
+        tr.anchorMin = Vector2.zero;
+        tr.anchorMax = Vector2.one;
+        tr.pivot = new Vector2(0.5f, 0.5f);
+        tr.offsetMin = new Vector2(PopupPadding, PopupPadding);
+        tr.offsetMax = new Vector2(-PopupPadding, -PopupPadding);
+        popupText.textWrappingMode = TextWrappingModes.Normal;
+        popupText.verticalAlignment = VerticalAlignmentOptions.Middle;
     }
 
     public void OnMouseExit()

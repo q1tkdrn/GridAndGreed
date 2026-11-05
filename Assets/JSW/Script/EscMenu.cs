@@ -115,6 +115,17 @@ public sealed class EscMenu : MonoBehaviour
         _instance.Open(Style.Village, Page.Settings);
     }
 
+    /// <summary>화면 톱니바퀴(GearHud)를 눌렀을 때: ESC를 누른 것처럼 이 씬의 메뉴를 연다. 열 수 없는 씬이면 false.</summary>
+    public static bool OpenFromHud()
+    {
+        if (_instance == null || _instance._isOpen) return false;
+        if (ModalDialog.BlocksEscape || JourneyMap.IsOpen) return false;
+        var style = StyleFor(SceneManager.GetActiveScene().name);
+        if (style == Style.None) return false;
+        _instance.Open(style);
+        return true;
+    }
+
     private void OnDestroy()
     {
         if (_instance != this) return;
@@ -224,17 +235,22 @@ public sealed class EscMenu : MonoBehaviour
         }
     }
 
+    // 화면 톱니(GearHud)도 이 크기·자리를 그대로 쓴다. (오른쪽 위 모서리 기준, 톱니 중심)
+    public const float GearSize = 108f;
+    public static readonly Vector2 GearCenter = new Vector2(-88f, -75f);
+
     private void BuildGear()
     {
         if (_gear == null) return;
         var rect = NewRect("Gear", _root);
         rect.anchorMin = rect.anchorMax = new Vector2(1f, 1f);
-        rect.sizeDelta = new Vector2(108f, 108f);
-        rect.anchoredPosition = new Vector2(-88f, -75f);
+        rect.sizeDelta = new Vector2(GearSize, GearSize);
+        rect.anchoredPosition = GearCenter;
         var image = rect.gameObject.AddComponent<Image>();
         image.sprite = _gear;
         image.preserveAspect = true;
-        AddButton(rect.gameObject, image, () => ShowPage(_page == Page.Settings ? Page.Menu : Page.Settings), 0.85f);
+        // 열 때 누른 화면 톱니(GearHud)와 같은 자리라, 다시 누르면 어느 화면이든 ESC 창을 닫는다 (2026-11-05).
+        AddButton(rect.gameObject, image, Close, 0.85f);
     }
 
     private void BuildMenu()
@@ -242,7 +258,7 @@ public sealed class EscMenu : MonoBehaviour
         var items = new List<(string label, Action action)> { ("계속하기", Close) };
         if (_style == Style.Battle && RunSave.HasCurrentBattle) items.Add(("재도전", () => ShowPage(Page.ConfirmRetry)));
         items.Add(("타이틀화면으로", () => LeaveTo(TitleScene)));
-        items.Add(("설정", () => ShowPage(Page.Settings)));
+        items.Add(("소리설정", () => ShowPage(Page.Settings)));
         items.Add(("종료", Quit));
 
         if (_style == Style.Battle)
@@ -277,7 +293,7 @@ public sealed class EscMenu : MonoBehaviour
 
     private void BuildSettings()
     {
-        MakeLabel("설정", _bold, 56f, Color.white, new Vector2(SettingsRowX, 250f), 600f);
+        MakeLabel("소리설정", _bold, 56f, Color.white, new Vector2(SettingsRowX, 250f), 600f);
         MakeVolumeRow("마스터", "MasterVolume", 120f);
         MakeVolumeRow("배경음", "BGMVolume", 20f);
         MakeVolumeRow("효과음", "SFXVolume", -80f);
