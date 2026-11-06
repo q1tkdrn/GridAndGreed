@@ -112,7 +112,8 @@ public class BoardPanel : MonoBehaviour
     // 전투 규칙 (모든 보스 + 튜토리얼). JSW/Script/Trial/BellkeeperTrial.cs
     public BellkeeperTrial Trial { get; private set; }
     private int _baseReaperMaxHp = -1;
-    public TMP_FontAsset UiFont => turnTextUI.font;
+    // 턴 표시는 연성(제목용)으로 바뀌어서, 코드로 만드는 전투 글자는 GameFonts.Bold를 쓴다 (2026-11-06)
+    public TMP_FontAsset UiFont => GameFonts.Bold;
 
     /// <summary>튜토리얼: 미뤄 둔 턴 끝(보스 공격)을 이어서 진행한다.</summary>
     public void TutorialContinue() => UpdateActionPoint(actionPoint);

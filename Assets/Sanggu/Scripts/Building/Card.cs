@@ -24,6 +24,7 @@ public class Card : MonoBehaviour
     public void Init()
     {
         popUpPanel.SetActive(false);
+        DialogBox.Style(popUpPanel, 3f, popupText);   // 검은 바탕 + 대사창 테두리 + 흰 글자 (JSW/Script/DialogBox.cs, 2026-11-05). 흰 카드 위라 바탕을 테두리 끝까지
         // 지금 규칙(v2)에서 쓰는 건 특성뿐 (힘·지능·부활 대기 시간은 안 씀)
         popupText.text =
             $"<align=\"center\"><size=45>{unitTemp.unitName}</size></align>\n" +
@@ -62,9 +63,9 @@ public class Card : MonoBehaviour
 
     // 설명 창을 카드 안쪽, 아래 글자 띠('장착됨' 등) 위까지만 차지하게 맞춘다 (JSW, 2026-11-05).
     // 예전엔 350x300으로 카드(254)보다 넓어 옆 카드와 띠를 덮었다.
-    private const float PopupSide = 8f;      // 카드 좌우·위 여백
+    private const float PopupSide = 0f;      // 카드 좌우·위 여백 (8 → 0: 흰 카드가 창 둘레로 두껍게 보이지 않게, 2026-11-06)
     private const float PopupGap = 6f;       // 글자 띠와의 틈
-    private const float PopupPadding = 14f;  // 창 안쪽 글자 여백
+    private const float PopupPadding = 22f;  // 창 안쪽 글자 여백 (대사창 테두리에 닿지 않게 14 → 22)
 
     private void FitPopup()
     {

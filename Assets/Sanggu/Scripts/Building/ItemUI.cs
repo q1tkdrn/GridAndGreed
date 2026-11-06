@@ -30,6 +30,8 @@ public class ItemUI : MonoBehaviour
         StopAllCoroutines();
         if (talkText != null) talkText.text = "";
         if (popup != null) popup.SetActive(false);
+        DialogBox.Style(popup, nameText, descriptionText);   // 편성·전투 공통: 검은 바탕 + 대사창 테두리 + 흰 글자 (JSW/Script/DialogBox.cs, 2026-11-05)
+        BringPopupToFront();
         if (itemData is null)
         {
             id = 0;
@@ -61,10 +63,35 @@ public class ItemUI : MonoBehaviour
         if (lockCover != null) lockCover.SetActive(false);
     }
 
+    // 설명 창이 다른 아이템 칸과 정비 안내(JourneyLink 띠, 500) 아래에 깔려 가려졌다 (2026-11-06).
+    // 창에 자기 캔버스를 달아 그 위(505)에 그린다. 튜토리얼 말풍선(520)·ESC 메뉴(550)보다는 아래.
+    // 레이캐스터는 달지 않아 창이 마우스를 가로채지 않는다(올린 칸에서 깜빡이지 않게).
+    // 설명이 길면 창 밖으로 넘치지 않게 글자를 줄인다.
+    private const int PopupSortingOrder = 505;
+
+    private void BringPopupToFront()
+    {
+        if (popup == null) return;
+        if (popup.GetComponent<Canvas>() == null) popup.AddComponent<Canvas>();
+        if (descriptionText != null)
+        {
+            descriptionText.enableAutoSizing = true;
+            descriptionText.fontSizeMin = 20f;
+            descriptionText.fontSizeMax = 36f;
+        }
+    }
+
     public void OnMouseEnter()
     {
         if (itemData == null) return;
         popup.SetActive(true);
+        // 꺼진 상태에서 정한 정렬 값은 켜질 때 풀리므로 켠 뒤에 정한다.
+        var canvas = popup.GetComponent<Canvas>();
+        if (canvas != null)
+        {
+            canvas.overrideSorting = true;
+            canvas.sortingOrder = PopupSortingOrder;
+        }
     }
 
     public void OnMouseExit()

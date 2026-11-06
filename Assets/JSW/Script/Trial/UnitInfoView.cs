@@ -133,7 +133,7 @@ public sealed class UnitInfoView
         fr.SetParent(_panel, false);
         Stretch(fr, 8f);
         var fillImage = fill.GetComponent<Image>();
-        fillImage.color = new Color(0f, 0f, 0f, 0.92f);
+        fillImage.color = Color.black;   // 완전히 검은 바탕 (편성·아이템 설명 창과 같게, 2026-11-05)
         fillImage.raycastTarget = false;
 
         var sprites = Resources.LoadAll<Sprite>("대사창");

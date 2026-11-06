@@ -201,7 +201,8 @@ public class MainManager : MonoBehaviour
     }
     public void MusicButton()
     {
-        LoadingScreen.Load("Music");
+        // 음악 화면은 로딩 화면 대신 마을 화면 넘김과 같은 암전 (검게 0.2초 → 걷힘 0.25초, 2026-11-05). 돌아올 때는 ExitButton_Main.cs
+        SceneFade.LoadScene("Music", Color.black, 0.2f, 0.25f);
     }
     public void SkinButton()
     {

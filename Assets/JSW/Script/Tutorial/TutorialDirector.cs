@@ -332,7 +332,7 @@ public sealed class TutorialDirector : MonoBehaviour
             dim.raycastTarget = true;
         }
 
-        var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Light SDF");
+        var font = GameFonts.Body;
 
         _bubble = NewRect("Bubble", _root);
         _bubble.sizeDelta = new Vector2(BubbleWidth, 0f);

@@ -192,6 +192,7 @@ public sealed class JourneyMap : MonoBehaviour
         }
 
         BuildBackButton();
+        BuildGear();
         BuildDoor();
 
         _white = NewImage("White", transform, new Color(1f, 1f, 1f, 0f));
@@ -683,6 +684,13 @@ public sealed class JourneyMap : MonoBehaviour
         Destroy(gameObject);
     }
 
+    // 오른쪽 위 톱니: 마을과 같은 자리·모양. 누르면 마을 ESC 메뉴가 지도 위에 뜨고, 닫으면 지도로 돌아온다. (2026-11-05)
+    // 지도 캔버스 안에 있어서 문·흰 화면 전환과 닫힘 페이드에 자연히 같이 가려진다.
+    private void BuildGear()
+    {
+        GearHud.GearButton.Create(transform, () => { if (!_busy) EscMenu.OpenFromHud(); });
+    }
+
     // 전투 장면 '돌아가기'(화살표 + 글자)와 같은 모양
     private void BuildBackButton()
     {
@@ -738,6 +746,7 @@ public sealed class JourneyMap : MonoBehaviour
 
     private static TMP_FontAsset FindVillageFont()
     {
+        if (GameFonts.Bold != null) return GameFonts.Bold;   // 2026-11-06: 글꼴은 GameFonts에서
         foreach (var text in FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None))
             if (text.font != null && text.gameObject.scene == SceneManager.GetActiveScene()) return text.font;
         return null;

@@ -14,7 +14,7 @@ public sealed class LoadingScreen : MonoBehaviour
     private static readonly HashSet<string> Excluded = new HashSet<string> { "11" }; // 타이틀과 같은 제외 목록
     private const float FadeIn = 0.25f;
     private const float FadeOut = 0.35f;
-    private const float MinimumShow = 2.5f;        // 최소 표시 시간 (이미 불러왔어도 이만큼은 보여 준다)
+    private const float MinimumShow = 1.2f;        // 최소 표시 시간 (이미 불러왔어도 이만큼은 보여 준다). 2.5 → 1.2 (2026-11-05, 전체 약 1.6초)
     private const float DotInterval = 0.4f;        // 점이 하나 늘어나는 간격
     private const float BarWidth = 420f;
     private const float BarHeight = 34f;
@@ -72,7 +72,7 @@ public sealed class LoadingScreen : MonoBehaviour
         var shade = NewImage("Shade", transform, new Color(0f, 0f, 0f, 0.72f));
         Stretch(shade.rectTransform);
 
-        var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Bold SDF");
+        var font = GameFonts.Bold;
 
         // 로딩 바: 흰 테두리 + 안쪽 흰 채움
         var bar = NewRect("Bar", transform);

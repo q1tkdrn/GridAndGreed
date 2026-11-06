@@ -190,8 +190,7 @@ public static class JourneyRefit
         tr.SetParent(br, false);
         tr.anchorMin = Vector2.zero; tr.anchorMax = Vector2.one;
         tr.offsetMin = new Vector2(16f, 0f); tr.offsetMax = new Vector2(-16f, 0f);   // 긴 경고는 두 줄로 꺾인다
-        var font = Object.FindObjectsByType<TextMeshProUGUI>(FindObjectsSortMode.None).FirstOrDefault(t => t.font != null && t != _banner)?.font;
-        if (font != null) _banner.font = font;
+        _banner.font = GameFonts.Bold;   // 2026-11-06: 아무 글자에서나 빌려 오면 제목용(연성)이 걸릴 수 있다
         _banner.fontSize = 34f;
         _banner.alignment = TextAlignmentOptions.Center;
         _banner.raycastTarget = false;

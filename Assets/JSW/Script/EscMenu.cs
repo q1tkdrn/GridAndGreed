@@ -23,7 +23,7 @@ public sealed class EscMenu : MonoBehaviour
     private const string BattleScene = "BattleTemp";
 
     private enum Style { None, Village, Battle }
-    private enum Page { Menu, ConfirmRetry, Settings, Credit }
+    private enum Page { Menu, Confirm, Settings, Credit }
 
     private static EscMenu _instance;
 
@@ -46,6 +46,16 @@ public sealed class EscMenu : MonoBehaviour
     private bool _escapeHeld;
     private float _timeScaleBeforeOpen = 1f;
     private bool _settingsOnly;   // 타이틀에서 연 설정 화면: 메뉴로 돌아가지 않고 바로 닫는다
+
+    // 확인 팝업(Page.Confirm)에 띄울 내용. 전투 메뉴의 재도전·타이틀화면으로·종료가 쓴다. (2026-11-05)
+    private string _confirmTitle;
+    private string _confirmBody;
+    private string _confirmLabel;
+    private Action _confirmAction;
+    private const float ConfirmWidth = 860f;
+    private const float ConfirmHeight = 400f;
+    private const float ConfirmButtonWidth = 360f;
+    private Sprite _dialogFrame;
 
     private TMP_FontAsset _bold;
     private TMP_FontAsset _light;
@@ -86,11 +96,13 @@ public sealed class EscMenu : MonoBehaviour
         Stretch(_root);
         _root.gameObject.SetActive(false);
 
-        _bold = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Bold SDF");
-        _light = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Light SDF");
+        _bold = GameFonts.Bold;
+        _light = GameFonts.Body;
         _brush = Resources.Load<Sprite>("UI/EscButton");
         _gear = Resources.Load<Sprite>("Images/Main/SettingButton");
         _knob = CreateCircle(64);
+        var frames = Resources.LoadAll<Sprite>("대사창");   // 분필 테두리 틀 (9-slice)
+        _dialogFrame = frames.Length > 0 ? frames[0] : null;
         _villageShade = CreateVillageShade();
         var sfx = Resources.Load<GameSfxSettings>("GameSfxSettings");
         if (sfx != null && sfx.output != null) _mixer = sfx.output.audioMixer;
@@ -119,7 +131,8 @@ public sealed class EscMenu : MonoBehaviour
     public static bool OpenFromHud()
     {
         if (_instance == null || _instance._isOpen) return false;
-        if (ModalDialog.BlocksEscape || JourneyMap.IsOpen) return false;
+        if (ModalDialog.BlocksEscape) return false;
+        // 톱니는 여정 지도 위에도 있다 (JourneyMap.BuildGear). 지도는 메뉴 뒤에 그대로 남는다. (2026-11-05)
         var style = StyleFor(SceneManager.GetActiveScene().name);
         if (style == Style.None) return false;
         _instance.Open(style);
@@ -152,9 +165,7 @@ public sealed class EscMenu : MonoBehaviour
 
         // 확인 팝업이 열려 있으면 ESC는 팝업을 닫는 데만 쓴다.
         if (ModalDialog.BlocksEscape) return;
-        // 여정 지도가 떠 있으면 ESC는 지도를 닫는다. (JourneyMap)
-        if (JourneyMap.IsOpen) { JourneyMap.Close(); return; }
-
+        // 메뉴가 열려 있으면 메뉴부터 닫는다. (여정 지도 위에서 톱니로 연 경우 지도는 남는다)
         if (_isOpen)
         {
             if (_page == Page.Credit) ShowPage(Page.Settings);
@@ -162,6 +173,9 @@ public sealed class EscMenu : MonoBehaviour
             else ShowPage(Page.Menu);
             return;
         }
+
+        // 여정 지도가 떠 있으면 ESC는 지도를 닫는다. (JourneyMap)
+        if (JourneyMap.IsOpen) { JourneyMap.Close(); return; }
 
         var style = StyleFor(SceneManager.GetActiveScene().name);
         if (style == Style.None) return;
@@ -206,7 +220,7 @@ public sealed class EscMenu : MonoBehaviour
         switch (page)
         {
             case Page.Menu: BuildMenu(); break;
-            case Page.ConfirmRetry: BuildConfirmRetry(); break;
+            case Page.Confirm: BuildMenu(); BuildConfirm(); break;
             case Page.Settings: BuildSettings(); break;
             case Page.Credit: BuildCredit(); break;
         }
@@ -256,10 +270,13 @@ public sealed class EscMenu : MonoBehaviour
     private void BuildMenu()
     {
         var items = new List<(string label, Action action)> { ("계속하기", Close) };
-        if (_style == Style.Battle && RunSave.HasCurrentBattle) items.Add(("재도전", () => ShowPage(Page.ConfirmRetry)));
-        items.Add(("타이틀화면으로", () => LeaveTo(TitleScene)));
+        bool battle = _style == Style.Battle;
+        // 전투에서 나가면 진행 중인 전투가 사라지므로 한 번 더 묻는다. 마을은 잃을 것이 없어 바로 실행한다.
+        if (battle && RunSave.HasCurrentBattle)
+            items.Add(("재도전", () => Confirm("보스전을 다시 시작할까요?", "보스 등장 장면부터 다시 싸워요.\n처치한 보스와 편성은 그대로예요.", "재도전", RetryBattle)));
+        items.Add(("타이틀화면으로", battle ? (Action)(() => Confirm("타이틀로 나갈까요?", LeaveBattleBody, "나가기", () => LeaveTo(TitleScene))) : () => LeaveTo(TitleScene)));
         items.Add(("소리설정", () => ShowPage(Page.Settings)));
-        items.Add(("종료", Quit));
+        items.Add(("종료", battle ? (Action)(() => Confirm("게임을 끝낼까요?", LeaveBattleBody, "종료", Quit)) : Quit));
 
         if (_style == Style.Battle)
         {
@@ -282,13 +299,67 @@ public sealed class EscMenu : MonoBehaviour
             MakeMenuButton(items[i].label, firstY - Spacing * i, items[i].action);
     }
 
-    private void BuildConfirmRetry()
+    private static string LeaveBattleBody => RunSave.HasCurrentBattle
+        ? "지금 전투는 저장되지 않아요.\n이어하면 이 보스전을 처음부터 다시 싸워요."
+        : "지금 전투는 저장되지 않아요.";
+
+    private void Confirm(string title, string body, string confirmLabel, Action action)
     {
-        MakeLabel("보스전을 다시 시작할까요?", _bold, 50f, Color.white, new Vector2(ColumnX, 190f), 900f);
-        MakeLabel("보스 등장 장면부터 다시 싸워요.\n처치한 보스와 편성은 그대로예요.", _light, 32f,
-            new Color(1f, 1f, 1f, 0.8f), new Vector2(ColumnX, 95f), 900f, 100f);
-        MakeMenuButton("재도전", -40f, RetryBattle);
-        MakeMenuButton("돌아가기", -40f - Spacing, () => ShowPage(Page.Menu));
+        _confirmTitle = title;
+        _confirmBody = body;
+        _confirmLabel = confirmLabel;
+        _confirmAction = action;
+        ShowPage(Page.Confirm);
+    }
+
+    // 메뉴는 뒤에 어둡게 남기고, 그 위에 대사창 틀 팝업을 띄운다.
+    // 위험한 버튼은 왼쪽, 안전한 '돌아가기'는 오른쪽. ESC도 '돌아가기'와 같다 (Update).
+    private void BuildConfirm()
+    {
+        var dim = NewRect("ConfirmDim", _root);
+        Stretch(dim);
+        var dimImage = dim.gameObject.AddComponent<Image>();
+        dimImage.color = new Color(0f, 0f, 0f, 0.6f);
+        dimImage.raycastTarget = true;   // 뒤의 메뉴 버튼을 누르지 못하게 막는다
+
+        var panel = NewRect("ConfirmPanel", _root);
+        panel.anchorMin = panel.anchorMax = new Vector2(0.5f, 0.5f);
+        panel.sizeDelta = new Vector2(ConfirmWidth, ConfirmHeight);
+        var fill = NewRect("Fill", panel);
+        Stretch(fill);
+        fill.offsetMin = new Vector2(10f, 10f);
+        fill.offsetMax = new Vector2(-10f, -10f);
+        var fillImage = fill.gameObject.AddComponent<Image>();
+        fillImage.color = new Color(0.04f, 0.04f, 0.04f, 1f);   // 완전히 불투명 (0.96이면 선형 색공간에서 뒤 메뉴가 비쳤다)
+        fillImage.raycastTarget = true;
+        if (_dialogFrame != null)
+        {
+            var frame = NewRect("Frame", panel);
+            Stretch(frame);
+            var frameImage = frame.gameObject.AddComponent<Image>();
+            frameImage.sprite = _dialogFrame;
+            frameImage.type = Image.Type.Sliced;
+            frameImage.raycastTarget = false;
+        }
+
+        var title = NewRect("Title", panel);
+        title.sizeDelta = new Vector2(ConfirmWidth - 120f, 70f);
+        title.anchoredPosition = new Vector2(0f, 112f);
+        AddText(title, _confirmTitle, _bold, 48f, Color.white).raycastTarget = false;
+
+        var body = NewRect("Body", panel);
+        body.sizeDelta = new Vector2(ConfirmWidth - 120f, 100f);
+        body.anchoredPosition = new Vector2(0f, 22f);
+        var bodyText = AddText(body, _confirmBody, _light, 30f, new Color(1f, 1f, 1f, 0.8f));
+        bodyText.lineSpacing = 10f;
+        bodyText.raycastTarget = false;
+
+        float half = ConfirmButtonWidth * 0.5f + 15f;
+        var action = _confirmAction;
+        var yes = MakeBrushButton(panel, _confirmLabel, new Vector2(-half, -105f), ConfirmButtonWidth, () => action?.Invoke());
+        var no = MakeBrushButton(panel, "돌아가기", new Vector2(half, -105f), ConfirmButtonWidth, () => ShowPage(Page.Menu));
+        // 팝업 버튼은 메뉴처럼 글자 사이를 벌리지 않는다 (붓 끝에 글자가 걸리지 않게)
+        foreach (var b in new[] { yes, no }) b.GetComponentInChildren<TextMeshProUGUI>().characterSpacing = 0f;
     }
 
     private void BuildSettings()
@@ -370,13 +441,21 @@ public sealed class EscMenu : MonoBehaviour
     // 전투: 붓터치 해골 버튼 (ESC2.png)
     private void MakeBattleButton(string label, float y, Action action)
     {
-        var rect = NewRect(label, _root);
-        rect.anchorMin = rect.anchorMax = ColumnAnchor;
         bool isLong = IsLongLabel(label);
-        rect.sizeDelta = new Vector2(isLong ? BattleLongWidth : BattleButtonWidth, BattleButtonHeight);
+        var rect = MakeBrushButton(_root, label, new Vector2(ColumnX, y), isLong ? BattleLongWidth : BattleButtonWidth, action,
+            isLong ? BattleLongScale : 1f);
+        rect.anchorMin = rect.anchorMax = ColumnAnchor;
         rect.anchoredPosition = new Vector2(ColumnX, y);
+    }
+
+    private RectTransform MakeBrushButton(RectTransform parent, string label, Vector2 pos, float width, Action action, float scale = 1f)
+    {
+        var rect = NewRect(label, parent);
+        rect.anchorMin = rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.sizeDelta = new Vector2(width, BattleButtonHeight);
+        rect.anchoredPosition = pos;
         // 마우스 올림 효과(UIHoverScale)가 이 크기를 기준으로 삼도록 AddButton보다 먼저 정한다.
-        if (isLong) rect.localScale = new Vector3(BattleLongScale, BattleLongScale, 1f);
+        if (scale != 1f) rect.localScale = new Vector3(scale, scale, 1f);
         var image = rect.gameObject.AddComponent<Image>();
         if (_brush != null)
         {
@@ -401,6 +480,7 @@ public sealed class EscMenu : MonoBehaviour
         text.fontSizeMin = 30f;
         text.fontSizeMax = 46f;
         AddButton(rect.gameObject, image, action, 0.96f);
+        return rect;
     }
 
     private static bool IsLongLabel(string label) => label.Length > 4;

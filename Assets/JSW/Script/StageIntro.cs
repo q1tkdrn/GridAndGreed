@@ -113,13 +113,8 @@ public class StageIntro : MonoBehaviour
     {
         if (_built) return;
         _built = true;
-        TMP_FontAsset bold = null, light = null;
-        foreach (var t in GetComponentsInChildren<TextMeshProUGUI>(true))
-        {
-            if (t.font == null) continue;
-            if (bold == null && t.font.name.Contains("Bold")) bold = t.font;
-            if (light == null && t.font.name.Contains("Light")) light = t.font;
-        }
+        // 글꼴은 GameFonts에서 (2026-11-06: 부크크 명조 → 고운바탕, 장소 이름은 연성)
+        TMP_FontAsset bold = GameFonts.Display, light = GameFonts.Body;
 
         _root = new GameObject("Stage Intro", typeof(RectTransform), typeof(CanvasGroup)).GetComponent<RectTransform>();
         _root.SetParent(transform, false);

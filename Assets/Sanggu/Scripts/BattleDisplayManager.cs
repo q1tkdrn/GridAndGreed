@@ -282,10 +282,7 @@ public class BattleDisplayManager : MonoBehaviour
         var lines = StageText.Find(boss)?.victory;
         if (_victoryLinesRoot == null)
         {
-            TMP_FontAsset font = null;
-            foreach (var t in victoryPanel.GetComponentsInChildren<TextMeshProUGUI>(true))
-                if (t.font != null && t.font.name.Contains("Light")) { font = t.font; break; }
-            if (font == null) font = victoryPanel.GetComponentInChildren<TextMeshProUGUI>(true)?.font;
+            TMP_FontAsset font = GameFonts.Body;   // 2026-11-06: 부크크 명조 Light → 고운바탕 (JSW/Script/GameFonts.cs)
 
             _victoryLinesRoot = new GameObject("Reaper Lines", typeof(RectTransform), typeof(Image)).GetComponent<RectTransform>();
             _victoryLinesRoot.SetParent(victoryPanel.transform, false);

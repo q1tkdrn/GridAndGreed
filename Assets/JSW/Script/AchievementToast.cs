@@ -69,7 +69,7 @@ public sealed class AchievementToast : MonoBehaviour
             new Vector2(54, 0), new Vector2(76, 76));
         icon = Picture(iconRect, Color.white);
         icon.preserveAspect = true;
-        var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Bold SDF");
+        var font = GameFonts.Bold;
         Label("Heading", "업적 달성", font, 19, new Color(0.75f, 0.73f, 0.68f), new Vector2(264, 28), 30);
         title = Label("Title", "", font, 26, Color.white, new Vector2(264, -12), 52);
         title.enableAutoSizing = true;

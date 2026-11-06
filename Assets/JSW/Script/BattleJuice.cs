@@ -397,7 +397,7 @@ public static class BattleJuice
 
     private static TextMeshProUGUI NewText(Transform parent, string value, TMP_FontAsset font, float size, Color color)
     {
-        if (_bold == null) _bold = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Bold SDF");
+        if (_bold == null) _bold = GameFonts.Bold;
         if (_bold != null) font = _bold;
         var go = new GameObject("Juice Text", typeof(RectTransform), typeof(TextMeshProUGUI));
         var text = go.GetComponent<TextMeshProUGUI>();

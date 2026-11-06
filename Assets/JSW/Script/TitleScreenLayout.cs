@@ -335,7 +335,7 @@ public sealed class TitleScreenLayout : MonoBehaviour
 
     private static TMP_FontAsset LoadFont(Transform near)
     {
-        var font = Resources.Load<TMP_FontAsset>("Fonts & Materials/BookkMyungjo_Light SDF");
+        var font = GameFonts.Body;
         if (font != null) return font;
         // 못 찾으면 같은 씬에서 이미 쓰고 있는 글꼴을 빌린다 (설정 창 텍스트 등).
         var root = near.root;
