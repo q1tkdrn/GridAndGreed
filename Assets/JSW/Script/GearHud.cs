@@ -19,7 +19,7 @@ using UnityEngine.UI;
 public sealed class GearHud : MonoBehaviour
 {
     private const int SortingOrder = 80;          // 마을 UI(0) 위, 여정 지도(90) 아래
-    private static readonly string[] Scenes = { "Main" };
+    private static readonly string[] Scenes = { "Main", "Item", "Character", "Skin" };   // 상점은 소울 창을 왼쪽으로 옮겨 자리를 냈다 (ShopHud, 2026-11-06)
 
     private static GearHud _instance;
     private GearButton _gear;

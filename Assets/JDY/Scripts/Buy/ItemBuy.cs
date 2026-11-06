@@ -11,6 +11,9 @@ public class ItemBuy : MonoBehaviour
     {
         SetBuy();
         IsBuy();
+        // 톱니 자리 비우기 · 붓 구매 버튼 · 소울 세기 (JSW/Script/ShopHud.cs, 2026-11-06)
+        ShopHud.Attach(button, soulText, () => itemSlot.item != null ? itemSlot.item.price : 0,
+            () => itemSlot.item != null && InventoryManager.Instance != null && InventoryManager.Instance.HasItem(itemSlot.item.id));
     }
     public void IsBuy()
     {

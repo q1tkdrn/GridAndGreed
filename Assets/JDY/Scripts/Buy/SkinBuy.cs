@@ -14,6 +14,10 @@ public class SkinBuy : MonoBehaviour
     {
         SetBuy();
         IsBuy();
+        // 톱니 자리 비우기 · 붓 구매 버튼 · 소울 세기 (JSW/Script/ShopHud.cs, 2026-11-06)
+        ShopHud.Attach(button, soulText, () => SkinSlot.Price,
+            () => InventoryManager.Instance != null && InventoryManager.Instance.HasSkin(skinSlot.character.id, skinSlot.currentSkin),
+            () => skinSlot.HasCurrentSkin);
     }
     public void IsBuy()
     {

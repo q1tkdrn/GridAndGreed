@@ -12,6 +12,9 @@ public class CharacterBuy : MonoBehaviour
     {
         SetBuy();
         IsBuy();
+        // 톱니 자리 비우기 · 붓 구매 버튼 · 소울 세기 (JSW/Script/ShopHud.cs, 2026-11-06)
+        ShopHud.Attach(button, soulText, () => characterSlot.character != null ? characterSlot.character.price : 0,
+            () => characterSlot.character != null && InventoryManager.Instance != null && InventoryManager.Instance.HasCharacter(characterSlot.character.id));
     }
     public void IsBuy()
     {

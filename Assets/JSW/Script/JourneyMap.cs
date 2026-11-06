@@ -434,10 +434,13 @@ public sealed class JourneyMap : MonoBehaviour
         if (!RunSave.HasRun)
         {
             // 여정 첫 출발: 정비 기회가 적으니 지금 편성을 보여 주고 확인받는다 (JSW/Script/FormationPreview.cs, 2026-11-04)
+            // '나중에 출발': ESC를 눌러야만 닫히던 것이 불편해서 닫기 버튼을 둔다 (여정_첫_여정시작창.png, 2026-11-06)
             var dialog = ModalDialog.Show(place.Title, "이 편성으로 출발할까요?", "", null,
                 new ModalDialog.Option("이대로 출발", () => Enter(place)),
-                new ModalDialog.Option("편성 바꾸기", OpenFormation));
+                new ModalDialog.Option("편성 바꾸기", OpenFormation),
+                new ModalDialog.Option("나중에 출발", null));
             FormationPreview.Attach(dialog);
+            if (dialog != null) dialog.LayoutWideThenPair();
             return;
         }
         ModalDialog.Show(place.Title, $"{WithParticle(place.bossName)} 기다리고 있다.", "스테이지에 입장하시겠습니까?", null,

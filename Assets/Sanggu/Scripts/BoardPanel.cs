@@ -308,6 +308,7 @@ public class BoardPanel : MonoBehaviour
         _isLose = _isWin = false;
         _isResolvingBossPattern = false;
         bossImage.sprite = BattleDisplayManager.GetInstance().appearedBoss[^1].bossSprite;
+        BattleNameCards.Apply(this, BattleDisplayManager.GetInstance().appearedBoss[^1]);   // 위쪽 이름 카드 (JSW/Script/BattleNameCards.cs, 2026-11-06)
         if (boss.bossId != "death2")
         {
             reaperCurrentHp = reaperMaxHp;

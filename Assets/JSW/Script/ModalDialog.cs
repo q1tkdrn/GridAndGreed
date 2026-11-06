@@ -1,3 +1,4 @@
+using System.Linq;
 using System;
 using TMPro;
 using UnityEngine;
@@ -145,6 +146,30 @@ public sealed class ModalDialog : MonoBehaviour
         var cancel = _onCancel;
         Close();
         cancel?.Invoke();
+    }
+
+    /// <summary>
+    /// 버튼 배치: 첫 버튼은 넓게 한 줄, 나머지 두 개는 그 아래 반씩 나란히 (여정_첫_여정시작창.png, 2026-11-06).
+    /// 버튼이 3개일 때만 쓴다. 첫 여정 출발창: [이대로 출발] / [편성 바꾸기][나중에 출발]
+    /// </summary>
+    public void LayoutWideThenPair()
+    {
+        var body = GetComponentsInChildren<RectTransform>(true).FirstOrDefault(r => r.name == "RestartConfirmation");
+        if (body == null) return;
+        var wide = body.Find("Option0") as RectTransform;
+        var left = body.Find("Option1") as RectTransform;
+        var right = body.Find("Option2") as RectTransform;
+        if (wide == null || left == null || right == null) return;
+        const float wideY = -88f;            // 2개짜리 첫 버튼 자리 그대로
+        const float pairY = -207f;           // 그림 기준: 넓은 칸 아래 약 119
+        const float gap = 13f;
+        float width = wide.sizeDelta.x;
+        float half = (width - gap) * 0.5f;
+        float height = wide.sizeDelta.y * 1.2f;
+        wide.anchoredPosition = new Vector2(0f, wideY);
+        left.sizeDelta = right.sizeDelta = new Vector2(half, height);
+        left.anchoredPosition = new Vector2(-(half + gap) * 0.5f, pairY);
+        right.anchoredPosition = new Vector2((half + gap) * 0.5f, pairY);
     }
 
     public void Close()

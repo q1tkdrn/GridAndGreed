@@ -133,7 +133,10 @@ public sealed class EscMenu : MonoBehaviour
         if (_instance == null || _instance._isOpen) return false;
         if (ModalDialog.BlocksEscape) return false;
         // 톱니는 여정 지도 위에도 있다 (JourneyMap.BuildGear). 지도는 메뉴 뒤에 그대로 남는다. (2026-11-05)
-        var style = StyleFor(SceneManager.GetActiveScene().name);
+        var scene = SceneManager.GetActiveScene().name;
+        var style = StyleFor(scene);
+        // 상점 톱니(GearHud)는 마을 메뉴를 연다. ESC 키로는 상점에서 열리지 않는다. (2026-11-06)
+        if (style == Style.None && (scene == "Item" || scene == "Character" || scene == "Skin")) style = Style.Village;
         if (style == Style.None) return false;
         _instance.Open(style);
         return true;
@@ -234,6 +237,16 @@ public sealed class EscMenu : MonoBehaviour
 
     private void BuildBackdrop()
     {
+        // 상점(톱니로 연 마을 메뉴): 오른쪽의 밝은 설명 카드 위에서 메뉴 글자가 묻혀서 전체를 한 번 더 어둡게 (2026-11-06)
+        var scene = SceneManager.GetActiveScene().name;
+        if (_style == Style.Village && (scene == "Item" || scene == "Character" || scene == "Skin"))
+        {
+            var dim = NewRect("ShopDim", _root);
+            Stretch(dim);
+            var dimImage = dim.gameObject.AddComponent<Image>();
+            dimImage.color = new Color(0f, 0f, 0f, 0.6f);
+            dimImage.raycastTarget = false;
+        }
         var backdrop = NewRect("Backdrop", _root);
         Stretch(backdrop);
         var image = backdrop.gameObject.AddComponent<Image>();
